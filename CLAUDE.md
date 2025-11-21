@@ -2,6 +2,20 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Important: Read AGENTS.md First
+
+**Before working on this project, always read `AGENTS.md` for detailed guidelines:**
+- Phoenix v1.8 specific patterns and conventions
+- Elixir language best practices and common pitfalls
+- LiveView development guidelines and streams usage
+- HEEx template syntax and interpolation rules
+- Tailwind CSS v4 configuration and usage
+- UI/UX design principles for this project
+- Testing patterns with Phoenix.LiveViewTest
+- Mix task usage and debugging
+
+`AGENTS.md` contains comprehensive, framework-specific guidelines that complement the architecture and workflow information in this file.
+
 ## Project Overview
 
 Medishop is a Phoenix 1.8 web application built with:
@@ -46,7 +60,8 @@ mix assets.deploy         # Build and minify for production
 ```bash
 mix ash.setup             # Create database and run migrations
 mix ash.reset             # Drop and recreate database
-mix ash.codegen           # Generate migrations from Ash resource changes
+mix ash.codegen           # Generate migrations from Ash resource changes (production-ready)
+mix ash.codegen --dev     # Generate migrations for development (see Snapshots section)
 ```
 
 ## Architecture
@@ -107,13 +122,224 @@ Medishop uses Ash Framework's domain-driven architecture:
 
 ## Key Development Patterns
 
-### Working with Ash Resources
+### Git Commit Workflow (CRITICAL)
 
-When modifying data schemas:
-1. Update the resource definition in `lib/medishop/domain_name/resource_name.ex`
-2. Run `mix ash.codegen` to generate migrations from resource changes
-3. Migrations are stored as JSON snapshots in `priv/resource_snapshots/`
-4. Run `mix ash.setup` to apply migrations
+**When you believe work is ready to be committed, always ask the user first:**
+
+1. **Never commit proactively** - always ask permission before creating commits
+2. **Ask when appropriate**:
+   - After completing a feature or bug fix
+   - After updating the changelog
+   - When production migrations have been generated
+   - When tests are passing and code is working
+
+3. **Example prompt to user**:
+   > "I've completed [description of work] and updated the changelog. The changes are tested and working. Would you like me to commit these changes to git?"
+
+4. **Good commit message format**:
+   ```
+   <type>: <short summary in imperative mood>
+
+   <optional detailed description>
+
+   - Additional bullet points if needed
+   - Reference to issue numbers if applicable
+
+   🤖 Generated with Claude Code
+   Co-Authored-By: Claude <noreply@anthropic.com>
+   ```
+
+5. **Commit message types**:
+   - `feat`: New feature or functionality
+   - `fix`: Bug fix
+   - `refactor`: Code restructuring without behavior change
+   - `docs`: Documentation changes
+   - `test`: Adding or modifying tests
+   - `chore`: Maintenance tasks (deps, config, etc.)
+   - `perf`: Performance improvements
+   - `style`: Code style/formatting changes
+
+6. **Commit message examples**:
+   ```
+   feat: add Product resource with inventory tracking
+
+   - Created Medishop.Products.Product resource
+   - Added attributes: name, description, price, inventory_count
+   - Configured AshPostgres data layer
+   - Generated migrations and snapshots
+   - Added JSON:API endpoints at /api/json/products
+
+   🤖 Generated with Claude Code
+   Co-Authored-By: Claude <noreply@anthropic.com>
+   ```
+
+   ```
+   fix: resolve magic link email sending in development
+
+   Updated Swoosh adapter configuration in config/dev.exs to use
+   local mailbox instead of test adapter.
+
+   🤖 Generated with Claude Code
+   Co-Authored-By: Claude <noreply@anthropic.com>
+   ```
+
+7. **What to commit**:
+   - Source code changes in `lib/`
+   - Test files in `test/`
+   - Ash snapshots in `priv/resource_snapshots/`
+   - Migrations in `priv/repo/migrations/`
+   - Configuration changes in `config/`
+   - Updated `CHANGELOG.md`
+   - Asset changes in `assets/` if applicable
+
+8. **Never commit without asking** - even if everything seems ready
+
+### Changelog Maintenance (REQUIRED)
+
+**After completing ANY work session, update CHANGELOG.md:**
+
+1. **Always update the changelog** when you finish a piece of work (bug fix, new feature, refactoring, etc.)
+2. **Format**: Use date-based sections with descriptive summaries
+3. **Location**: `CHANGELOG.md` in the project root (create if it doesn't exist)
+4. **Structure**: Follow this format:
+
+```markdown
+# Changelog
+
+## 2025-11-21
+
+### Added
+- New Product resource with attributes for name, description, price, and inventory
+- JSON:API endpoints for products at `/api/json/products`
+- Admin interface integration for product management
+
+### Changed
+- Updated User resource to include `role` field for authorization
+- Modified authentication flow to support admin users
+
+### Fixed
+- Resolved issue with magic link emails not sending in development
+- Fixed navigation bar responsive layout on mobile devices
+
+## 2025-11-20
+
+### Added
+- Initial project setup with Ash Framework and Phoenix LiveView
+```
+
+5. **What to include**:
+   - **Added**: New features, resources, components, or functionality
+   - **Changed**: Modifications to existing functionality
+   - **Fixed**: Bug fixes and corrections
+   - **Removed**: Deleted features or code (if applicable)
+   - **Technical details**: Mention file paths, resource names, or component names for clarity
+
+6. **When to update**:
+   - At the end of each work session
+   - Before asking user to finalize with production migrations
+   - After implementing any significant feature or fix
+   - **Never skip this step** - it helps track project evolution and assists future Claude instances
+
+### Ash Migration Workflow (CRITICAL)
+
+**When working on ANY resource changes, follow this workflow:**
+
+1. **Start with development migrations**: Always use `mix ash.codegen --dev` for initial work
+2. **Iterate freely**: Make changes, run `mix ash.codegen --dev`, test, repeat
+3. **Test thoroughly**: Ensure the resource changes work as expected
+4. **Ask before finalizing**: When you believe the work is complete, ask the user:
+   > "I've completed the resource changes and tested them with development migrations. Would you like me to generate production-ready migrations with `mix ash.codegen` so we can commit these changes?"
+5. **Generate production migrations only after approval**: Run `mix ash.codegen` (without --dev)
+6. **Never generate production migrations proactively** - always confirm with the user first
+
+### Working with Ash Resources and Snapshots
+
+Ash uses a **snapshot-based migration system** instead of traditional migration files. Snapshots are JSON representations of your resource schemas stored in `priv/resource_snapshots/repo/<resource_name>/`.
+
+#### How Snapshots Work
+
+1. **Snapshots are version history**: Each time you run `mix ash.codegen`, Ash:
+   - Compares current resource definitions with the latest snapshot
+   - Detects schema changes (new fields, modified types, etc.)
+   - Generates a new timestamped snapshot (e.g., `20251121101114.json`)
+   - Creates corresponding Ecto migrations in `priv/repo/migrations/`
+
+2. **Snapshots track state, not changes**: Unlike traditional migrations that describe changes, snapshots describe the complete state of your resources at a point in time. Ash diffs snapshots to generate migrations.
+
+#### Development vs Production Migrations
+
+**ALWAYS start with `mix ash.codegen --dev` for any resource changes**:
+- Creates migrations marked as "development only"
+- Allows you to experiment without committing to permanent migration history
+- Can be squashed or replaced later with production migrations
+- Safe for iterative development when you're still refining the data model
+- **This should be your default when working on resources**
+
+**Switch to `mix ash.codegen` (without --dev) only when**:
+- You're ready to commit changes to version control
+- The schema change should be permanent and tracked in migration history
+- You're working on a feature branch ready for review
+- In production environments (CI/CD pipelines)
+- **IMPORTANT**: Before switching, ask the user if they're ready to create production migrations
+
+#### Typical Workflow
+
+**During active development:**
+```bash
+# 1. Modify resource attributes/relationships
+# 2. Generate development migration
+mix ash.codegen --dev
+# 3. Apply migration to local database
+mix ash.migrate
+# 4. Test changes
+# 5. Repeat steps 1-4 as needed
+```
+
+**When ready to finalize (ask user first):**
+```bash
+# Step 1: Ask user if ready for production migrations
+# "I've completed the resource changes and tested them with development
+# migrations. Would you like me to generate production-ready migrations?"
+
+# After user approval:
+# - Optionally reset database to clean up dev migrations: mix ash.reset
+mix ash.codegen
+
+# Step 2: Update CHANGELOG.md with the changes made
+
+# Step 3: Ask user about committing
+# "I've generated production migrations and updated the changelog.
+# Would you like me to commit these changes to git?"
+
+# After user approval:
+git add lib/ priv/ CHANGELOG.md
+git commit -m "$(cat <<'EOF'
+feat: add new fields to User resource
+
+- Added role field for authorization
+- Added last_login_at timestamp
+- Updated migrations and snapshots
+
+🤖 Generated with Claude Code
+Co-Authored-By: Claude <noreply@anthropic.com>
+EOF
+)"
+```
+
+**Example conversation flow:**
+1. You: "I've completed the resource changes and tested them with development migrations. Would you like me to generate production-ready migrations with `mix ash.codegen`?"
+2. User approves → run `mix ash.codegen` and update changelog
+3. You: "I've generated production migrations and updated the changelog. The changes are tested and working. Would you like me to commit these changes to git?"
+4. User approves → create git commit with descriptive message
+
+#### Important Notes
+
+- **Always use --dev flag first** - start all resource work with `mix ash.codegen --dev`, then ask the user before generating production migrations
+- **Never edit snapshots manually** - always modify resource definitions and regenerate
+- **Commit snapshots to git** - they're part of your schema history
+- **Migration files are generated from snapshots** - don't edit them manually either
+- If you have multiple --dev migrations, you may want to `mix ash.reset` and regenerate a single clean migration before committing
+- **Ask before finalizing** - when you think the resource changes are complete and tested, ask the user if they want to generate production migrations with `mix ash.codegen`
 
 ### Adding New Resources
 
@@ -121,14 +347,20 @@ When modifying data schemas:
 2. Add to appropriate domain's `resources` block
 3. Configure data layer (e.g., `postgres do ... end`)
 4. Define attributes, actions, and relationships
-5. Run `mix ash.codegen` to generate database schema
+5. Run `mix ash.codegen --dev` (for experimentation) or `mix ash.codegen` (when ready to commit)
+6. Run `mix ash.migrate` to create the database table
+7. First snapshot for the resource will be created in `priv/resource_snapshots/repo/<resource_name>/`
 
 ### LiveView Development
 
-- Use streams for collections (see AGENTS.md LiveView guidelines)
+**See `AGENTS.md` for comprehensive LiveView guidelines.** Key points:
+- Use streams for collections (never use regular list assigns for large collections)
 - Always add unique DOM IDs to key elements for testing
 - Import Mishka components via `MedishopWeb.Components.MishkaComponents`
 - Layouts module is pre-aliased as `Layouts`
+- Always wrap content with `<Layouts.app flash={@flash} ...>`
+- HEEx syntax: use `{...}` for attribute interpolation, `<%= ... %>` for block constructs
+- Read AGENTS.md sections on LiveView streams, HEEx templates, and Phoenix HTML guidelines
 
 ### API Development
 
@@ -139,6 +371,9 @@ When modifying data schemas:
 
 ## Important Notes
 
+- **Read AGENTS.md**: Always consult `AGENTS.md` for detailed Elixir, Phoenix, LiveView, and testing guidelines
+- **Git Commits**: Never commit without asking the user first - always seek permission before creating commits
+- **Changelog**: Always update `CHANGELOG.md` after completing work - this is mandatory, not optional
 - **HTTP Client**: Use `:req` (Req) for HTTP requests, avoid `:httpoison`, `:tesla`, `:httpc`
 - **Tailwind v4**: No `tailwind.config.js` needed; uses new `@import` syntax in `app.css`
 - **Component Library**: Mishka Chelekom provides 60+ components; use them instead of building from scratch
@@ -148,8 +383,11 @@ When modifying data schemas:
 
 ## Testing
 
+**See `AGENTS.md` for comprehensive testing guidelines.** Key points:
 - Use `Phoenix.LiveViewTest` for LiveView testing
 - Use `LazyHTML` for HTML assertions (included)
-- Reference element IDs from templates in tests
+- Reference element IDs from templates in tests (e.g., `#product-form`)
 - Test against actual HTML output, not mental models
-- See AGENTS.md for comprehensive LiveView testing guidelines
+- Use `element/2`, `has_element/2` instead of raw HTML assertions
+- Use `render_submit/2` and `render_change/2` for form testing
+- Read AGENTS.md "LiveView tests" section for detailed patterns and examples
