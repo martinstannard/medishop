@@ -49,6 +49,7 @@ defmodule Medishop.Accounts.User do
 
     read :get_by_email do
       description "Looks up a user by their email"
+      argument :email, :ci_string, allow_nil?: false
       get_by :email
     end
 
@@ -94,6 +95,10 @@ defmodule Medishop.Accounts.User do
       allow_nil? false
       public? true
     end
+  end
+
+  relationships do
+    has_many :organization_memberships, Medishop.Organizations.OrganizationMembership
   end
 
   identities do

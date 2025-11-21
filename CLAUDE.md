@@ -341,12 +341,148 @@ EOF
 - If you have multiple --dev migrations, you may want to `mix ash.reset` and regenerate a single clean migration before committing
 - **Ask before finalizing** - when you think the resource changes are complete and tested, ask the user if they want to generate production migrations with `mix ash.codegen`
 
+### Using Code Interfaces (CRITICAL)
+
+**NEVER use `Ash.Changeset` or `Ash.Query` directly. ALWAYS use domain interface functions.**
+
+Ash resources should expose **code interfaces** that provide clean, documented functions for interacting with resources. This pattern provides better encapsulation, clearer APIs, and more maintainable code.
+
+#### Why Use Code Interfaces
+
+✅ **DO**: Use domain interface functions
+```elixir
+# Clean, documented, discoverable API
+{:ok, user} = Organizations.create_organization(%{name: "Acme Corp"})
+{:ok, location} = Organizations.create_location(%{name: "HQ", organization_id: org.id})
+{:ok, orgs} = Organizations.list_organizations()
+```
+
+❌ **DON'T**: Use Ash.Changeset directly
+```elixir
+# Exposes implementation details, harder to test, less discoverable
+{:ok, user} =
+  Organization
+  |> Ash.Changeset.for_create(:create, %{name: "Acme Corp"})
+  |> Ash.create()
+```
+
+#### Adding Code Interfaces to Domain
+
+Code interfaces are defined in the **domain module**, not in the resource files. Add `define` calls inside each `resource` block in your domain:
+
+```elixir
+defmodule Medishop.Organizations do
+  use Ash.Domain, otp_app: :medishop
+
+  resources do
+    resource Medishop.Organizations.Organization do
+      # Create actions
+      define :create_organization, action: :create
+
+      # Read actions
+      define :list_organizations, action: :read
+      define :get_organization, action: :read, get_by: [:id]
+
+      # Update actions
+      define :update_organization, action: :update
+
+      # Destroy actions
+      define :destroy_organization, action: :destroy
+    end
+
+    resource Medishop.Organizations.Location do
+      define :create_location, action: :create
+      define :list_locations, action: :read
+      define :get_location, action: :read, get_by: [:id]
+      # For actions with arguments, those are inferred from the action definition
+      define :get_locations_by_organization, action: :get_by_organization
+    end
+  end
+end
+```
+
+**Important**: The `define` calls go in the **domain module's `resources` block**, not in the resource files themselves.
+
+#### Calling Interface Functions
+
+Once defined, call functions on the domain module:
+
+```elixir
+# Create
+{:ok, org} = Medishop.Organizations.create_organization(%{
+  name: "Acme Medical Supply",
+  active: true
+})
+
+# Read
+{:ok, organizations} = Medishop.Organizations.list_organizations()
+{:ok, org} = Medishop.Organizations.get_by_id(org_id)
+
+# Update
+{:ok, updated_org} = Medishop.Organizations.update(org, %{name: "New Name"})
+
+# Destroy
+:ok = Medishop.Organizations.destroy(org)
+
+# Custom read actions with arguments
+{:ok, user_memberships} = Medishop.Organizations.for_user(%{user_id: user.id})
+```
+
+#### Interface Functions in Seeds and Tests
+
+**Seeds** (`priv/repo/seeds.exs`):
+```elixir
+# Use interface functions for all resource creation
+{:ok, org} = Organizations.create_organization(%{name: "Acme Corp"})
+{:ok, location} = Organizations.create_location(%{
+  name: "HQ",
+  organization_id: org.id
+})
+```
+
+**Tests** (`test/medishop/*/`):
+```elixir
+test "creates organization membership" do
+  # Use fixtures or interface functions
+  user = user_fixture()
+  org = organization_fixture()
+
+  # Call interface function
+  assert {:ok, membership} = Organizations.create_membership(%{
+    user_id: user.id,
+    organization_id: org.id,
+    org_roles: [:org_admin]
+  })
+
+  assert membership.user_id == user.id
+end
+```
+
+#### When Adding New Resources
+
+1. Define the resource module with `use Ash.Resource`
+2. Configure data layer (e.g., `postgres do ... end`)
+3. Define attributes, actions, and relationships
+4. **Add `define` calls in the domain module's `resources` block** for all actions you want to expose
+5. Run `mix ash.codegen --dev` to generate migrations
+6. Test using the interface functions you defined
+
+#### Important Notes
+
+- **Never use `Ash.Changeset.for_create/update/destroy` directly** - always use interface functions
+- **Never use `Ash.Query.for_read` directly** - always use interface functions
+- **Interface functions handle authorization** - they respect policies defined on resources
+- **Add interfaces for ALL actions** you need to call - create, read, update, destroy, and custom actions
+- **Use descriptive names** - `create_organization` is clearer than just `create`
+- **Seeds and tests must use interface functions** - no direct Changeset usage anywhere
+- **Define interfaces in the domain module** - not in resource files
+
 ### Adding New Resources
 
 1. Define the resource module with `use Ash.Resource`
-2. Add to appropriate domain's `resources` block
-3. Configure data layer (e.g., `postgres do ... end`)
-4. Define attributes, actions, and relationships
+2. Configure data layer (e.g., `postgres do ... end`)
+3. Define attributes, actions, and relationships
+4. **Add resource to domain's `resources` block with `define` calls** for all actions
 5. Run `mix ash.codegen --dev` (for experimentation) or `mix ash.codegen` (when ready to commit)
 6. Run `mix ash.migrate` to create the database table
 7. First snapshot for the resource will be created in `priv/resource_snapshots/repo/<resource_name>/`
