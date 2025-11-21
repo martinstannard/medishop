@@ -1,259 +1,550 @@
-This is a web application written using the Phoenix web framework.
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Important: Read AGENTS.md First
+
+**Before working on this project, always read `AGENTS.md` for detailed guidelines:**
+- Phoenix v1.8 specific patterns and conventions
+- Elixir language best practices and common pitfalls
+- LiveView development guidelines and streams usage
+- HEEx template syntax and interpolation rules
+- Tailwind CSS v4 configuration and usage
+- UI/UX design principles for this project
+- Testing patterns with Phoenix.LiveViewTest
+- Mix task usage and debugging
+
+`AGENTS.md` contains comprehensive, framework-specific guidelines that complement the architecture and workflow information in this file.
+
+## Development Workflow Instructions
+
+**For general development workflow and best practices, read the instructions in `docs/instructions/`:**
+- **01-understanding-the-task.md**: Clarifying requirements and defining acceptance criteria
+- **02-planning-and-documentation.md**: Creating comprehensive plans and documentation
+- **03-development-workflow.md**: Breaking work into commits and maintaining code quality
+- **04-testing-and-quality.md**: ExUnit testing patterns, TDD approach, and static analysis
+- **05-delivery-and-changelog.md**: Updating changelogs and creating pull requests
+- **06-communication.md**: Proactive and effective communication practices
+- **07-security-best-practices.md**: Security-focused development for Elixir/Phoenix/Ash
+
+These instructions provide structured guidance on:
+- How to break down work into small, manageable commits
+- When and how to ask for clarification
+- Testing methodology (TDD approach with ExUnit)
+- Maintaining CHANGELOG.md and PROGRESS.md
+- Code quality standards (formatting, Credo, Dialyzer)
+- Security best practices specific to this stack
+
+**Start by reading `docs/instructions/README.md` for an overview.**
+
+## Project Overview
+
+Medishop is a Phoenix 1.8 web application built with:
+- **Ash Framework 3.0**: Domain-driven design with resources, domains, and actions
+- **AshAuthentication**: Magic link authentication with token management
+- **AshPostgres**: PostgreSQL data layer for Ash resources
+- **AshJsonApi**: JSON:API endpoints with OpenAPI/Swagger documentation
+- **AshAdmin**: Auto-generated admin interface at `/admin` (dev only)
+- **Phoenix LiveView 1.1**: Server-rendered interactive UI
+- **Mishka Chelekom**: Comprehensive UI component library (60+ components)
+- **Tailwind CSS v4**: Utility-first styling with new import syntax
+
+## Essential Commands
+
+### Setup and Development
+```bash
+mix setup                    # Install deps, setup Ash resources, build assets
+mix phx.server              # Start development server (localhost:4000)
+iex -S mix phx.server       # Start with interactive shell
+```
+
+### Testing
+```bash
+mix test                    # Run all tests
+mix test test/path/file.exs # Run specific test file
+mix test --failed          # Re-run only failed tests
+```
+
+### Code Quality (Pre-commit)
+```bash
+mix precommit              # Run before committing: compile with warnings as errors,
+                          # unlock unused deps, format, and test
+```
+
+### Assets
+```bash
+mix assets.build          # Build CSS and JS for development
+mix assets.deploy         # Build and minify for production
+```
+
+### Database (via Ash)
+```bash
+mix ash.setup             # Create database and run migrations
+mix ash.reset             # Drop and recreate database
+mix ash.codegen           # Generate migrations from Ash resource changes (production-ready)
+mix ash.codegen --dev     # Generate migrations for development (see Snapshots section)
+```
+
+## Architecture
+
+### Ash Framework Structure
+
+Medishop uses Ash Framework's domain-driven architecture:
+
+- **Domains** (`lib/medishop/`): Group related resources
+  - `Medishop.Accounts`: User authentication and token management
+  - Each domain uses `use Ash.Domain` and declares its resources
+
+- **Resources** (`lib/medishop/*/`): Define data schemas, actions, and business logic
+  - `Medishop.Accounts.User`: User resource with magic link authentication
+  - `Medishop.Accounts.Token`: Authentication tokens
+  - Resources use `use Ash.Resource` with extensions (AshPostgres, AshAuthentication, etc.)
+  - Actions are defined in resource `actions` blocks (not Phoenix controllers)
+
+- **Data Layer**: AshPostgres provides PostgreSQL integration
+  - Migrations stored in `priv/resource_snapshots/` as JSON snapshots
+  - Generate migrations with `mix ash.codegen` after resource changes
+
+### Authentication Flow
+
+- **AshAuthentication** with magic link strategy (passwordless)
+- Email-based sign-in via `Medishop.Accounts.User.request_magic_link` action
+- Token-based session management with `Medishop.Accounts.Token` resource
+- Auth routes defined in router using `auth_routes`, `sign_in_route`, `reset_route`
+- LiveView auth via `MedishopWeb.LiveUserAuth` on_mount hooks:
+  - `:live_user_required` - authenticated user must be present
+  - `:live_user_optional` - authenticated user may be present
+  - `:live_no_user` - authenticated user must not be present
+
+### Web Layer Structure
+
+- **Router** (`lib/medishop_web/router.ex`):
+  - `:browser` pipeline with session and CSRF protection
+  - `:api` pipeline with bearer token authentication
+  - `ash_authentication_live_session :authenticated_routes` for protected LiveViews
+  - JSON:API routes at `/api/json` with Swagger UI at `/api/json/swaggerui`
+
+- **Components** (`lib/medishop_web/components/`):
+  - `core_components.ex`: Phoenix default components
+  - `mishka_components.ex`: Entry point for Mishka Chelekom UI library
+  - 60+ pre-built components (buttons, forms, cards, tables, etc.)
+  - Components imported app-wide via `use MedishopWeb.Components.MishkaComponents` in `medishop_web.ex`
 
-## Project guidelines
+- **Layouts** (`lib/medishop_web/components/layouts/`):
+  - Aliased as `Layouts` in all LiveViews/Components
+  - Always wrap LiveView content with `<Layouts.app flash={@flash} ...>`
+
+### Configuration
+
+- Standard Phoenix config structure in `config/`
+- Ash configuration in `config/config.exs` (policies, pagination, transactions)
+- `.formatter.exs` includes Ash-specific import_deps and Spark.Formatter plugin
+- Tailwind v4 configured in `assets/css/app.css` with `@import "tailwindcss"` syntax
+
+## Key Development Patterns
 
-- Use `mix precommit` alias when you are done with all changes and fix any pending issues
-- Use the already included and available `:req` (`Req`) library for HTTP requests, **avoid** `:httpoison`, `:tesla`, and `:httpc`. Req is included by default and is the preferred HTTP client for Phoenix apps
+### Git Commit Workflow (CRITICAL)
 
-### Phoenix v1.8 guidelines
+**When you believe work is ready to be committed, always ask the user first:**
 
-- **Always** begin your LiveView templates with `<Layouts.app flash={@flash} ...>` which wraps all inner content
-- The `MyAppWeb.Layouts` module is aliased in the `my_app_web.ex` file, so you can use it without needing to alias it again
-- Anytime you run into errors with no `current_scope` assign:
-  - You failed to follow the Authenticated Routes guidelines, or you failed to pass `current_scope` to `<Layouts.app>`
-  - **Always** fix the `current_scope` error by moving your routes to the proper `live_session` and ensure you pass `current_scope` as needed
-- Phoenix v1.8 moved the `<.flash_group>` component to the `Layouts` module. You are **forbidden** from calling `<.flash_group>` outside of the `layouts.ex` module
-- Out of the box, `core_components.ex` imports an `<.icon name="hero-x-mark" class="w-5 h-5"/>` component for for hero icons. **Always** use the `<.icon>` component for icons, **never** use `Heroicons` modules or similar
-- **Always** use the imported `<.input>` component for form inputs from `core_components.ex` when available. `<.input>` is imported and using it will will save steps and prevent errors
-- If you override the default input classes (`<.input class="myclass px-2 py-1 rounded-lg">)`) class with your own values, no default classes are inherited, so your
-custom classes must fully style the input
+1. **Never commit proactively** - always ask permission before creating commits
+2. **Ask when appropriate**:
+   - After completing a feature or bug fix
+   - After updating the changelog
+   - When production migrations have been generated
+   - When tests are passing and code is working
+
+3. **Example prompt to user**:
+   > "I've completed [description of work] and updated the changelog. The changes are tested and working. Would you like me to commit these changes to git?"
+
+4. **Good commit message format**:
+   ```
+   <type>: <short summary in imperative mood>
+
+   <optional detailed description>
+
+   - Additional bullet points if needed
+   - Reference to issue numbers if applicable
 
-### JS and CSS guidelines
+   🤖 Generated with Claude Code
+   Co-Authored-By: Claude <noreply@anthropic.com>
+   ```
+
+5. **Commit message types**:
+   - `feat`: New feature or functionality
+   - `fix`: Bug fix
+   - `refactor`: Code restructuring without behavior change
+   - `docs`: Documentation changes
+   - `test`: Adding or modifying tests
+   - `chore`: Maintenance tasks (deps, config, etc.)
+   - `perf`: Performance improvements
+   - `style`: Code style/formatting changes
 
-- **Use Tailwind CSS classes and custom CSS rules** to create polished, responsive, and visually stunning interfaces.
-- Tailwindcss v4 **no longer needs a tailwind.config.js** and uses a new import syntax in `app.css`:
+6. **Commit message examples**:
+   ```
+   feat: add Product resource with inventory tracking
+
+   - Created Medishop.Products.Product resource
+   - Added attributes: name, description, price, inventory_count
+   - Configured AshPostgres data layer
+   - Generated migrations and snapshots
+   - Added JSON:API endpoints at /api/json/products
 
-      @import "tailwindcss" source(none);
-      @source "../css";
-      @source "../js";
-      @source "../../lib/my_app_web";
+   🤖 Generated with Claude Code
+   Co-Authored-By: Claude <noreply@anthropic.com>
+   ```
 
-- **Always use and maintain this import syntax** in the app.css file for projects generated with `phx.new`
-- **Never** use `@apply` when writing raw css
-- **Always** manually write your own tailwind-based components instead of using daisyUI for a unique, world-class design
-- Out of the box **only the app.js and app.css bundles are supported**
-  - You cannot reference an external vendor'd script `src` or link `href` in the layouts
-  - You must import the vendor deps into app.js and app.css to use them
-  - **Never write inline <script>custom js</script> tags within templates**
+   ```
+   fix: resolve magic link email sending in development
 
-### UI/UX & design guidelines
-
-- **Produce world-class UI designs** with a focus on usability, aesthetics, and modern design principles
-- Implement **subtle micro-interactions** (e.g., button hover effects, and smooth transitions)
-- Ensure **clean typography, spacing, and layout balance** for a refined, premium look
-- Focus on **delightful details** like hover effects, loading states, and smooth page transitions
-
-
-<!-- usage-rules-start -->
-
-<!-- phoenix:elixir-start -->
-## Elixir guidelines
-
-- Elixir lists **do not support index based access via the access syntax**
-
-  **Never do this (invalid)**:
-
-      i = 0
-      mylist = ["blue", "green"]
-      mylist[i]
-
-  Instead, **always** use `Enum.at`, pattern matching, or `List` for index based list access, ie:
-
-      i = 0
-      mylist = ["blue", "green"]
-      Enum.at(mylist, i)
-
-- Elixir variables are immutable, but can be rebound, so for block expressions like `if`, `case`, `cond`, etc
-  you *must* bind the result of the expression to a variable if you want to use it and you CANNOT rebind the result inside the expression, ie:
-
-      # INVALID: we are rebinding inside the `if` and the result never gets assigned
-      if connected?(socket) do
-        socket = assign(socket, :val, val)
-      end
-
-      # VALID: we rebind the result of the `if` to a new variable
-      socket =
-        if connected?(socket) do
-          assign(socket, :val, val)
-        end
-
-- **Never** nest multiple modules in the same file as it can cause cyclic dependencies and compilation errors
-- **Never** use map access syntax (`changeset[:field]`) on structs as they do not implement the Access behaviour by default. For regular structs, you **must** access the fields directly, such as `my_struct.field` or use higher level APIs that are available on the struct if they exist, `Ecto.Changeset.get_field/2` for changesets
-- Elixir's standard library has everything necessary for date and time manipulation. Familiarize yourself with the common `Time`, `Date`, `DateTime`, and `Calendar` interfaces by accessing their documentation as necessary. **Never** install additional dependencies unless asked or for date/time parsing (which you can use the `date_time_parser` package)
-- Don't use `String.to_atom/1` on user input (memory leak risk)
-- Predicate function names should not start with `is_` and should end in a question mark. Names like `is_thing` should be reserved for guards
-- Elixir's builtin OTP primitives like `DynamicSupervisor` and `Registry`, require names in the child spec, such as `{DynamicSupervisor, name: MyApp.MyDynamicSup}`, then you can use `DynamicSupervisor.start_child(MyApp.MyDynamicSup, child_spec)`
-- Use `Task.async_stream(collection, callback, options)` for concurrent enumeration with back-pressure. The majority of times you will want to pass `timeout: :infinity` as option
-
-## Mix guidelines
-
-- Read the docs and options before using tasks (by using `mix help task_name`)
-- To debug test failures, run tests in a specific file with `mix test test/my_test.exs` or run all previously failed tests with `mix test --failed`
-- `mix deps.clean --all` is **almost never needed**. **Avoid** using it unless you have good reason
-<!-- phoenix:elixir-end -->
-
-<!-- phoenix:phoenix-start -->
-## Phoenix guidelines
-
-- Remember Phoenix router `scope` blocks include an optional alias which is prefixed for all routes within the scope. **Always** be mindful of this when creating routes within a scope to avoid duplicate module prefixes.
-
-- You **never** need to create your own `alias` for route definitions! The `scope` provides the alias, ie:
-
-      scope "/admin", AppWeb.Admin do
-        pipe_through :browser
-
-        live "/users", UserLive, :index
-      end
-
-  the UserLive route would point to the `AppWeb.Admin.UserLive` module
-
-- `Phoenix.View` no longer is needed or included with Phoenix, don't use it
-<!-- phoenix:phoenix-end -->
-
-
-<!-- phoenix:html-start -->
-## Phoenix HTML guidelines
-
-- Phoenix templates **always** use `~H` or .html.heex files (known as HEEx), **never** use `~E`
-- **Always** use the imported `Phoenix.Component.form/1` and `Phoenix.Component.inputs_for/1` function to build forms. **Never** use `Phoenix.HTML.form_for` or `Phoenix.HTML.inputs_for` as they are outdated
-- When building forms **always** use the already imported `Phoenix.Component.to_form/2` (`assign(socket, form: to_form(...))` and `<.form for={@form} id="msg-form">`), then access those forms in the template via `@form[:field]`
-- **Always** add unique DOM IDs to key elements (like forms, buttons, etc) when writing templates, these IDs can later be used in tests (`<.form for={@form} id="product-form">`)
-- For "app wide" template imports, you can import/alias into the `my_app_web.ex`'s `html_helpers` block, so they will be available to all LiveViews, LiveComponent's, and all modules that do `use MyAppWeb, :html` (replace "my_app" by the actual app name)
-
-- Elixir supports `if/else` but **does NOT support `if/else if` or `if/elsif`. **Never use `else if` or `elseif` in Elixir**, **always** use `cond` or `case` for multiple conditionals.
-
-  **Never do this (invalid)**:
-
-      <%= if condition do %>
-        ...
-      <% else if other_condition %>
-        ...
-      <% end %>
-
-  Instead **always** do this:
-
-      <%= cond do %>
-        <% condition -> %>
-          ...
-        <% condition2 -> %>
-          ...
-        <% true -> %>
-          ...
-      <% end %>
-
-- HEEx require special tag annotation if you want to insert literal curly's like `{` or `}`. If you want to show a textual code snippet on the page in a `<pre>` or `<code>` block you *must* annotate the parent tag with `phx-no-curly-interpolation`:
-
-      <code phx-no-curly-interpolation>
-        let obj = {key: "val"}
-      </code>
-
-  Within `phx-no-curly-interpolation` annotated tags, you can use `{` and `}` without escaping them, and dynamic Elixir expressions can still be used with `<%= ... %>` syntax
-
-- HEEx class attrs support lists, but you must **always** use list `[...]` syntax. You can use the class list syntax to conditionally add classes, **always do this for multiple class values**:
-
-      <a class={[
-        "px-2 text-white",
-        @some_flag && "py-5",
-        if(@other_condition, do: "border-red-500", else: "border-blue-100"),
-        ...
-      ]}>Text</a>
-
-  and **always** wrap `if`'s inside `{...}` expressions with parens, like done above (`if(@other_condition, do: "...", else: "...")`)
-
-  and **never** do this, since it's invalid (note the missing `[` and `]`):
-
-      <a class={
-        "px-2 text-white",
-        @some_flag && "py-5"
-      }> ...
-      => Raises compile syntax error on invalid HEEx attr syntax
-
-- **Never** use `<% Enum.each %>` or non-for comprehensions for generating template content, instead **always** use `<%= for item <- @collection do %>`
-- HEEx HTML comments use `<%!-- comment --%>`. **Always** use the HEEx HTML comment syntax for template comments (`<%!-- comment --%>`)
-- HEEx allows interpolation via `{...}` and `<%= ... %>`, but the `<%= %>` **only** works within tag bodies. **Always** use the `{...}` syntax for interpolation within tag attributes, and for interpolation of values within tag bodies. **Always** interpolate block constructs (if, cond, case, for) within tag bodies using `<%= ... %>`.
-
-  **Always** do this:
-
-      <div id={@id}>
-        {@my_assign}
-        <%= if @some_block_condition do %>
-          {@another_assign}
-        <% end %>
-      </div>
-
-  and **Never** do this – the program will terminate with a syntax error:
-
-      <%!-- THIS IS INVALID NEVER EVER DO THIS --%>
-      <div id="<%= @invalid_interpolation %>">
-        {if @invalid_block_construct do}
-        {end}
-      </div>
-<!-- phoenix:html-end -->
-
-<!-- phoenix:liveview-start -->
-## Phoenix LiveView guidelines
-
-- **Never** use the deprecated `live_redirect` and `live_patch` functions, instead **always** use the `<.link navigate={href}>` and  `<.link patch={href}>` in templates, and `push_navigate` and `push_patch` functions LiveViews
-- **Avoid LiveComponent's** unless you have a strong, specific need for them
-- LiveViews should be named like `AppWeb.WeatherLive`, with a `Live` suffix. When you go to add LiveView routes to the router, the default `:browser` scope is **already aliased** with the `AppWeb` module, so you can just do `live "/weather", WeatherLive`
-- Remember anytime you use `phx-hook="MyHook"` and that js hook manages its own DOM, you **must** also set the `phx-update="ignore"` attribute
-- **Never** write embedded `<script>` tags in HEEx. Instead always write your scripts and hooks in the `assets/js` directory and integrate them with the `assets/js/app.js` file
-
-### LiveView streams
-
-- **Always** use LiveView streams for collections for assigning regular lists to avoid memory ballooning and runtime termination with the following operations:
-  - basic append of N items - `stream(socket, :messages, [new_msg])`
-  - resetting stream with new items - `stream(socket, :messages, [new_msg], reset: true)` (e.g. for filtering items)
-  - prepend to stream - `stream(socket, :messages, [new_msg], at: -1)`
-  - deleting items - `stream_delete(socket, :messages, msg)`
-
-- When using the `stream/3` interfaces in the LiveView, the LiveView template must 1) always set `phx-update="stream"` on the parent element, with a DOM id on the parent element like `id="messages"` and 2) consume the `@streams.stream_name` collection and use the id as the DOM id for each child. For a call like `stream(socket, :messages, [new_msg])` in the LiveView, the template would be:
-
-      <div id="messages" phx-update="stream">
-        <div :for={{id, msg} <- @streams.messages} id={id}>
-          {msg.text}
-        </div>
-      </div>
-
-- LiveView streams are *not* enumerable, so you cannot use `Enum.filter/2` or `Enum.reject/2` on them. Instead, if you want to filter, prune, or refresh a list of items on the UI, you **must refetch the data and re-stream the entire stream collection, passing reset: true**:
-
-      def handle_event("filter", %{"filter" => filter}, socket) do
-        # re-fetch the messages based on the filter
-        messages = list_messages(filter)
-
-        {:noreply,
-        socket
-        |> assign(:messages_empty?, messages == [])
-        # reset the stream with the new messages
-        |> stream(:messages, messages, reset: true)}
-      end
-
-- LiveView streams *do not support counting or empty states*. If you need to display a count, you must track it using a separate assign. For empty states, you can use Tailwind classes:
-
-      <div id="tasks" phx-update="stream">
-        <div class="hidden only:block">No tasks yet</div>
-        <div :for={{id, task} <- @stream.tasks} id={id}>
-          {task.name}
-        </div>
-      </div>
-
-  The above only works if the empty state is the only HTML block alongside the stream for-comprehension.
-
-- **Never** use the deprecated `phx-update="append"` or `phx-update="prepend"` for collections
-
-### LiveView tests
-
-- `Phoenix.LiveViewTest` module and `LazyHTML` (included) for making your assertions
-- Form tests are driven by `Phoenix.LiveViewTest`'s `render_submit/2` and `render_change/2` functions
-- Come up with a step-by-step test plan that splits major test cases into small, isolated files. You may start with simpler tests that verify content exists, gradually add interaction tests
-- **Always reference the key element IDs you added in the LiveView templates in your tests** for `Phoenix.LiveViewTest` functions like `element/2`, `has_element/2`, selectors, etc
-- **Never** tests again raw HTML, **always** use `element/2`, `has_element/2`, and similar: `assert has_element?(view, "#my-form")`
-- Instead of relying on testing text content, which can change, favor testing for the presence of key elements
-- Focus on testing outcomes rather than implementation details
-- Be aware that `Phoenix.Component` functions like `<.form>` might produce different HTML than expected. Test against the output HTML structure, not your mental model of what you expect it to be
-- When facing test failures with element selectors, add debug statements to print the actual HTML, but use `LazyHTML` selectors to limit the output, ie:
-
-      html = render(view)
-      document = LazyHTML.from_fragment(html)
-      matches = LazyHTML.filter(document, "your-complex-selector")
-      IO.inspect(matches, label: "Matches")
+   Updated Swoosh adapter configuration in config/dev.exs to use
+   local mailbox instead of test adapter.
+
+   🤖 Generated with Claude Code
+   Co-Authored-By: Claude <noreply@anthropic.com>
+   ```
+
+7. **What to commit**:
+   - Source code changes in `lib/`
+   - Test files in `test/`
+   - Ash snapshots in `priv/resource_snapshots/`
+   - Migrations in `priv/repo/migrations/`
+   - Configuration changes in `config/`
+   - Updated `CHANGELOG.md`
+   - Asset changes in `assets/` if applicable
+
+8. **Never commit without asking** - even if everything seems ready
+
+### Changelog Maintenance (REQUIRED)
+
+**After completing ANY work session, update CHANGELOG.md:**
+
+1. **Always update the changelog** when you finish a piece of work (bug fix, new feature, refactoring, etc.)
+2. **Format**: Use date-based sections with descriptive summaries
+3. **Location**: `CHANGELOG.md` in the project root (create if it doesn't exist)
+4. **Structure**: Follow this format:
+
+```markdown
+# Changelog
+
+## 2025-11-21
+
+### Added
+- New Product resource with attributes for name, description, price, and inventory
+- JSON:API endpoints for products at `/api/json/products`
+- Admin interface integration for product management
+
+### Changed
+- Updated User resource to include `role` field for authorization
+- Modified authentication flow to support admin users
+
+### Fixed
+- Resolved issue with magic link emails not sending in development
+- Fixed navigation bar responsive layout on mobile devices
+
+## 2025-11-20
+
+### Added
+- Initial project setup with Ash Framework and Phoenix LiveView
+```
+
+5. **What to include**:
+   - **Added**: New features, resources, components, or functionality
+   - **Changed**: Modifications to existing functionality
+   - **Fixed**: Bug fixes and corrections
+   - **Removed**: Deleted features or code (if applicable)
+   - **Technical details**: Mention file paths, resource names, or component names for clarity
+
+6. **When to update**:
+   - At the end of each work session
+   - Before asking user to finalize with production migrations
+   - After implementing any significant feature or fix
+   - **Never skip this step** - it helps track project evolution and assists future Claude instances
+
+### Ash Migration Workflow (CRITICAL)
+
+**When working on ANY resource changes, follow this workflow:**
+
+1. **Start with development migrations**: Always use `mix ash.codegen --dev` for initial work
+2. **Iterate freely**: Make changes, run `mix ash.codegen --dev`, test, repeat
+3. **Test thoroughly**: Ensure the resource changes work as expected
+4. **Ask before finalizing**: When you believe the work is complete, ask the user:
+   > "I've completed the resource changes and tested them with development migrations. Would you like me to generate production-ready migrations with `mix ash.codegen` so we can commit these changes?"
+5. **Generate production migrations only after approval**: Run `mix ash.codegen` (without --dev)
+6. **Never generate production migrations proactively** - always confirm with the user first
+
+### Working with Ash Resources and Snapshots
+
+Ash uses a **snapshot-based migration system** instead of traditional migration files. Snapshots are JSON representations of your resource schemas stored in `priv/resource_snapshots/repo/<resource_name>/`.
+
+#### How Snapshots Work
+
+1. **Snapshots are version history**: Each time you run `mix ash.codegen`, Ash:
+   - Compares current resource definitions with the latest snapshot
+   - Detects schema changes (new fields, modified types, etc.)
+   - Generates a new timestamped snapshot (e.g., `20251121101114.json`)
+   - Creates corresponding Ecto migrations in `priv/repo/migrations/`
+
+2. **Snapshots track state, not changes**: Unlike traditional migrations that describe changes, snapshots describe the complete state of your resources at a point in time. Ash diffs snapshots to generate migrations.
+
+#### Development vs Production Migrations
+
+**ALWAYS start with `mix ash.codegen --dev` for any resource changes**:
+- Creates migrations marked as "development only"
+- Allows you to experiment without committing to permanent migration history
+- Can be squashed or replaced later with production migrations
+- Safe for iterative development when you're still refining the data model
+- **This should be your default when working on resources**
+
+**Switch to `mix ash.codegen` (without --dev) only when**:
+- You're ready to commit changes to version control
+- The schema change should be permanent and tracked in migration history
+- You're working on a feature branch ready for review
+- In production environments (CI/CD pipelines)
+- **IMPORTANT**: Before switching, ask the user if they're ready to create production migrations
+
+#### Typical Workflow
+
+**During active development:**
+```bash
+# 1. Modify resource attributes/relationships
+# 2. Generate development migration
+mix ash.codegen --dev
+# 3. Apply migration to local database
+mix ash.migrate
+# 4. Test changes
+# 5. Repeat steps 1-4 as needed
+```
+
+**When ready to finalize (ask user first):**
+```bash
+# Step 1: Ask user if ready for production migrations
+# "I've completed the resource changes and tested them with development
+# migrations. Would you like me to generate production-ready migrations?"
+
+# After user approval:
+# - Optionally reset database to clean up dev migrations: mix ash.reset
+mix ash.codegen
+
+# Step 2: Update CHANGELOG.md with the changes made
+
+# Step 3: Ask user about committing
+# "I've generated production migrations and updated the changelog.
+# Would you like me to commit these changes to git?"
+
+# After user approval:
+git add lib/ priv/ CHANGELOG.md
+git commit -m "$(cat <<'EOF'
+feat: add new fields to User resource
+
+- Added role field for authorization
+- Added last_login_at timestamp
+- Updated migrations and snapshots
+
+🤖 Generated with Claude Code
+Co-Authored-By: Claude <noreply@anthropic.com>
+EOF
+)"
+```
+
+**Example conversation flow:**
+1. You: "I've completed the resource changes and tested them with development migrations. Would you like me to generate production-ready migrations with `mix ash.codegen`?"
+2. User approves → run `mix ash.codegen` and update changelog
+3. You: "I've generated production migrations and updated the changelog. The changes are tested and working. Would you like me to commit these changes to git?"
+4. User approves → create git commit with descriptive message
+
+#### Important Notes
+
+- **Always use --dev flag first** - start all resource work with `mix ash.codegen --dev`, then ask the user before generating production migrations
+- **Never edit snapshots manually** - always modify resource definitions and regenerate
+- **Commit snapshots to git** - they're part of your schema history
+- **Migration files are generated from snapshots** - don't edit them manually either
+- If you have multiple --dev migrations, you may want to `mix ash.reset` and regenerate a single clean migration before committing
+- **Ask before finalizing** - when you think the resource changes are complete and tested, ask the user if they want to generate production migrations with `mix ash.codegen`
+
+### Using Code Interfaces (CRITICAL)
+
+**NEVER use `Ash.Changeset` or `Ash.Query` directly. ALWAYS use domain interface functions.**
+
+Ash resources should expose **code interfaces** that provide clean, documented functions for interacting with resources. This pattern provides better encapsulation, clearer APIs, and more maintainable code.
+
+#### Why Use Code Interfaces
+
+✅ **DO**: Use domain interface functions
+```elixir
+# Clean, documented, discoverable API
+{:ok, user} = Organizations.create_organization(%{name: "Acme Corp"})
+{:ok, location} = Organizations.create_location(%{name: "HQ", organization_id: org.id})
+{:ok, orgs} = Organizations.list_organizations()
+```
+
+❌ **DON'T**: Use Ash.Changeset directly
+```elixir
+# Exposes implementation details, harder to test, less discoverable
+{:ok, user} =
+  Organization
+  |> Ash.Changeset.for_create(:create, %{name: "Acme Corp"})
+  |> Ash.create()
+```
+
+#### Adding Code Interfaces to Domain
+
+Code interfaces are defined in the **domain module**, not in the resource files. Add `define` calls inside each `resource` block in your domain:
+
+```elixir
+defmodule Medishop.Organizations do
+  use Ash.Domain, otp_app: :medishop
+
+  resources do
+    resource Medishop.Organizations.Organization do
+      # Create actions
+      define :create_organization, action: :create
+
+      # Read actions
+      define :list_organizations, action: :read
+      define :get_organization, action: :read, get_by: [:id]
+
+      # Update actions
+      define :update_organization, action: :update
+
+      # Destroy actions
+      define :destroy_organization, action: :destroy
+    end
+
+    resource Medishop.Organizations.Location do
+      define :create_location, action: :create
+      define :list_locations, action: :read
+      define :get_location, action: :read, get_by: [:id]
+      # For actions with arguments, those are inferred from the action definition
+      define :get_locations_by_organization, action: :get_by_organization
+    end
+  end
+end
+```
+
+**Important**: The `define` calls go in the **domain module's `resources` block**, not in the resource files themselves.
+
+#### Calling Interface Functions
+
+Once defined, call functions on the domain module:
+
+```elixir
+# Create
+{:ok, org} = Medishop.Organizations.create_organization(%{
+  name: "Acme Medical Supply",
+  active: true
+})
+
+# Read
+{:ok, organizations} = Medishop.Organizations.list_organizations()
+{:ok, org} = Medishop.Organizations.get_by_id(org_id)
+
+# Update
+{:ok, updated_org} = Medishop.Organizations.update(org, %{name: "New Name"})
+
+# Destroy
+:ok = Medishop.Organizations.destroy(org)
+
+# Custom read actions with arguments
+{:ok, user_memberships} = Medishop.Organizations.for_user(%{user_id: user.id})
+```
+
+#### Interface Functions in Seeds and Tests
+
+**Seeds** (`priv/repo/seeds.exs`):
+```elixir
+# Use interface functions for all resource creation
+{:ok, org} = Organizations.create_organization(%{name: "Acme Corp"})
+{:ok, location} = Organizations.create_location(%{
+  name: "HQ",
+  organization_id: org.id
+})
+```
+
+**Tests** (`test/medishop/*/`):
+```elixir
+test "creates organization membership" do
+  # Use fixtures or interface functions
+  user = user_fixture()
+  org = organization_fixture()
+
+  # Call interface function
+  assert {:ok, membership} = Organizations.create_membership(%{
+    user_id: user.id,
+    organization_id: org.id,
+    org_roles: [:org_admin]
+  })
+
+  assert membership.user_id == user.id
+end
+```
+
+#### When Adding New Resources
+
+1. Define the resource module with `use Ash.Resource`
+2. Configure data layer (e.g., `postgres do ... end`)
+3. Define attributes, actions, and relationships
+4. **Add `define` calls in the domain module's `resources` block** for all actions you want to expose
+5. Run `mix ash.codegen --dev` to generate migrations
+6. Test using the interface functions you defined
+
+#### Important Notes
+
+- **Never use `Ash.Changeset.for_create/update/destroy` directly** - always use interface functions
+- **Never use `Ash.Query.for_read` directly** - always use interface functions
+- **Interface functions handle authorization** - they respect policies defined on resources
+- **Add interfaces for ALL actions** you need to call - create, read, update, destroy, and custom actions
+- **Use descriptive names** - `create_organization` is clearer than just `create`
+- **Seeds and tests must use interface functions** - no direct Changeset usage anywhere
+- **Define interfaces in the domain module** - not in resource files
+
+### Adding New Resources
+
+1. Define the resource module with `use Ash.Resource`
+2. Configure data layer (e.g., `postgres do ... end`)
+3. Define attributes, actions, and relationships
+4. **Add resource to domain's `resources` block with `define` calls** for all actions
+5. Run `mix ash.codegen --dev` (for experimentation) or `mix ash.codegen` (when ready to commit)
+6. Run `mix ash.migrate` to create the database table
+7. First snapshot for the resource will be created in `priv/resource_snapshots/repo/<resource_name>/`
+
+### LiveView Development
+
+**See `AGENTS.md` for comprehensive LiveView guidelines.** Key points:
+- Use streams for collections (never use regular list assigns for large collections)
+- Always add unique DOM IDs to key elements for testing
+- Import Mishka components via `MedishopWeb.Components.MishkaComponents`
+- Layouts module is pre-aliased as `Layouts`
+- Always wrap content with `<Layouts.app flash={@flash} ...>`
+- HEEx syntax: use `{...}` for attribute interpolation, `<%= ... %>` for block constructs
+- Read AGENTS.md sections on LiveView streams, HEEx templates, and Phoenix HTML guidelines
+
+### API Development
+
+- JSON:API endpoints auto-generated from Ash resources with `ash_json_api` extension
+- Add `json_api` block to resources to expose them via API
+- OpenAPI documentation auto-generated at `/api/json/open_api`
+- Use SwaggerUI at `/api/json/swaggerui` for API exploration
+
+## Important Notes
+
+- **Read AGENTS.md**: Always consult `AGENTS.md` for detailed Elixir, Phoenix, LiveView, and testing guidelines
+- **Git Commits**: Never commit without asking the user first - always seek permission before creating commits
+- **Changelog**: Always update `CHANGELOG.md` after completing work - this is mandatory, not optional
+- **HTTP Client**: Use `:req` (Req) for HTTP requests, avoid `:httpoison`, `:tesla`, `:httpc`
+- **Tailwind v4**: No `tailwind.config.js` needed; uses new `@import` syntax in `app.css`
+- **Component Library**: Mishka Chelekom provides 60+ components; use them instead of building from scratch
+- **No DaisyUI**: Despite DaisyUI overrides in auth routes, manually write Tailwind-based components for custom design
+- **Admin Interface**: AshAdmin available at `/admin` in development for resource management
+- **Live Dashboard**: Available at `/dev/dashboard` in development
+
+## Testing
+
+**See `AGENTS.md` for comprehensive testing guidelines.** Key points:
+- Use `Phoenix.LiveViewTest` for LiveView testing
+- Use `LazyHTML` for HTML assertions (included)
+- Reference element IDs from templates in tests (e.g., `#product-form`)
+- Test against actual HTML output, not mental models
+- Use `element/2`, `has_element/2` instead of raw HTML assertions
+- Use `render_submit/2` and `render_change/2` for form testing
+- Read AGENTS.md "LiveView tests" section for detailed patterns and examples
