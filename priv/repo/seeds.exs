@@ -153,7 +153,7 @@ member_user = Repo.get_by(User, email: "member@medishop.test") ||
   Organizations.create_membership(
     admin_user.id,
     org1.id,
-    %{org_roles: [:org_admin, :org_buyer]},
+    [:org_admin, :org_buyer],
     authorize?: false
   )
 
@@ -162,7 +162,7 @@ member_user = Repo.get_by(User, email: "member@medishop.test") ||
   Organizations.create_membership(
     buyer_user.id,
     org2.id,
-    %{org_roles: [:org_buyer]},
+    [:org_buyer],
     authorize?: false
   )
 
@@ -171,7 +171,7 @@ member_user = Repo.get_by(User, email: "member@medishop.test") ||
   Organizations.create_membership(
     member_user.id,
     org1.id,
-    %{org_roles: [:org_member]},
+    [:org_member],
     authorize?: false
   )
 
@@ -179,7 +179,7 @@ member_user = Repo.get_by(User, email: "member@medishop.test") ||
   Organizations.create_membership(
     member_user.id,
     org2.id,
-    %{org_roles: [:org_member]},
+    [:org_member],
     authorize?: false
   )
 

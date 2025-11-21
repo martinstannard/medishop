@@ -2,106 +2,58 @@ defmodule Medishop.Organizations.OrganizationMembershipTest do
   use Medishop.DataCase
 
   alias Medishop.Organizations
-
-  import Medishop.OrganizationsFixtures
-
-  setup do
-    # Create a user and organization for testing
-    user = user_fixture()
-    organization = organization_fixture()
-
-    %{user: user, organization: organization}
-  end
+  alias Medishop.Generator
 
   describe "create_membership/2" do
-    test "creates a membership with org_admin role", %{user: user, organization: organization} do
-      assert {:ok, membership} =
-               Organizations.create_membership(
-                 user.id,
-                 organization.id,
-                 %{org_roles: [:org_admin]},
-                 authorize?: false
-               )
+    test "creates a membership with org_admin role" do
+      membership = Ash.Generator.generate(Generator.organization_membership(org_roles: [:org_admin]))
 
-      assert membership.user_id == user.id
-      assert membership.organization_id == organization.id
       assert :org_admin in membership.org_roles
     end
 
-    test "creates a membership with multiple roles", %{user: user, organization: organization} do
-      assert {:ok, membership} =
-               Organizations.create_membership(
-                 user.id,
-                 organization.id,
-                 %{org_roles: [:org_admin, :org_buyer]},
-                 authorize?: false
-               )
+    test "creates a membership with multiple roles" do
+      membership =
+        Ash.Generator.generate(Generator.organization_membership(org_roles: [:org_admin, :org_buyer]))
 
       assert :org_admin in membership.org_roles
       assert :org_buyer in membership.org_roles
     end
 
-    test "defaults to org_member role when no roles specified", %{
-      user: user,
-      organization: organization
-    } do
-      assert {:ok, membership} =
-               Organizations.create_membership(
-                 user.id,
-                 organization.id,
-                 %{},
-                 authorize?: false
-               )
+    test "defaults to org_member role when no roles specified" do
+      membership = Ash.Generator.generate(Generator.organization_membership())
 
       assert membership.org_roles == [:org_member]
     end
 
-    test "enforces unique constraint on user_id and organization_id", %{
-      user: user,
-      organization: organization
-    } do
+    test "enforces unique constraint on user_id and organization_id" do
+      user = Ash.Generator.generate(Generator.user())
+      organization = Ash.Generator.generate(Generator.organization())
+
       # Create first membership
-      assert {:ok, _membership} =
-               Organizations.create_membership(
-                 user.id,
-                 organization.id,
-                 %{org_roles: [:org_member]},
-                 authorize?: false
-               )
+      Ash.Generator.generate(
+        Generator.organization_membership(user_id: user.id, organization_id: organization.id)
+      )
 
       # Try to create duplicate
-      assert {:error, _error} =
-               Organizations.create_membership(
-                 user.id,
-                 organization.id,
-                 %{org_roles: [:org_member]},
-                 authorize?: false
-               )
+      assert_raise Ash.Error.Invalid, fn ->
+        Ash.Generator.generate(
+          Generator.organization_membership(user_id: user.id, organization_id: organization.id)
+        )
+      end
     end
   end
 
   describe "get_memberships_for_user/1" do
-    test "returns memberships for a specific user", %{user: user, organization: organization} do
-      # Create another user and organization
-      other_user = user_fixture()
-      other_org = organization_fixture()
-
-      # Create memberships for both users
-      {:ok, membership1} =
-        Organizations.create_membership(
-          user.id,
-          organization.id,
-          %{org_roles: [:org_member]},
-          authorize?: false
+    test "returns memberships for a specific user" do
+      user = Ash.Generator.generate(Generator.user())
+      organization = Ash.Generator.generate(Generator.organization())
+      membership1 =
+        Ash.Generator.generate(
+          Generator.organization_membership(user_id: user.id, organization_id: organization.id)
         )
 
-      {:ok, _membership2} =
-        Organizations.create_membership(
-          other_user.id,
-          other_org.id,
-          %{org_roles: [:org_member]},
-          authorize?: false
-        )
+      # Create another membership for a different user
+      Ash.Generator.generate(Generator.organization_membership())
 
       assert {:ok, memberships} = Organizations.get_memberships_for_user(%{user_id: user.id})
 
@@ -111,27 +63,23 @@ defmodule Medishop.Organizations.OrganizationMembershipTest do
   end
 
   describe "get_memberships_for_organization/1" do
-    test "returns memberships for a specific organization", %{
-      user: user,
-      organization: organization
-    } do
-      other_user = user_fixture()
+    test "returns memberships for a specific organization" do
+      organization = Ash.Generator.generate(Generator.organization())
+      user1 = Ash.Generator.generate(Generator.user())
+      user2 = Ash.Generator.generate(Generator.user())
 
-      # Create memberships for same organization with different users
-      {:ok, membership1} =
-        Organizations.create_membership(
-          user.id,
-          organization.id,
-          %{org_roles: [:org_admin]},
-          authorize?: false
+      membership1 =
+        Ash.Generator.generate(
+          Generator.organization_membership(
+            user_id: user1.id,
+            organization_id: organization.id,
+            org_roles: [:org_admin]
+          )
         )
 
-      {:ok, membership2} =
-        Organizations.create_membership(
-          other_user.id,
-          organization.id,
-          %{org_roles: [:org_member]},
-          authorize?: false
+      membership2 =
+        Ash.Generator.generate(
+          Generator.organization_membership(user_id: user2.id, organization_id: organization.id)
         )
 
       assert {:ok, memberships} =
@@ -140,7 +88,6 @@ defmodule Medishop.Organizations.OrganizationMembershipTest do
                })
 
       assert length(memberships) == 2
-
       membership_ids = Enum.map(memberships, & &1.id)
       assert membership1.id in membership_ids
       assert membership2.id in membership_ids
@@ -148,14 +95,8 @@ defmodule Medishop.Organizations.OrganizationMembershipTest do
   end
 
   describe "update_membership/2" do
-    test "updates membership roles", %{user: user, organization: organization} do
-      {:ok, membership} =
-        Organizations.create_membership(
-          user.id,
-          organization.id,
-          %{org_roles: [:org_member]},
-          authorize?: false
-        )
+    test "updates membership roles" do
+      membership = Ash.Generator.generate(Generator.organization_membership())
 
       assert {:ok, updated} =
                Organizations.update_membership(membership, %{
@@ -169,66 +110,36 @@ defmodule Medishop.Organizations.OrganizationMembershipTest do
   end
 
   describe "calculations" do
-    test "is_admin returns true for org_admin role", %{user: user, organization: organization} do
-      {:ok, membership} =
-        Organizations.create_membership(
-          user.id,
-          organization.id,
-          %{org_roles: [:org_admin]},
-          authorize?: false
-        )
+    test "is_admin returns true for org_admin role" do
+      membership = Ash.Generator.generate(Generator.organization_membership(org_roles: [:org_admin]))
 
       {:ok, membership_with_calc} = Ash.load(membership, :is_admin)
       assert membership_with_calc.is_admin == true
     end
 
-    test "is_admin returns false for non-admin roles", %{user: user, organization: organization} do
-      {:ok, membership} =
-        Organizations.create_membership(
-          user.id,
-          organization.id,
-          %{org_roles: [:org_member]},
-          authorize?: false
-        )
+    test "is_admin returns false for non-admin roles" do
+      membership = Ash.Generator.generate(Generator.organization_membership(org_roles: [:org_member]))
 
       {:ok, membership_with_calc} = Ash.load(membership, :is_admin)
       assert membership_with_calc.is_admin == false
     end
 
-    test "can_buy returns true for org_buyer role", %{user: user, organization: organization} do
-      {:ok, membership} =
-        Organizations.create_membership(
-          user.id,
-          organization.id,
-          %{org_roles: [:org_buyer]},
-          authorize?: false
-        )
+    test "can_buy returns true for org_buyer role" do
+      membership = Ash.Generator.generate(Generator.organization_membership(org_roles: [:org_buyer]))
 
       {:ok, membership_with_calc} = Ash.load(membership, :can_buy)
       assert membership_with_calc.can_buy == true
     end
 
-    test "can_buy returns true for org_admin role", %{user: user, organization: organization} do
-      {:ok, membership} =
-        Organizations.create_membership(
-          user.id,
-          organization.id,
-          %{org_roles: [:org_admin]},
-          authorize?: false
-        )
+    test "can_buy returns true for org_admin role" do
+      membership = Ash.Generator.generate(Generator.organization_membership(org_roles: [:org_admin]))
 
       {:ok, membership_with_calc} = Ash.load(membership, :can_buy)
       assert membership_with_calc.can_buy == true
     end
 
-    test "can_buy returns false for org_member role", %{user: user, organization: organization} do
-      {:ok, membership} =
-        Organizations.create_membership(
-          user.id,
-          organization.id,
-          %{org_roles: [:org_member]},
-          authorize?: false
-        )
+    test "can_buy returns false for org_member role" do
+      membership = Ash.Generator.generate(Generator.organization_membership(org_roles: [:org_member]))
 
       {:ok, membership_with_calc} = Ash.load(membership, :can_buy)
       assert membership_with_calc.can_buy == false
@@ -236,14 +147,8 @@ defmodule Medishop.Organizations.OrganizationMembershipTest do
   end
 
   describe "destroy_membership/1" do
-    test "deletes a membership", %{user: user, organization: organization} do
-      {:ok, membership} =
-        Organizations.create_membership(
-          user.id,
-          organization.id,
-          %{org_roles: [:org_member]},
-          authorize?: false
-        )
+    test "deletes a membership" do
+      membership = Ash.Generator.generate(Generator.organization_membership())
 
       assert :ok = Organizations.destroy_membership(membership)
 

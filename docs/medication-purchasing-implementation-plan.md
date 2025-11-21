@@ -17,6 +17,42 @@ The system will allow users with `org_buyer` role to browse products, add them t
 
 ---
 
+## Testing Requirements ⚠️ MANDATORY
+
+**All functionality must be tested before implementation is considered complete.**
+
+Per `docs/instructions/04-testing-and-quality.md`:
+
+### Test-Driven Development (TDD) Approach
+1. **Write the test first** - Define expected behavior
+2. **Watch it fail** - Confirms test is valid
+3. **Write minimum code** - Make the test pass
+4. **Refactor** - Improve code with test safety net
+
+### Test Coverage Requirements
+- ✅ **Every resource** must have a test file
+- ✅ **Every action** must be tested (create, read, update, destroy, custom actions)
+- ✅ **Every validation** must be tested (positive and negative cases)
+- ✅ **Every relationship** must be tested (belongs_to, has_many, has_one)
+- ✅ **Every calculation** must be tested
+- ✅ **Every authorization policy** must be tested
+- ✅ **Every unique constraint** must be tested
+- ✅ **Edge cases** must be tested
+
+### Quality Gates (Before Each Commit)
+```bash
+mix format              # Format code
+mix test                # All tests must pass
+mix credo --strict      # Code quality (when available)
+```
+
+### Test Organization
+- Unit tests: `test/medishop/<domain>/<resource>_test.exs`
+- Fixtures: `test/support/<domain>_fixtures.ex`
+- Follow existing test patterns in the codebase
+
+---
+
 ## Acceptance Criteria
 
 ### Products Domain
@@ -24,11 +60,13 @@ The system will allow users with `org_buyer` role to browse products, add them t
 - [ ] Products can be searched and filtered
 - [ ] Products have unique SKUs
 - [ ] Product images stored as array of URLs/paths
+- [ ] **All product functionality has passing tests**
 
 ### Inventory Domain
 - [ ] Each location can have inventory records for products
 - [ ] Inventory tracks quantity_available per product per location
 - [ ] Inventory records are unique per location+product combination
+- [ ] **All inventory functionality has passing tests**
 
 ### Shop Domain
 - [ ] Each location has exactly one cart (singleton pattern)
@@ -36,10 +74,17 @@ The system will allow users with `org_buyer` role to browse products, add them t
 - [ ] Orders can be created from cart with status tracking
 - [ ] Order captures: location, purchasing user, organization (via location), items, total
 - [ ] Order status: `:pending`, `:confirmed`, `:shipped`, `:delivered`, `:cancelled`
+- [ ] **All shop functionality has passing tests**
 
 ### Authorization
 - [ ] Only users with `org_buyer` role for a location's organization can manage that location's cart
 - [ ] Only users with `org_buyer` role can create orders
+- [ ] **All authorization policies have passing tests**
+
+### Quality
+- [ ] All tests pass (`mix test`)
+- [ ] Code is formatted (`mix format`)
+- [ ] No compilation warnings
 
 ---
 
@@ -82,16 +127,33 @@ The system will allow users with `org_buyer` role to browse products, add them t
 - [ ] Add sorting options (title, price, created_at)
 - [ ] Define `search_products` interface function
 
-#### Step 3: Create Product Test Suite
+#### Step 3: Create Product Test Suite ⚠️ TESTS REQUIRED
 **Effort:** Small
 **Dependencies:** Step 1
 
-- [ ] Create `test/medishop/products/product_test.exs`
+**Test File:** `test/medishop/products/product_test.exs`
+
+**Required Tests:**
 - [ ] Test product creation with all attributes
-- [ ] Test SKU uniqueness constraint
-- [ ] Test search functionality
-- [ ] Test price validation (must be positive)
-- [ ] Create product fixtures in `test/support/products_fixtures.ex`
+- [ ] Test product creation with minimal attributes
+- [ ] Test SKU uniqueness constraint (duplicate SKU should fail)
+- [ ] Test price validation (must be positive, reject zero/negative)
+- [ ] Test active/inactive products
+- [ ] Test product update (all attributes)
+- [ ] Test product deletion
+- [ ] Test reading products
+- [ ] Test search by title (partial match, case insensitive)
+- [ ] Test search by SKU (exact match)
+- [ ] Test search by active status
+- [ ] Test sorting (by title, price, created_at)
+- [ ] Test combining search filters
+
+**Fixtures:** `test/support/products_fixtures.ex`
+- [ ] Create `product_fixture/1` helper
+- [ ] Support passing custom attributes
+- [ ] Generate unique SKUs by default
+
+**Quality Gate:** All tests must pass before proceeding to Step 4
 
 #### Step 4: Generate Product Migration
 **Effort:** Small
@@ -146,16 +208,34 @@ The system will allow users with `org_buyer` role to browse products, add them t
 - [ ] Add `has_many :location_inventories` to `Products.Product`
 - [ ] Update CLAUDE.md with inventory domain information
 
-#### Step 7: Create Inventory Test Suite
+#### Step 7: Create Inventory Test Suite ⚠️ TESTS REQUIRED
 **Effort:** Small
 **Dependencies:** Step 5
 
-- [ ] Create `test/medishop/inventory/location_inventory_test.exs`
-- [ ] Test inventory creation for location+product
-- [ ] Test unique constraint enforcement
+**Test File:** `test/medishop/inventory/location_inventory_test.exs`
+
+**Required Tests:**
+- [ ] Test inventory creation for location+product combination
+- [ ] Test unique constraint (location+product must be unique)
+- [ ] Test duplicate inventory record creation fails
+- [ ] Test quantity_available defaults to 0
 - [ ] Test quantity_available updates
-- [ ] Test relationships to location and product
-- [ ] Create inventory fixtures in `test/support/inventory_fixtures.ex`
+- [ ] Test quantity_available can be set to zero
+- [ ] Test quantity_available validation (must be non-negative)
+- [ ] Test belongs_to :location relationship
+- [ ] Test belongs_to :product relationship
+- [ ] Test get_by_location action (filters correctly)
+- [ ] Test get_by_product action (filters correctly)
+- [ ] Test inventory deletion
+- [ ] Test loading inventory with location preload
+- [ ] Test loading inventory with product preload
+
+**Fixtures:** `test/support/inventory_fixtures.ex`
+- [ ] Create `location_inventory_fixture/2` (location_id, product_id)
+- [ ] Support custom quantity_available
+- [ ] Use existing location and product fixtures
+
+**Quality Gate:** All tests must pass before proceeding to Step 8
 
 #### Step 8: Generate Inventory Migration
 **Effort:** Small
@@ -315,36 +395,103 @@ The system will allow users with `org_buyer` role to browse products, add them t
 - [ ] Add `has_many :order_items` to `Products.Product`
 - [ ] Update CLAUDE.md with shop domain information
 
-#### Step 14: Create Shop Test Suite
+#### Step 14: Create Shop Test Suite ⚠️ TESTS REQUIRED
 **Effort:** Large
 **Dependencies:** Step 13
 
-Test files to create:
-- [ ] `test/medishop/shop/cart_test.exs`
-  - Test singleton pattern (one cart per location)
-  - Test cart creation and clearing
+This is the most critical testing phase. All shop functionality must be thoroughly tested.
 
-- [ ] `test/medishop/shop/cart_item_test.exs`
-  - Test adding items to cart
-  - Test updating quantities
-  - Test unique constraint (cart+product)
-  - Test line_total calculation
-  - Test removing items
+**Test File 1:** `test/medishop/shop/cart_test.exs`
 
-- [ ] `test/medishop/shop/order_test.exs`
-  - Test order creation from cart
-  - Test order_number generation and uniqueness
-  - Test status transitions
-  - Test status timestamp updates
-  - Test subtotal/total calculations
-  - Test querying orders by location/user
+**Required Tests:**
+- [ ] Test cart creation for location
+- [ ] Test get_or_create_for_location (creates new cart)
+- [ ] Test get_or_create_for_location (returns existing cart)
+- [ ] Test singleton pattern (second create for same location should fail or return existing)
+- [ ] Test cart has unique location_id
+- [ ] Test cart belongs_to :location relationship
+- [ ] Test cart has_many :cart_items relationship
+- [ ] Test clear cart action (removes all items)
+- [ ] Test cart deletion
+- [ ] Test loading cart with items preloaded
+- [ ] Test loading cart with location preloaded
 
-- [ ] `test/medishop/shop/order_item_test.exs`
-  - Test order items created from cart
-  - Test immutability (no updates after creation)
-  - Test line_total calculation
+**Test File 2:** `test/medishop/shop/cart_item_test.exs`
 
-- [ ] Create fixtures in `test/support/shop_fixtures.ex`
+**Required Tests:**
+- [ ] Test adding item to cart
+- [ ] Test add_or_update creates new item
+- [ ] Test add_or_update updates existing item quantity
+- [ ] Test cart_item unique constraint (cart+product)
+- [ ] Test quantity validation (minimum 1)
+- [ ] Test quantity validation (reject zero)
+- [ ] Test quantity validation (reject negative)
+- [ ] Test price_at_addition is captured on creation
+- [ ] Test price_at_addition doesn't change if product price changes
+- [ ] Test line_total calculation (quantity * price_at_addition)
+- [ ] Test update cart item quantity
+- [ ] Test remove cart item (delete)
+- [ ] Test cart_item belongs_to :cart relationship
+- [ ] Test cart_item belongs_to :product relationship
+- [ ] Test loading cart_item with cart preloaded
+- [ ] Test loading cart_item with product preloaded
+
+**Test File 3:** `test/medishop/shop/order_test.exs`
+
+**Required Tests:**
+- [ ] Test order creation from cart
+- [ ] Test create_from_cart copies all cart items correctly
+- [ ] Test create_from_cart calculates subtotal correctly
+- [ ] Test create_from_cart calculates total correctly
+- [ ] Test create_from_cart clears cart after order creation
+- [ ] Test order_number generation (auto-generated)
+- [ ] Test order_number is unique
+- [ ] Test order_number format is consistent
+- [ ] Test order status defaults to :pending
+- [ ] Test placed_at timestamp is set on creation
+- [ ] Test status transition: pending → confirmed
+- [ ] Test status transition: confirmed → shipped
+- [ ] Test status transition: shipped → delivered
+- [ ] Test status transition: pending → cancelled
+- [ ] Test invalid status transition: delivered → pending (should fail)
+- [ ] Test invalid status transition: cancelled → confirmed (should fail)
+- [ ] Test confirmed_at timestamp set on status update to :confirmed
+- [ ] Test shipped_at timestamp set on status update to :shipped
+- [ ] Test delivered_at timestamp set on status update to :delivered
+- [ ] Test cancelled_at timestamp set on status update to :cancelled
+- [ ] Test order belongs_to :location relationship
+- [ ] Test order belongs_to :user relationship
+- [ ] Test order has_many :order_items relationship
+- [ ] Test get_orders_for_location filters correctly
+- [ ] Test get_orders_for_user filters correctly
+- [ ] Test get_orders_for_organization filters via location
+- [ ] Test order with notes
+- [ ] Test order deletion
+- [ ] Test loading order with all relationships
+
+**Test File 4:** `test/medishop/shop/order_item_test.exs`
+
+**Required Tests:**
+- [ ] Test order item created from cart item
+- [ ] Test order_item has correct quantity
+- [ ] Test order_item has correct unit_price
+- [ ] Test order_item has correct line_total
+- [ ] Test line_total calculation (quantity * unit_price)
+- [ ] Test order_item immutability (update should fail)
+- [ ] Test order_item deletion not allowed after order created
+- [ ] Test order_item belongs_to :order relationship
+- [ ] Test order_item belongs_to :product relationship
+- [ ] Test loading order_item with order preloaded
+- [ ] Test loading order_item with product preloaded
+
+**Fixtures:** `test/support/shop_fixtures.ex`
+- [ ] Create `cart_fixture/1` (location_id)
+- [ ] Create `cart_item_fixture/3` (cart_id, product_id, quantity)
+- [ ] Create `order_fixture/2` (location_id, user_id)
+- [ ] Create `order_from_cart_fixture/2` (cart_id, user_id)
+- [ ] Support custom attributes for all fixtures
+
+**Quality Gate:** All 50+ tests must pass before proceeding to Step 15
 
 #### Step 15: Generate Shop Migrations
 **Effort:** Small
@@ -359,7 +506,7 @@ Test files to create:
 
 ### Phase 4: Integration & Polish
 
-#### Step 16: Add Authorization Policies
+#### Step 16: Add Authorization Policies ⚠️ TESTS REQUIRED
 **Effort:** Medium
 **Dependencies:** Step 15
 
@@ -373,9 +520,40 @@ Test files to create:
 - [ ] Org admins can read all orders for their organization
 
 **Implementation:**
-- [ ] Add Ash.Policy.Authorizer to Shop resources
+- [ ] Add Ash.Policy.Authorizer to Cart resource
+- [ ] Add Ash.Policy.Authorizer to CartItem resource
+- [ ] Add Ash.Policy.Authorizer to Order resource
+- [ ] Add Ash.Policy.Authorizer to OrderItem resource
 - [ ] Define policies using organization membership checks
-- [ ] Test authorization in test suite
+
+**Authorization Tests (add to existing test files):**
+
+`test/medishop/shop/cart_test.exs`:
+- [ ] Test authorized user (org_buyer) can access cart
+- [ ] Test authorized user (org_buyer) can create cart
+- [ ] Test unauthorized user cannot access cart
+- [ ] Test unauthorized user cannot create cart
+- [ ] Test user from different org cannot access cart
+- [ ] Test user without org_buyer role cannot access cart
+
+`test/medishop/shop/cart_item_test.exs`:
+- [ ] Test authorized user can add items to cart
+- [ ] Test authorized user can update cart items
+- [ ] Test authorized user can remove cart items
+- [ ] Test unauthorized user cannot add items
+- [ ] Test unauthorized user cannot modify items
+
+`test/medishop/shop/order_test.exs`:
+- [ ] Test authorized user (org_buyer) can create order
+- [ ] Test unauthorized user cannot create order
+- [ ] Test user can read their own orders
+- [ ] Test user cannot read other users' orders (different org)
+- [ ] Test org_admin can read all orders for their organization
+- [ ] Test org_member cannot read orders (not org_buyer)
+- [ ] Test authorized user can update order status
+- [ ] Test unauthorized user cannot update order status
+
+**Quality Gate:** All authorization tests must pass before proceeding to Step 17
 
 **Future Note:** 🔮 Add more granular permissions and approval workflows
 
@@ -405,16 +583,44 @@ Test files to create:
 
 ### Phase Completion
 
-- [ ] **Phase 1: Products Domain** (Steps 1-4)
-- [ ] **Phase 2: Inventory Domain** (Steps 5-8)
-- [ ] **Phase 3: Shop Domain** (Steps 9-15)
-- [ ] **Phase 4: Integration & Polish** (Steps 16-18)
+- [ ] **Phase 1: Products Domain** (Steps 1-4) - All tests must pass ✅
+- [ ] **Phase 2: Inventory Domain** (Steps 5-8) - All tests must pass ✅
+- [ ] **Phase 3: Shop Domain** (Steps 9-15) - All tests must pass ✅
+- [ ] **Phase 4: Integration & Polish** (Steps 16-18) - All tests must pass ✅
+
+### Test Status Summary
+
+Track overall test progress here:
+
+**Products Domain:**
+- [ ] Product tests: 0/13 passing
+- [ ] Product fixtures created
+
+**Inventory Domain:**
+- [ ] Inventory tests: 0/14 passing
+- [ ] Inventory fixtures created
+
+**Shop Domain:**
+- [ ] Cart tests: 0/11 passing
+- [ ] CartItem tests: 0/16 passing
+- [ ] Order tests: 0/29 passing
+- [ ] OrderItem tests: 0/11 passing
+- [ ] Shop fixtures created
+
+**Authorization:**
+- [ ] Cart authorization tests: 0/6 passing
+- [ ] CartItem authorization tests: 0/5 passing
+- [ ] Order authorization tests: 0/8 passing
+
+**Total:** 0/113+ tests passing
 
 ### Current Status
 
 **Current Step:** None (not started)
 **Blockers:** None
 **Notes:** Awaiting answers to clarifying questions before starting implementation
+
+**Testing Note:** Every step must have all its tests passing before moving to the next step.
 
 ---
 

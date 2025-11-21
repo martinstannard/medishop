@@ -15,7 +15,7 @@ defmodule Medishop.Organizations.OrganizationLocationMembershipTest do
       Organizations.create_membership(
         user.id,
         organization.id,
-        %{org_roles: [:org_buyer]},
+        [:org_buyer],
         authorize?: false
       )
 
@@ -76,7 +76,7 @@ defmodule Medishop.Organizations.OrganizationLocationMembershipTest do
         Organizations.create_membership(
           other_user.id,
           organization.id,
-          %{org_roles: [:org_buyer]},
+          [:org_buyer],
           authorize?: false
         )
 
