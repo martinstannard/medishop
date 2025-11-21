@@ -16,6 +16,27 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 `AGENTS.md` contains comprehensive, framework-specific guidelines that complement the architecture and workflow information in this file.
 
+## Development Workflow Instructions
+
+**For general development workflow and best practices, read the instructions in `docs/instructions/`:**
+- **01-understanding-the-task.md**: Clarifying requirements and defining acceptance criteria
+- **02-planning-and-documentation.md**: Creating comprehensive plans and documentation
+- **03-development-workflow.md**: Breaking work into commits and maintaining code quality
+- **04-testing-and-quality.md**: ExUnit testing patterns, TDD approach, and static analysis
+- **05-delivery-and-changelog.md**: Updating changelogs and creating pull requests
+- **06-communication.md**: Proactive and effective communication practices
+- **07-security-best-practices.md**: Security-focused development for Elixir/Phoenix/Ash
+
+These instructions provide structured guidance on:
+- How to break down work into small, manageable commits
+- When and how to ask for clarification
+- Testing methodology (TDD approach with ExUnit)
+- Maintaining CHANGELOG.md and PROGRESS.md
+- Code quality standards (formatting, Credo, Dialyzer)
+- Security best practices specific to this stack
+
+**Start by reading `docs/instructions/README.md` for an overview.**
+
 ## Project Overview
 
 Medishop is a Phoenix 1.8 web application built with:

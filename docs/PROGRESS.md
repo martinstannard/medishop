@@ -6,6 +6,22 @@ This file tracks the high-level progress of work on the Medishop project. Update
 
 ## 2025-11-22
 
+### Add Reference to Development Workflow Instructions
+
+**Commit:** `[pending]` - Add reference to docs/instructions/ in CLAUDE.md
+
+**What was accomplished:**
+- Updated CLAUDE.md to reference the comprehensive development workflow instructions in `docs/instructions/`
+- Added clear guidance for future Claude instances to read the instruction files
+- Instructions cover: task understanding, planning, development workflow, testing, delivery, communication, and security
+
+**Why this matters:**
+- Ensures consistent development practices across all work
+- Provides structured guidance on breaking down work, testing methodology, and code quality
+- References project-specific workflow patterns (CHANGELOG.md, PROGRESS.md maintenance)
+
+---
+
 ### Organizations Domain - Code Interface Pattern Implementation
 
 **Commit:** `a181693` - Refactor Organizations domain to use Ash code interface pattern
