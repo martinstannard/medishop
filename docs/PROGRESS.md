@@ -8,7 +8,7 @@ This file tracks the high-level progress of work on the Medishop project. Update
 
 ### Add Reference to Development Workflow Instructions
 
-**Commit:** `[pending]` - Add reference to docs/instructions/ in CLAUDE.md
+**Commit:** `0f4bd1c` - Add reference to docs/instructions/ in CLAUDE.md
 
 **What was accomplished:**
 - Updated CLAUDE.md to reference the comprehensive development workflow instructions in `docs/instructions/`
