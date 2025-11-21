@@ -33,6 +33,14 @@ This file tracks the high-level progress of work on the Medishop project. Update
 
 **File Created:** `docs/medication-purchasing-implementation-plan.md`
 
+**Update (Commit `b76aa9e`):** Emphasized mandatory testing requirements throughout plan:
+- Added "Testing Requirements ⚠️ MANDATORY" section at top
+- Outlined TDD approach (write test first, watch fail, implement, refactor)
+- Expanded test requirements: 113+ total tests across all domains
+- Added quality gates between steps
+- Marked critical test steps with ⚠️ TESTS REQUIRED
+- Added test status summary tracking
+
 ---
 
 ### Add Reference to Development Workflow Instructions

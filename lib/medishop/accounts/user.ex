@@ -22,6 +22,11 @@ defmodule Medishop.Accounts.User do
     end
 
     strategies do
+      password do
+        identity_field :email
+        registration_enabled? true
+      end
+
       magic_link do
         identity_field :email
         registration_enabled? true
@@ -35,6 +40,28 @@ defmodule Medishop.Accounts.User do
   postgres do
     table "users"
     repo Medishop.Repo
+  end
+
+  attributes do
+    uuid_primary_key :id
+
+    attribute :email, :ci_string do
+      allow_nil? false
+      public? true
+    end
+
+    attribute :hashed_password, :string do
+      allow_nil? true
+      sensitive? true
+    end
+  end
+
+  relationships do
+    has_many :organization_memberships, Medishop.Organizations.OrganizationMembership
+  end
+
+  identities do
+    identity :unique_email, [:email]
   end
 
   actions do
@@ -51,6 +78,12 @@ defmodule Medishop.Accounts.User do
       description "Looks up a user by their email"
       argument :email, :ci_string, allow_nil?: false
       get_by :email
+    end
+
+    create :register do
+      primary? true
+      accept [:email]
+      argument :password, :string, sensitive?: true
     end
 
     create :sign_in_with_magic_link do
@@ -80,28 +113,5 @@ defmodule Medishop.Accounts.User do
 
       run AshAuthentication.Strategy.MagicLink.Request
     end
-  end
-
-  policies do
-    bypass AshAuthentication.Checks.AshAuthenticationInteraction do
-      authorize_if always()
-    end
-  end
-
-  attributes do
-    uuid_primary_key :id
-
-    attribute :email, :ci_string do
-      allow_nil? false
-      public? true
-    end
-  end
-
-  relationships do
-    has_many :organization_memberships, Medishop.Organizations.OrganizationMembership
-  end
-
-  identities do
-    identity :unique_email, [:email]
   end
 end
