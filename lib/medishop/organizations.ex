@@ -24,7 +24,7 @@ defmodule Medishop.Organizations do
     end
 
     resource Medishop.Organizations.OrganizationMembership do
-      define :create_membership, action: :create, args: [:user_id, :organization_id]
+      define :create_membership, action: :create, args: [:user_id, :organization_id, :org_roles]
       define :list_memberships, action: :read
       define :get_membership, action: :read, get_by: [:id]
       define :get_memberships_for_user, action: :for_user

@@ -16,13 +16,13 @@ defmodule Medishop.Organizations.OrganizationMembership do
     create :create do
       primary? true
 
-      accept [:org_roles]
-
       argument :user_id, :uuid, allow_nil?: false
       argument :organization_id, :uuid, allow_nil?: false
+      argument :org_roles, {:array, Medishop.Organizations.OrgRole}, allow_nil?: false
 
-      change manage_relationship(:user_id, :user, type: :append_and_remove)
-      change manage_relationship(:organization_id, :organization, type: :append_and_remove)
+      change set_attribute(:user_id, arg(:user_id))
+      change set_attribute(:organization_id, arg(:organization_id))
+      change set_attribute(:org_roles, arg(:org_roles))
     end
 
     update :update do
