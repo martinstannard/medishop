@@ -6,6 +6,35 @@ This file tracks the high-level progress of work on the Medishop project. Update
 
 ## 2025-11-22
 
+### Create Implementation Plan for Medication Purchasing System
+
+**Commit:** `[pending]` - Create comprehensive implementation plan for medication purchasing
+
+**What was accomplished:**
+- Created detailed 18-step implementation plan for medication purchasing system
+- Defined three new domains: Products, Inventory, and Shop
+- Established clear acceptance criteria and phase breakdown
+- Added checkboxes for progress tracking
+- Documented future enhancements and technical risks
+- Included decision log and clarifying questions
+
+**Plan Overview:**
+- **Phase 1:** Products Domain (4 steps) - Product catalog with search
+- **Phase 2:** Inventory Domain (4 steps) - Location-based inventory tracking
+- **Phase 3:** Shop Domain (7 steps) - Carts, cart items, orders, order items
+- **Phase 4:** Integration & Polish (3 steps) - Authorization, seeds, documentation
+
+**Key Decisions:**
+- Cart is singleton per location (one cart per location)
+- Authorization via org_buyer role and location membership
+- One order per location
+- No inventory tracking/reservations initially (noted for future)
+- No product variants initially (noted for future)
+
+**File Created:** `docs/medication-purchasing-implementation-plan.md`
+
+---
+
 ### Add Reference to Development Workflow Instructions
 
 **Commit:** `0f4bd1c` - Add reference to docs/instructions/ in CLAUDE.md
