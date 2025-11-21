@@ -95,6 +95,40 @@ This file tracks the high-level progress of work on the Medishop project. Update
 
 ---
 
+### Organizations Domain - Test Fixes and Code Interface Refinement
+
+**Commits:**
+- `9cdb75d` - Fix organization membership tests with proper argument handling
+- `8916403` - Revert to using accept instead of arguments for membership creation
+
+**What was accomplished:**
+- Created `test/support/organizations_fixtures.ex` with comprehensive fixture functions
+- Fixed all 37 test failures in the Organizations domain
+- Clarified the correct Ash code interface pattern for actions with positional arguments
+- Verified seeds and tests both work correctly
+
+**Technical details:**
+- When using `args: [:field1, :field2]` in code interface definition, the action should use `accept`, not action `argument`
+- Ash code interface creates functions that take positional parameters and pass them as attributes to the action
+- Created fixtures for:
+  - `user_fixture/1` - Creates test users with Ash.create
+  - `organization_fixture/1` - Creates test organizations
+  - `location_fixture/2` - Creates locations with required fields (address, contact_number)
+  - `organization_membership_fixture/3` - Creates memberships with org_roles
+  - `organization_location_membership_fixture/3` - Creates location memberships
+
+**Test coverage:**
+- All 37 tests passing ✅
+- Seeds file working perfectly ✅
+- Fixtures use `authorize?: false` for test environment
+
+**Key learning:**
+The distinction between `accept` and `argument` in Ash actions:
+- `accept [:field]` - Fields passed as attributes in params map (works with code interface `args:`)
+- `argument :field` - Fields passed as action arguments (requires different interface approach)
+
+---
+
 ## Project Status
 
 ### Completed
@@ -104,11 +138,12 @@ This file tracks the high-level progress of work on the Medishop project. Update
 - ✅ Seed data functionality
 - ✅ Test fixtures and support modules
 - ✅ Documentation (CLAUDE.md, CHANGELOG.md)
+- ✅ All 37 Organizations domain tests passing
+- ✅ Test fixtures for all Organizations resources
 
 ### In Progress
-- 🔄 Debugging membership creation test failures (19 tests)
+- 🔄 Planning medication purchasing system implementation
 
 ### Upcoming
-- ⏳ Fix interface function signatures for membership creation
-- ⏳ Achieve 100% test pass rate
+- ⏳ Begin implementing medication purchasing system (18-step plan in `docs/medication-purchasing-implementation-plan.md`)
 - ⏳ Additional features TBD
