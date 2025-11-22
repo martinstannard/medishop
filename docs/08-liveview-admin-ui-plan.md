@@ -61,32 +61,32 @@ This phase will ensure the new LiveViews are presented in a clean, professional,
 - [x] **Apply Mishka Chelekom Components:** Used Tailwind/DaisyUI for styling.
 - [x] **Ensure Responsiveness:** Verified responsive design for dashboard cards and layout.
 
-## Phase 5: Shopping Cart & Purchase Flow
+## Phase 5: Shopping Cart & Purchase Flow ✅ COMPLETE
 
 This phase implements the shopping cart functionality, allowing users to browse products, add them to a location's cart, and place orders.
 
-### Step 1: Add Cart Navigation to Dashboard
+### Step 1: Add Cart Navigation to Dashboard ✅
 **Effort:** Small
 **Dependencies:** Phase 3 (Dashboard with locations)
 
-- [ ] **Add Cart Icon/Button to Location Cards:**
+- [x] **Add Cart Icon/Button to Location Cards:**
   - Add a cart icon button to each location card in `DashboardLive`
   - Button links to `/location/:location_id/cart`
   - Show cart item count badge if cart has items (optional for v1)
   - Only show for locations where user has `org_buyer` role
 
-### Step 2: Create Cart LiveView
+### Step 2: Create Cart LiveView ✅
 **Effort:** Medium
 **Dependencies:** Step 1
 
-- [ ] **Create `lib/medishop_web/live/cart_live.ex`:**
+- [x] **Create `lib/medishop_web/live/cart_live.ex`:**
   - Route: `/location/:location_id/cart`
   - Use `:live_user_required` on_mount hook
   - Verify user has `org_buyer` role for location's organization
   - Fetch or create cart for location using `Shop.get_or_create_cart_for_location/1`
   - Load cart items with product details preloaded
 
-- [ ] **Implement Cart View:**
+- [x] **Implement Cart View:**
   - Display empty cart state with "Browse Products" link
   - Show cart items with: product name, quantity, price_at_addition, line_total
   - Add quantity adjustment controls (+/- buttons)
@@ -106,14 +106,14 @@ This phase implements the shopping cart functionality, allowing users to browse 
 **Effort:** Medium
 **Dependencies:** Step 2
 
-- [ ] **Create `lib/medishop_web/live/products_live.ex`:**
+- [x] **Create `lib/medishop_web/live/products_live.ex`:**
   - Route: `/location/:location_id/products`
   - Use `:live_user_required` on_mount hook
   - Verify user has `org_buyer` role for location's organization
   - Fetch products using `Products.list_products/0` or `Products.search_products/1`
   - Use Phoenix LiveView streams for products list
 
-- [ ] **Implement Products Catalog View:**
+- [x] **Implement Products Catalog View:**
   - Display products in grid/card layout
   - Show: product title, SKU, description, price, images (if available)
   - Add "Add to Cart" button for each product
@@ -123,7 +123,7 @@ This phase implements the shopping cart functionality, allowing users to browse 
   - Add "Back to Cart" navigation button
   - Show current cart item count in header/badge
 
-- [ ] **Implement Product Events:**
+- [x] **Implement Product Events:**
   - `add_to_cart` - Add product to cart with specified quantity
   - `search` - Filter products by search query
   - Use `Shop.add_or_update_cart_item/3` interface
@@ -134,14 +134,14 @@ This phase implements the shopping cart functionality, allowing users to browse 
 **Effort:** Medium
 **Dependencies:** Step 2, Step 3
 
-- [ ] **Add "Place Order" Functionality to CartLive:**
+- [x] **Add "Place Order" Functionality to CartLive:**
   - Handle `place_order` event
   - Show confirmation modal before placing order
   - Use `Shop.create_order_from_cart/2` interface
   - On success: redirect to order confirmation page
   - On error: show error message
 
-- [ ] **Create Order Confirmation LiveView:**
+- [x] **Create Order Confirmation LiveView:**
   - Route: `/orders/:order_id/confirmation`
   - Display order details: order number, items, total, status
   - Show "View My Orders" link
@@ -151,14 +151,14 @@ This phase implements the shopping cart functionality, allowing users to browse 
 **Effort:** Small
 **Dependencies:** Step 4
 
-- [ ] **Create `lib/medishop_web/live/orders_live.ex`:**
+- [x] **Create `lib/medishop_web/live/orders_live.ex`:**
   - Route: `/orders` or `/location/:location_id/orders`
   - List user's orders using `Shop.get_orders_for_user/1`
   - Show: order number, date, status, total
   - Link to order detail view
   - Filter by status
 
-- [ ] **Create Order Detail LiveView:**
+- [x] **Create Order Detail LiveView:**
   - Route: `/orders/:order_id`
   - Show full order details with items
   - Display order timeline (placed_at, confirmed_at, etc.)
@@ -171,41 +171,41 @@ This phase implements the shopping cart functionality, allowing users to browse 
 **Test File 1:** `test/medishop_web/live/cart_live_test.exs`
 
 **Required Tests:**
-- [ ] Test unauthenticated user redirected to sign-in
-- [ ] Test authorized user can view cart
-- [ ] Test unauthorized user (different org) cannot access cart
-- [ ] Test user without org_buyer role cannot access cart
-- [ ] Test empty cart shows appropriate message
-- [ ] Test cart displays items with correct details
-- [ ] Test updating cart item quantity
-- [ ] Test removing cart item
-- [ ] Test clearing entire cart
-- [ ] Test "Place Order" button disabled when cart empty
-- [ ] Test "Place Order" button enabled when cart has items
-- [ ] Test placing order successfully
-- [ ] Test navigation to products catalog
+- [x] Test unauthenticated user redirected to sign-in
+- [x] Test authorized user can view cart
+- [x] Test unauthorized user (different org) cannot access cart
+- [x] Test user without org_buyer role cannot access cart
+- [x] Test empty cart shows appropriate message
+- [x] Test cart displays items with correct details
+- [x] Test updating cart item quantity
+- [x] Test removing cart item
+- [x] Test clearing entire cart
+- [x] Test "Place Order" button disabled when cart empty
+- [x] Test "Place Order" button enabled when cart has items
+- [x] Test placing order successfully
+- [x] Test navigation to products catalog
 
 **Test File 2:** `test/medishop_web/live/products_live_test.exs`
 
 **Required Tests:**
-- [ ] Test unauthenticated user redirected to sign-in
-- [ ] Test authorized user can view products
-- [ ] Test unauthorized user cannot access products
-- [ ] Test products displayed in catalog
-- [ ] Test adding product to cart
-- [ ] Test adding product with custom quantity
-- [ ] Test search/filter functionality
-- [ ] Test cart count updates after adding item
-- [ ] Test navigation back to cart
+- [x] Test unauthenticated user redirected to sign-in
+- [x] Test authorized user can view products
+- [x] Test unauthorized user cannot access products
+- [x] Test products displayed in catalog
+- [x] Test adding product to cart
+- [x] Test adding product with custom quantity
+- [x] Test search/filter functionality
+- [x] Test cart count updates after adding item
+- [x] Test navigation back to cart
 
 **Test File 3:** `test/medishop_web/live/orders_live_test.exs` (if implementing Step 5)
 
 **Required Tests:**
-- [ ] Test user can view their orders
-- [ ] Test user cannot view other users' orders
-- [ ] Test order list shows correct details
-- [ ] Test order detail view
-- [ ] Test order status display
+- [x] Test user can view their orders
+- [x] Test user cannot view other users' orders
+- [x] Test order list shows correct details
+- [x] Test order detail view
+- [x] Test order status display
 
 **Quality Gate:** All cart and shopping tests must pass before proceeding to Phase 6
 

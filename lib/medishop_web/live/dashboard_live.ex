@@ -80,9 +80,21 @@ defmodule MedishopWeb.DashboardLive do
                                   <.icon name="hero-map-pin" class="w-5 h-5 text-primary" />
                                   {loc_membership.location.name}
                                 </span>
-                                <%= if loc_membership.location.store do %>
-                                  <span class="badge badge-sm badge-info">Store</span>
-                                <% end %>
+                                <div class="flex items-center gap-2">
+                                  <%= if loc_membership.location.store do %>
+                                    <span class="badge badge-sm badge-info">Store</span>
+                                  <% end %>
+                                  <%= if :org_buyer in membership.org_roles do %>
+                                    <.link
+                                      navigate={~p"/location/#{loc_membership.location.id}/cart"}
+                                      class="btn btn-sm btn-primary gap-1"
+                                      data-testid={"cart-button-#{loc_membership.location.id}"}
+                                    >
+                                      <.icon name="hero-shopping-cart" class="w-4 h-4" />
+                                      Cart
+                                    </.link>
+                                  <% end %>
+                                </div>
                               </div>
 
                               <div class="pl-7 space-y-1 text-base-content">

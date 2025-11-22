@@ -5,6 +5,66 @@ All notable changes to this project will be documented in this file.
 ## 2025-11-22
 
 ### Added
+- **LiveView Admin UI - Phase 5: Shopping Cart & Purchase Flow** (branch: `inventory`)
+  - **CartLive** (`/location/:location_id/cart`) - Full cart management interface
+    - Authorization checking (org_buyer role required)
+    - Empty cart state with "Browse Products" link
+    - Cart items table with product details (title, SKU, price, quantity, line total)
+    - Quantity controls with +/- buttons (prevents going below 1)
+    - Remove individual items from cart
+    - Clear entire cart functionality
+    - Calculate and display cart total
+    - Place order button → redirects to order confirmation
+    - Authorization: only users with org_buyer role for location's organization can access
+  - **ProductsLive** (`/location/:location_id/products`) - Product browsing interface
+    - Display all active products in responsive grid (3 columns on large screens)
+    - Product cards with image/placeholder, title, SKU, price, description
+    - Search functionality (by product title)
+    - Add to cart with success flash messages
+    - Links to cart and dashboard
+    - Authorization: org_buyer role required
+  - **OrderConfirmationLive** (`/orders/:order_id/confirmation`) - Order confirmation page
+    - Success message with order number prominently displayed
+    - Order details: location, status badge, order date, total
+    - Order items table with product details and line totals
+    - Subtotal and grand total display
+    - Status badges with appropriate colors (pending=warning, confirmed=info, delivered=success)
+    - Order notes display (when present)
+    - Links to continue shopping or return to dashboard
+    - Authorization: only order owner can view their orders
+  - **Cart Button on Dashboard**
+    - Added cart icon/button to each location card
+    - Only visible to users with org_buyer role
+    - Links to location-specific cart
+  - **Router Updates**
+    - Added `/location/:location_id/cart` → CartLive
+    - Added `/location/:location_id/products` → ProductsLive
+    - Added `/orders/:order_id/confirmation` → OrderConfirmationLive
+    - All routes protected by `ash_authentication_live_session`
+  - **Comprehensive Test Suite** (51 tests created)
+    - `test/medishop_web/live/cart_live_test.exs` - 24 tests
+      - Authentication/authorization tests
+      - Empty cart display
+      - Cart items display with quantities and totals
+      - Quantity increment/decrement with validation
+      - Remove items and clear cart
+      - Place order functionality
+    - `test/medishop_web/live/products_live_test.exs` - 16 tests
+      - Authentication/authorization tests
+      - Active products display
+      - Product details rendering
+      - Search functionality
+      - Add to cart functionality
+      - Inactive products filtering
+    - `test/medishop_web/live/order_confirmation_live_test.exs` - 11 tests
+      - Order display with all details
+      - Authorization (order ownership verification)
+      - Status badges rendering
+      - Order items table display
+      - Order notes display
+      - Multiple order statuses tested
+
+### Added
 - **LiveView Admin UI - Dashboard**
   - Created `DashboardLive` (`/dashboard`) displaying user organizations and locations
   - Implemented detailed organization cards with location access info
