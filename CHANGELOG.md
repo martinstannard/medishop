@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 ## 2025-11-22
 
 ### Added
+- **Dashboard UI Improvements**: Completely redesigned for better readability and usability
+  - Increased text sizes throughout (page title: text-5xl, org names: text-2xl, badges: text-sm)
+  - Added generous spacing and padding (p-8 cards, gap-8 grids, space-y-4)
+  - Improved contrast in dark mode (slate-900 background, gray-700 card backgrounds)
+  - Larger, more visible badges with explicit color classes
+  - Better icon sizes (w-5 h-5 for main icons)
+  - Rounded-2xl cards for modern appearance
+  - Maximum width increased to max-w-7xl for better space utilization
+
+- **Header and Navigation**: Professional branded header with theme support
+  - Medishop logo with gradient (blue-600 to purple-600) and shopping bag icon
+  - Brand tagline: "Healthcare Supply Platform"
+  - Three-mode theme toggle (System/Light/Dark) with visual slider
+  - User menu dropdown with avatar initials, Dashboard link, and Sign Out
+  - Proper dark mode support (dark:bg-gray-900 header, responsive colors)
+  - Theme toggle remembers preference in localStorage
+  - Smooth transitions and hover effects
+
 - **Product Gradient Thumbnails**: Beautiful SVG-based thumbnails for products without images
   - Created `MedishopWeb.Helpers.ProductThumbnail` module
   - Generates colorful gradient backgrounds with product initials and SKU
@@ -16,6 +34,30 @@ All notable changes to this project will be documented in this file.
   - Inline data URI (no external requests)
 
 ### Fixed
+- **LiveView Authentication**: Fixed current_user not being available in LiveView sessions
+  - Added `assign_new_resources` call to `:live_user_required` and `:live_user_optional` hooks
+  - Configured app layout in `ash_authentication_live_session` with proper on_mount hooks
+  - Header now correctly detects authenticated user and displays user menu
+  - Fixed Ash.CiString handling in user email display (convert to string before String.slice)
+
+- **Layout Configuration**: Properly configured app layout for all authenticated LiveViews
+  - Added `layout: {MedishopWeb.Layouts, :app}` to router live session
+  - Fixed `Layouts.app` to work as both component (@inner_block) and layout (@inner_content)
+  - Removed explicit wrapper from DashboardLive (layout applied automatically)
+  - All authenticated pages now display header with branding and navigation
+
+- **Sign Out Functionality**: Fixed sign out button in header dropdown
+  - Changed route from `/auth/user/sign_out` to correct `/sign-out` route
+  - Using verified route helper `~p"/sign-out"` for type safety
+  - Sign out now works correctly from user menu
+
+- **Theme Toggle Styling**: Updated theme toggle to match new design system
+  - Replaced DaisyUI classes with explicit Tailwind utilities
+  - Better contrast with gray borders and backgrounds
+  - Smooth slider animation with shadow
+  - Icons have proper colors and hover states
+  - Added accessibility titles to each button
+
 - **Cart Total Updates**: Cart total now updates in real-time when removing items or changing quantities
   - Fixed `CartLive.remove_item/2` to reload cart after removing items
   - Fixed `CartLive.update_quantity/2` to reload cart after quantity changes
@@ -30,6 +72,31 @@ All notable changes to this project will be documented in this file.
 - **Database Duplicates**: Cleared and regenerated seed data to fix duplicate organizations
   - Used `mix ash.reset` to drop and recreate database
   - All seed data regenerated cleanly
+
+### Changed
+- **Dashboard Design**: Complete redesign from DaisyUI to explicit Tailwind utility classes
+  - Migrated all badges from DaisyUI (badge-success, badge-info) to Tailwind color classes
+  - Changed primary text to gray-900/white for high contrast
+  - Changed secondary text to gray-600/gray-300
+  - Organization cards use white/gray-800 backgrounds with explicit borders
+  - Location cards use gray-50/gray-700 nested backgrounds
+  - All badges use explicit color classes with /50 opacity variants in dark mode
+  - Simplified "Locations & Access" label to just "Locations"
+  - Simplified "No specific location access assigned" to "No location access"
+
+- **Test Suite**: Updated all Dashboard tests to match new HTML structure
+  - Changed from DaisyUI class checks to content-based assertions
+  - Updated element type assertions (span to p for location names)
+  - Updated badge counting to use new color classes
+  - All 18 Dashboard tests passing
+  - All 69 LiveView tests passing
+
+### Technical Notes
+- Following explicit Tailwind utilities over DaisyUI for better control and consistency
+- Dark mode uses gray-700/gray-800 for better contrast than gray-900/gray-950
+- Theme toggle uses localStorage key "phx:theme" with system/light/dark values
+- Layout works as both Phoenix layout (@inner_content) and LiveView component (@inner_block)
+- All LiveViews in `ash_authentication_live_session` inherit app layout automatically
 
 ### Added (earlier today)
 
