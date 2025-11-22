@@ -163,7 +163,7 @@ defmodule MedishopWeb.CartLiveTest do
       # Get the cart item for product1 to find its ID
       {:ok, cart} = Shop.get_or_create_cart_for_location(location.id)
       {:ok, cart_with_items} = Shop.get_cart(cart.id, load: [:cart_items])
-      cart_item = Enum.find(cart_with_items.cart_items, &(&1.product_id == product1.id))
+      _cart_item = Enum.find(cart_with_items.cart_items, &(&1.product_id == product1.id))
 
       # Click increment button
       view
@@ -182,7 +182,7 @@ defmodule MedishopWeb.CartLiveTest do
       # Get the cart item for product1
       {:ok, cart} = Shop.get_or_create_cart_for_location(location.id)
       {:ok, cart_with_items} = Shop.get_cart(cart.id, load: [:cart_items])
-      cart_item = Enum.find(cart_with_items.cart_items, &(&1.product_id == product1.id))
+      _cart_item = Enum.find(cart_with_items.cart_items, &(&1.product_id == product1.id))
 
       # Click decrement button (from 2 to 1)
       view
@@ -200,7 +200,7 @@ defmodule MedishopWeb.CartLiveTest do
       # Product2 has quantity 1, decrement button should be disabled
       {:ok, cart} = Shop.get_or_create_cart_for_location(location.id)
       {:ok, cart_with_items} = Shop.get_cart(cart.id, load: [:cart_items])
-      cart_item = Enum.find(cart_with_items.cart_items, &(&1.product_id == product2.id))
+      _cart_item = Enum.find(cart_with_items.cart_items, &(&1.product_id == product2.id))
 
       html = render(view)
       # The button with quantity - 1 (= 0) should be disabled

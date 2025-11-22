@@ -3,7 +3,6 @@ defmodule Medishop.Shop.OrderItemTest do
 
   alias Medishop.Shop
 
-  import Medishop.ProductsFixtures
   import Medishop.ShopFixtures
 
   describe "create_order_item/1 (from cart)" do
