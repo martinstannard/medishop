@@ -51,6 +51,7 @@ defmodule MedishopWeb.HomeLive do
               for={@form}
               phx-change="validate"
               phx-submit="submit"
+              phx-trigger-action={@trigger_action}
               action={~p"/auth/user/password/sign_in"}
               method="post"
             >
