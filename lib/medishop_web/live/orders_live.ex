@@ -13,11 +13,10 @@ defmodule MedishopWeb.OrdersLive do
     case verify_location_access(user.id, location_id) do
       {:ok, location} ->
         # Get all orders for this location
-        {:ok, orders} =
-          Shop.get_orders_for_location(location_id,
-            load: [:user, order_items: [:product]],
-            sort: [placed_at: :desc]
-          )
+        {:ok, orders} = Shop.get_orders_for_location(location_id, load: [:user, order_items: [:product]])
+
+        # Sort orders by placed_at descending (newest first)
+        orders = Enum.sort_by(orders, & &1.placed_at, {:desc, DateTime})
 
         socket =
           socket

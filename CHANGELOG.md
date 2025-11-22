@@ -45,6 +45,18 @@ All notable changes to this project will be documented in this file.
   - Inline data URI (no external requests)
 
 ### Fixed
+- **OrdersLive Sorting**: Fixed Ash Framework sort option error in order listing
+  - Removed invalid `sort: [placed_at: :desc]` option from `Shop.get_orders_for_location` call
+  - Ash code interface doesn't support `sort:` option - must sort in application code
+  - Now sorting orders with `Enum.sort_by(orders, & &1.placed_at, {:desc, DateTime})`
+  - Orders display newest first as intended
+  - All 10 OrdersLive tests passing
+
+- **OrdersLive Tests**: Added comprehensive test suite for order viewing functionality
+  - Created `test/medishop_web/live/orders_live_test.exs` with 10 tests
+  - Tests cover: authentication, authorization, empty state, order display, links, location isolation
+  - Ensures users can only view orders for locations they have access to
+
 - **LiveView Authentication**: Fixed current_user not being available in LiveView sessions
   - Added `assign_new_resources` call to `:live_user_required` and `:live_user_optional` hooks
   - Configured app layout in `ash_authentication_live_session` with proper on_mount hooks
