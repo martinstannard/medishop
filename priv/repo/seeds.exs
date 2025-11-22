@@ -12,6 +12,7 @@
 
 alias Medishop.Organizations
 alias Medishop.Accounts.User
+alias Medishop.Products
 alias Medishop.Repo
 
 # Create test users directly via Repo (bypassing authentication for seeds)
@@ -262,6 +263,140 @@ member_user =
     authorize?: false
   )
 
+# Create products using interface functions
+IO.puts("\nCreating products...")
+
+{:ok, _aspirin} =
+  Products.create_product(%{
+    sku: "MED-ASP-100",
+    title: "Aspirin 100mg Tablets",
+    description: "Pain relief and fever reducer. 100 tablets per bottle.",
+    price: Decimal.new("9.99"),
+    active: true,
+    images: []
+  })
+
+{:ok, _ibuprofen} =
+  Products.create_product(%{
+    sku: "MED-IBU-200",
+    title: "Ibuprofen 200mg Capsules",
+    description: "Anti-inflammatory pain reliever. 50 capsules per bottle.",
+    price: Decimal.new("12.99"),
+    active: true,
+    images: []
+  })
+
+{:ok, _acetaminophen} =
+  Products.create_product(%{
+    sku: "MED-ACE-500",
+    title: "Acetaminophen 500mg Tablets",
+    description: "Extra strength pain reliever and fever reducer. 100 tablets.",
+    price: Decimal.new("11.49"),
+    active: true,
+    images: []
+  })
+
+{:ok, _amoxicillin} =
+  Products.create_product(%{
+    sku: "MED-AMX-500",
+    title: "Amoxicillin 500mg Capsules",
+    description: "Antibiotic for bacterial infections. 30 capsules per bottle.",
+    price: Decimal.new("24.99"),
+    active: true,
+    images: []
+  })
+
+{:ok, _lisinopril} =
+  Products.create_product(%{
+    sku: "MED-LIS-10",
+    title: "Lisinopril 10mg Tablets",
+    description: "Blood pressure medication. 90 tablets per bottle.",
+    price: Decimal.new("15.99"),
+    active: true,
+    images: []
+  })
+
+{:ok, _metformin} =
+  Products.create_product(%{
+    sku: "MED-MET-500",
+    title: "Metformin 500mg Tablets",
+    description: "Diabetes medication. 60 tablets per bottle.",
+    price: Decimal.new("18.99"),
+    active: true,
+    images: []
+  })
+
+{:ok, _atorvastatin} =
+  Products.create_product(%{
+    sku: "MED-ATO-20",
+    title: "Atorvastatin 20mg Tablets",
+    description: "Cholesterol-lowering medication. 30 tablets per bottle.",
+    price: Decimal.new("22.99"),
+    active: true,
+    images: []
+  })
+
+{:ok, _omeprazole} =
+  Products.create_product(%{
+    sku: "MED-OME-20",
+    title: "Omeprazole 20mg Capsules",
+    description: "Acid reflux and heartburn relief. 42 capsules per bottle.",
+    price: Decimal.new("16.49"),
+    active: true,
+    images: []
+  })
+
+{:ok, _losartan} =
+  Products.create_product(%{
+    sku: "MED-LOS-50",
+    title: "Losartan 50mg Tablets",
+    description: "Blood pressure medication. 90 tablets per bottle.",
+    price: Decimal.new("19.99"),
+    active: true,
+    images: []
+  })
+
+{:ok, _gabapentin} =
+  Products.create_product(%{
+    sku: "MED-GAB-300",
+    title: "Gabapentin 300mg Capsules",
+    description: "Nerve pain and seizure medication. 90 capsules per bottle.",
+    price: Decimal.new("21.99"),
+    active: true,
+    images: []
+  })
+
+{:ok, _levothyroxine} =
+  Products.create_product(%{
+    sku: "MED-LEV-50",
+    title: "Levothyroxine 50mcg Tablets",
+    description: "Thyroid hormone replacement. 90 tablets per bottle.",
+    price: Decimal.new("13.99"),
+    active: true,
+    images: []
+  })
+
+{:ok, _amlodipine} =
+  Products.create_product(%{
+    sku: "MED-AML-5",
+    title: "Amlodipine 5mg Tablets",
+    description: "Calcium channel blocker for blood pressure. 90 tablets.",
+    price: Decimal.new("14.99"),
+    active: true,
+    images: []
+  })
+
+# Create some inactive products
+{:ok, _discontinued} =
+  Products.create_product(%{
+    sku: "MED-OLD-001",
+    title: "Discontinued Product",
+    description: "This product is no longer available.",
+    price: Decimal.new("5.00"),
+    active: false,
+    images: []
+  })
+
 IO.puts("\n✅ Seeds completed successfully!")
 IO.puts("\nCreated:")
 IO.puts("- 3 users (admin@medishop.test, buyer@medishop.test, member@medishop.test)")
@@ -269,4 +404,6 @@ IO.puts("- 3 organizations (Acme Medical Supply, Global Health Partners, Test Or
 IO.puts("- 5 locations across all organizations")
 IO.puts("- 6 organization memberships (Enriched)")
 IO.puts("- 6 location memberships (Enriched)")
-IO.puts("\nYou can now test the organization and location features!")
+IO.puts("- 13 products (12 active, 1 inactive)")
+IO.puts("\nYou can now test the shopping cart and purchase flow!")
+IO.puts("Login credentials: password = 'password' for all test users")
