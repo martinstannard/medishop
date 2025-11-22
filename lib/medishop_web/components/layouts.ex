@@ -105,7 +105,7 @@ defmodule MedishopWeb.Layouts do
       </div>
     </header>
 
-    <main class="min-h-screen bg-gray-50 dark:bg-gray-950">
+    <main class="min-h-screen bg-gray-50 dark:bg-slate-900">
       <div class="mx-auto space-y-4">
         {render_slot(@inner_block)}
       </div>

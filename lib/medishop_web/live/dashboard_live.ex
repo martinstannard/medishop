@@ -15,72 +15,72 @@ defmodule MedishopWeb.DashboardLive do
 
   def render(assigns) do
     ~H"""
-    <div class="max-w-6xl mx-auto py-8 px-4">
-      <div class="mb-8">
-        <h1 class="text-4xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
-        <p class="text-gray-600 dark:text-gray-300 mt-2 text-lg">
+    <div class="max-w-7xl mx-auto py-10 px-6">
+      <div class="mb-10">
+        <h1 class="text-5xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
+        <p class="text-gray-700 dark:text-gray-200 mt-3 text-xl">
           Welcome back, <span class="font-semibold text-gray-900 dark:text-white">{@current_user.email}</span>
         </p>
       </div>
 
-      <div class="space-y-6">
+      <div class="space-y-8">
         <section>
-          <h2 class="text-2xl font-bold mb-6 text-gray-900 dark:text-white">My Organizations</h2>
+          <h2 class="text-3xl font-bold mb-8 text-gray-900 dark:text-white">My Organizations</h2>
 
           <%= if Enum.empty?(@memberships) do %>
-            <div class="bg-white dark:bg-gray-800 rounded-xl p-8 text-center border border-gray-200 dark:border-gray-700">
-              <p class="text-gray-600 dark:text-gray-300">You are not a member of any organizations yet.</p>
+            <div class="bg-white dark:bg-gray-800 rounded-2xl p-10 text-center border border-gray-200 dark:border-gray-600">
+              <p class="text-lg text-gray-700 dark:text-gray-200">You are not a member of any organizations yet.</p>
             </div>
           <% else %>
-            <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div class="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
               <%= for membership <- @memberships do %>
-                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-xl transition-shadow">
-                  <div class="p-6">
-                    <div class="mb-4">
-                      <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-600 overflow-hidden hover:shadow-2xl transition-shadow">
+                  <div class="p-8">
+                    <div class="mb-6">
+                      <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-3">
                         {membership.organization.name}
                       </h3>
-                      <div class="flex flex-wrap items-center gap-2">
+                      <div class="flex flex-wrap items-center gap-2.5">
                         <span class={[
-                          "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
+                          "inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold",
                           if(membership.organization.is_test_organization,
-                            do: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
-                            else: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                            do: "bg-yellow-100 text-yellow-900 dark:bg-yellow-900/50 dark:text-yellow-100",
+                            else: "bg-green-100 text-green-900 dark:bg-green-900/50 dark:text-green-100"
                           )
                         ]}>
                           {if membership.organization.is_test_organization, do: "Test", else: "Active"}
                         </span>
                         <%= for role <- membership.org_roles do %>
-                          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                          <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-blue-100 text-blue-900 dark:bg-blue-900/50 dark:text-blue-100">
                             {Phoenix.Naming.humanize(role)}
                           </span>
                         <% end %>
                       </div>
                     </div>
 
-                    <div class="space-y-3">
-                      <div class="flex items-center gap-2 pb-2 border-b border-gray-200 dark:border-gray-700">
-                        <.icon name="hero-building-office" class="w-4 h-4 text-gray-500 dark:text-gray-400" />
-                        <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">Locations</span>
+                    <div class="space-y-4">
+                      <div class="flex items-center gap-3 pb-3 border-b-2 border-gray-200 dark:border-gray-600">
+                        <.icon name="hero-building-office" class="w-5 h-5 text-gray-600 dark:text-gray-300" />
+                        <span class="text-base font-bold text-gray-800 dark:text-gray-100">Locations</span>
                       </div>
 
                       <%= if Enum.empty?(membership.organization_location_memberships) do %>
-                        <p class="text-sm text-gray-500 dark:text-gray-400 italic">
+                        <p class="text-base text-gray-600 dark:text-gray-300 italic">
                           No location access
                         </p>
                       <% else %>
-                        <div class="space-y-3">
+                        <div class="space-y-4">
                           <%= for loc_membership <- membership.organization_location_memberships do %>
-                            <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
-                              <div class="flex items-start justify-between gap-2 mb-2">
-                                <div class="flex items-start gap-2 min-w-0 flex-1">
-                                  <.icon name="hero-map-pin" class="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                            <div class="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 border border-gray-200 dark:border-gray-600">
+                              <div class="flex items-start justify-between gap-3 mb-3">
+                                <div class="flex items-start gap-3 min-w-0 flex-1">
+                                  <.icon name="hero-map-pin" class="w-5 h-5 text-blue-600 dark:text-blue-300 mt-1 flex-shrink-0" />
                                   <div class="min-w-0 flex-1">
-                                    <p class="font-semibold text-gray-900 dark:text-white text-sm">
+                                    <p class="font-bold text-gray-900 dark:text-white text-base mb-2">
                                       {loc_membership.location.name}
                                     </p>
                                     <%= if loc_membership.location.store do %>
-                                      <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 mt-1">
+                                      <span class="inline-flex items-center px-3 py-1 rounded-md text-sm font-semibold bg-purple-100 text-purple-900 dark:bg-purple-900/50 dark:text-purple-100">
                                         Store
                                       </span>
                                     <% end %>
@@ -92,20 +92,20 @@ defmodule MedishopWeb.DashboardLive do
                                     class="btn btn-sm btn-primary flex-shrink-0"
                                     data-testid={"cart-button-#{loc_membership.location.id}"}
                                   >
-                                    <.icon name="hero-shopping-cart" class="w-4 h-4" />
+                                    <.icon name="hero-shopping-cart" class="w-5 h-5" />
                                   </.link>
                                 <% end %>
                               </div>
 
-                              <div class="space-y-1 text-xs text-gray-600 dark:text-gray-400 mt-2">
-                                <p class="flex items-start gap-1.5">
-                                  <.icon name="hero-home" class="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
+                              <div class="space-y-2 text-sm text-gray-700 dark:text-gray-200 mt-3">
+                                <p class="flex items-start gap-2">
+                                  <.icon name="hero-home" class="w-4 h-4 mt-0.5 flex-shrink-0" />
                                   <span class="break-words">
                                     {loc_membership.location.address["street"]}, {loc_membership.location.address["city"]}, {loc_membership.location.address["state"]} {loc_membership.location.address["zip"]}
                                   </span>
                                 </p>
-                                <p class="flex items-center gap-1.5">
-                                  <.icon name="hero-phone" class="w-3.5 h-3.5 flex-shrink-0" />
+                                <p class="flex items-center gap-2">
+                                  <.icon name="hero-phone" class="w-4 h-4 flex-shrink-0" />
                                   <span>{loc_membership.location.contact_number}</span>
                                 </p>
                               </div>
