@@ -96,7 +96,7 @@ defmodule Medishop.Organizations.OrganizationLocationMembershipTest do
         )
 
       assert {:ok, location_memberships} =
-               Organizations.get_location_memberships_for_user(%{user_id: user.id})
+               Organizations.get_location_memberships_for_user(user.id)
 
       assert length(location_memberships) == 1
       assert hd(location_memberships).id == location_membership1.id
@@ -128,7 +128,7 @@ defmodule Medishop.Organizations.OrganizationLocationMembershipTest do
         )
 
       assert {:ok, location_memberships} =
-               Organizations.get_location_memberships_for_location(%{location_id: location.id})
+               Organizations.get_location_memberships_for_location(location.id)
 
       assert length(location_memberships) == 1
       assert hd(location_memberships).id == location_membership1.id

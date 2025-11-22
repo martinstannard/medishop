@@ -59,7 +59,7 @@ defmodule Medishop.Organizations.OrganizationMembershipTest do
       # Create another membership for a different user
       Ash.Generator.generate(Generator.organization_membership())
 
-      assert {:ok, memberships} = Organizations.get_memberships_for_user(%{user_id: user.id})
+      assert {:ok, memberships} = Organizations.get_memberships_for_user(user.id)
 
       assert length(memberships) == 1
       assert hd(memberships).id == membership1.id
@@ -87,9 +87,7 @@ defmodule Medishop.Organizations.OrganizationMembershipTest do
         )
 
       assert {:ok, memberships} =
-               Organizations.get_memberships_for_organization(%{
-                 organization_id: organization.id
-               })
+               Organizations.get_memberships_for_organization(organization.id)
 
       assert length(memberships) == 2
       membership_ids = Enum.map(memberships, & &1.id)
