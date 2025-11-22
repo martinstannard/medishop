@@ -35,7 +35,7 @@ defmodule MedishopWeb.Layouts do
 
   def app(assigns) do
     ~H"""
-    <header class="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shadow-sm">
+    <header class="bg-white border-b border-gray-200 dark:border-gray-800 shadow-sm">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-16">
           <div class="flex items-center gap-8">
@@ -74,14 +74,17 @@ defmodule MedishopWeb.Layouts do
                   class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow-lg bg-white dark:bg-gray-800 rounded-xl w-56 border border-gray-200 dark:border-gray-700"
                 >
                   <li class="px-4 py-2 text-xs text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
-                    {String.slice(@current_user.email, 0, 30)}{if String.length(@current_user.email) > 30,
-                      do: "...",
-                      else: ""}
+                    {String.slice(@current_user.email, 0, 30)}{if String.length(@current_user.email) >
+                                                                    30,
+                                                                  do: "...",
+                                                                  else: ""}
                   </li>
                   <li>
-                    <.link navigate="/dashboard" class="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-                      <.icon name="hero-squares-2x2" class="size-4" />
-                      Dashboard
+                    <.link
+                      navigate="/dashboard"
+                      class="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                    >
+                      <.icon name="hero-squares-2x2" class="size-4" /> Dashboard
                     </.link>
                   </li>
                   <li>
@@ -89,8 +92,7 @@ defmodule MedishopWeb.Layouts do
                       href="/auth/user/sign_out"
                       class="text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
                     >
-                      <.icon name="hero-arrow-right-on-rectangle" class="size-4" />
-                      Sign Out
+                      <.icon name="hero-arrow-right-on-rectangle" class="size-4" /> Sign Out
                     </a>
                   </li>
                 </ul>
@@ -165,31 +167,34 @@ defmodule MedishopWeb.Layouts do
   """
   def theme_toggle(assigns) do
     ~H"""
-    <div class="card relative flex flex-row items-center border-2 border-base-300 bg-base-300 rounded-full">
-      <div class="absolute w-1/3 h-full rounded-full border-1 border-base-200 bg-base-100 brightness-200 left-0 [[data-theme=light]_&]:left-1/3 [[data-theme=dark]_&]:left-2/3 transition-[left]" />
+    <div class="relative flex flex-row items-center border-2 border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 rounded-full p-0.5">
+      <div class="absolute w-1/3 h-[calc(100%-4px)] rounded-full bg-white dark:bg-gray-700 shadow-md left-0.5 [[data-theme=light]_&]:left-1/3 [[data-theme=dark]_&]:left-2/3 transition-all duration-200" />
 
       <button
-        class="flex p-2 cursor-pointer w-1/3"
+        class="relative flex items-center justify-center p-2 cursor-pointer w-1/3 z-10"
         phx-click={JS.dispatch("phx:set-theme")}
         data-phx-theme="system"
+        title="System theme"
       >
-        <.icon name="hero-computer-desktop-micro" class="size-4 opacity-75 hover:opacity-100" />
+        <.icon name="hero-computer-desktop-micro" class="size-4 text-gray-600 dark:text-gray-300 opacity-75 hover:opacity-100 transition-opacity" />
       </button>
 
       <button
-        class="flex p-2 cursor-pointer w-1/3"
+        class="relative flex items-center justify-center p-2 cursor-pointer w-1/3 z-10"
         phx-click={JS.dispatch("phx:set-theme")}
         data-phx-theme="light"
+        title="Light theme"
       >
-        <.icon name="hero-sun-micro" class="size-4 opacity-75 hover:opacity-100" />
+        <.icon name="hero-sun-micro" class="size-4 text-gray-600 dark:text-gray-300 opacity-75 hover:opacity-100 transition-opacity" />
       </button>
 
       <button
-        class="flex p-2 cursor-pointer w-1/3"
+        class="relative flex items-center justify-center p-2 cursor-pointer w-1/3 z-10"
         phx-click={JS.dispatch("phx:set-theme")}
         data-phx-theme="dark"
+        title="Dark theme"
       >
-        <.icon name="hero-moon-micro" class="size-4 opacity-75 hover:opacity-100" />
+        <.icon name="hero-moon-micro" class="size-4 text-gray-600 dark:text-gray-300 opacity-75 hover:opacity-100 transition-opacity" />
       </button>
     </div>
     """
