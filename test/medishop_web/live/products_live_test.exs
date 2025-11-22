@@ -159,15 +159,16 @@ defmodule MedishopWeb.ProductsLiveTest do
       assert html =~ "10.99"
     end
 
-    test "shows placeholder image for products without images", %{
+    test "shows generated thumbnail for products without images", %{
       conn: conn,
       location: location,
-      product1: product1
+      product1: _product1
     } do
       {:ok, _view, html} = live(conn, ~p"/location/#{location.id}/products")
 
-      # Should show placeholder icon
-      assert html =~ "hero-photo"
+      # Should show generated SVG thumbnail
+      assert html =~ "data:image/svg+xml"
+      assert html =~ "linearGradient"
     end
 
     test "displays add to cart button for each product", %{

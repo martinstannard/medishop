@@ -4,6 +4,7 @@ defmodule MedishopWeb.ProductsLive do
   alias Medishop.Products
   alias Medishop.Shop
   alias Medishop.Organizations
+  alias MedishopWeb.Helpers.ProductThumbnail
 
   on_mount {MedishopWeb.LiveUserAuth, :live_user_required}
 
@@ -176,9 +177,11 @@ defmodule MedishopWeb.ProductsLive do
           >
             <figure class="px-4 pt-4">
               <%= if Enum.empty?(product.images) do %>
-                <div class="bg-base-200 rounded-lg w-full h-48 flex items-center justify-center">
-                  <.icon name="hero-photo" class="w-16 h-16 text-base-300" />
-                </div>
+                <img
+                  src={ProductThumbnail.generate_thumbnail(product.title, product.sku)}
+                  alt={product.title}
+                  class="rounded-lg w-full h-48 object-cover"
+                />
               <% else %>
                 <img
                   src={List.first(product.images)}
