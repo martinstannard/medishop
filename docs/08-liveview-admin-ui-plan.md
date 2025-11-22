@@ -147,22 +147,27 @@ This phase implements the shopping cart functionality, allowing users to browse 
   - Show "View My Orders" link
   - Show "Continue Shopping" link (back to products)
 
-### Step 5: Create Orders List LiveView (Optional but Recommended)
+### Step 5: Create Orders List LiveView ✅ COMPLETE
 **Effort:** Small
 **Dependencies:** Step 4
 
 - [x] **Create `lib/medishop_web/live/orders_live.ex`:**
-  - Route: `/orders` or `/location/:location_id/orders`
-  - List user's orders using `Shop.get_orders_for_user/1`
-  - Show: order number, date, status, total
-  - Link to order detail view
-  - Filter by status
+  - Route: `/location/:location_id/orders`
+  - Lists all orders for a location using `Shop.get_orders_for_location/2`
+  - Shows: order number, date, status badge, total, items summary
+  - Authorization: user must have location access
+  - Empty state when no orders
+  - Sorted by date (newest first) using `Enum.sort_by` in application code
+  - Links to order confirmation page and PDF download
+  - **Note:** Ash code interface doesn't support `sort:` option; sorting done in Elixir
 
-- [x] **Create Order Detail LiveView:**
-  - Route: `/orders/:order_id`
-  - Show full order details with items
-  - Display order timeline (placed_at, confirmed_at, etc.)
-  - Show status badge
+- [x] **Create Order PDF Download:**
+  - Route: `/orders/:order_id/pdf`
+  - Controller: `OrderPDFController`
+  - Generates HTML-based PDF with professional styling
+  - Includes order header, items table, totals
+  - Authorization: user must own the order
+  - Uses browser print functionality
 
 ### Step 6: Write Cart & Shopping LiveView Tests
 **Effort:** Large
@@ -198,16 +203,22 @@ This phase implements the shopping cart functionality, allowing users to browse 
 - [x] Test cart count updates after adding item
 - [x] Test navigation back to cart
 
-**Test File 3:** `test/medishop_web/live/orders_live_test.exs` (if implementing Step 5)
+**Test File 3:** `test/medishop_web/live/orders_live_test.exs` ✅ COMPLETE (10/10 tests)
 
 **Required Tests:**
-- [x] Test user can view their orders
-- [x] Test user cannot view other users' orders
-- [x] Test order list shows correct details
-- [x] Test order detail view
-- [x] Test order status display
+- [x] Test unauthenticated user redirected to sign-in
+- [x] Test unauthorized user (no location access) redirected with error
+- [x] Test authorized user can view orders
+- [x] Test empty orders message displayed correctly
+- [x] Test back to dashboard link present
+- [x] Test displays all orders for the location
+- [x] Test order status badges displayed
+- [x] Test order totals displayed correctly
+- [x] Test view details link for each order
+- [x] Test download PDF link for each order
+- [x] Test only shows orders for current location (not others)
 
-**Quality Gate:** All cart and shopping tests must pass before proceeding to Phase 6
+**Quality Gate:** All cart and shopping tests passing ✅ (51 + 10 = 61 tests total)
 
 ## Phase 6: Finalization and Quality Assurance
 

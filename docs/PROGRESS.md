@@ -6,6 +6,49 @@ This file tracks the high-level progress of work on the Medishop project. Update
 
 ## 2025-11-22
 
+### LiveView Admin UI - Order Viewing and PDF Export ✅ COMPLETE
+
+**What was accomplished:**
+- **OrdersLive**: New page to view all orders for a location
+  - Route: `/location/:location_id/orders`
+  - Displays orders sorted by date (newest first)
+  - Shows order number, status badge, placed date, total, and items summary
+  - Authorization: users must have location access to view orders
+  - Empty state when no orders exist
+  - "View Details" link to OrderConfirmationLive
+  - "Download PDF" link for printable order documents
+- **OrderPDFController**: HTML-based PDF generation
+  - Professional styling with Medishop branding
+  - Includes order header, items table, totals
+  - Authorization: users can only download their own orders
+- **Dashboard Integration**: Added Orders button to each location card
+- **Router Updates**: Added `/location/:location_id/orders` and `/orders/:id/pdf` routes
+- **Comprehensive Test Suite**: 10 tests covering all functionality
+  - Authentication and authorization tests
+  - Empty state and order display tests
+  - Link verification tests
+  - Location isolation tests
+
+**Technical Fixes:**
+- Fixed Ash Framework sort option error (code interface doesn't support `sort:` option)
+- Changed to sort in application code using `Enum.sort_by(orders, & &1.placed_at, {:desc, DateTime})`
+- All 10 OrdersLive tests passing
+
+**Test Summary:**
+- LiveView order viewing tests: 10/10 passing ✅
+- All existing tests: 148/148 still passing ✅
+
+**Files Created:**
+- `lib/medishop_web/live/orders_live.ex` - Order listing LiveView
+- `lib/medishop_web/controllers/order_pdf_controller.ex` - PDF generation controller
+- `test/medishop_web/live/orders_live_test.exs` - 10 comprehensive tests
+
+**Files Modified:**
+- `lib/medishop_web/router.ex` - Added orders routes
+- `lib/medishop_web/live/dashboard_live.ex` - Added Orders button
+
+---
+
 ### LiveView Admin UI - Phase 5: Shopping Cart & Purchase Flow Complete
 
 **What was accomplished:**
