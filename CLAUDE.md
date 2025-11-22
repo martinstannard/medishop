@@ -548,3 +548,4 @@ end
 - Use `element/2`, `has_element/2` instead of raw HTML assertions
 - Use `render_submit/2` and `render_change/2` for form testing
 - Read AGENTS.md "LiveView tests" section for detailed patterns and examples
+- Always update the changelog when committing
