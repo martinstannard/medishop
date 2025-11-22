@@ -76,26 +76,46 @@ defmodule MedishopWeb.Helpers.ProductThumbnail do
 
     # Select color pair from predefined palette based on hash
     color_pairs = [
-      {"#667eea", "#764ba2"},  # Purple
-      {"#f093fb", "#f5576c"},  # Pink-Red
-      {"#4facfe", "#00f2fe"},  # Blue-Cyan
-      {"#43e97b", "#38f9d7"},  # Green-Cyan
-      {"#fa709a", "#fee140"},  # Pink-Yellow
-      {"#30cfd0", "#330867"},  # Cyan-Purple
-      {"#a8edea", "#fed6e3"},  # Mint-Pink
-      {"#ff9a56", "#ff6a88"},  # Orange-Pink
-      {"#ffecd2", "#fcb69f"},  # Peach
-      {"#ff6e7f", "#bfe9ff"},  # Red-Blue
-      {"#e0c3fc", "#8ec5fc"},  # Lavender-Blue
-      {"#fbc2eb", "#a6c1ee"},  # Pink-Blue
-      {"#fdcbf1", "#e6dee9"},  # Rose
-      {"#a1c4fd", "#c2e9fb"},  # Sky Blue
-      {"#d299c2", "#fef9d7"},  # Purple-Cream
-      {"#89f7fe", "#66a6ff"},  # Cyan-Blue
-      {"#fa8bff", "#2bd2ff"},  # Magenta-Cyan
-      {"#ffeaa7", "#fdcb6e"},  # Yellow-Orange
-      {"#74b9ff", "#a29bfe"},  # Blue-Purple
-      {"#fd79a8", "#fdcb6e"}   # Pink-Orange
+      # Purple
+      {"#667eea", "#764ba2"},
+      # Pink-Red
+      {"#f093fb", "#f5576c"},
+      # Blue-Cyan
+      {"#4facfe", "#00f2fe"},
+      # Green-Cyan
+      {"#43e97b", "#38f9d7"},
+      # Pink-Yellow
+      {"#fa709a", "#fee140"},
+      # Cyan-Purple
+      {"#30cfd0", "#330867"},
+      # Mint-Pink
+      {"#a8edea", "#fed6e3"},
+      # Orange-Pink
+      {"#ff9a56", "#ff6a88"},
+      # Peach
+      {"#ffecd2", "#fcb69f"},
+      # Red-Blue
+      {"#ff6e7f", "#bfe9ff"},
+      # Lavender-Blue
+      {"#e0c3fc", "#8ec5fc"},
+      # Pink-Blue
+      {"#fbc2eb", "#a6c1ee"},
+      # Rose
+      {"#fdcbf1", "#e6dee9"},
+      # Sky Blue
+      {"#a1c4fd", "#c2e9fb"},
+      # Purple-Cream
+      {"#d299c2", "#fef9d7"},
+      # Cyan-Blue
+      {"#89f7fe", "#66a6ff"},
+      # Magenta-Cyan
+      {"#fa8bff", "#2bd2ff"},
+      # Yellow-Orange
+      {"#ffeaa7", "#fdcb6e"},
+      # Blue-Purple
+      {"#74b9ff", "#a29bfe"},
+      # Pink-Orange
+      {"#fd79a8", "#fdcb6e"}
     ]
 
     index = rem(hash, length(color_pairs))

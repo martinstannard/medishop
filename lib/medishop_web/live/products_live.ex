@@ -106,17 +106,18 @@ defmodule MedishopWeb.ProductsLive do
             class="btn btn-primary gap-2 relative"
             data-testid="view-cart-button"
           >
-            <.icon name="hero-shopping-cart" class="w-5 h-5" />
-            View Cart
+            <.icon name="hero-shopping-cart" class="w-5 h-5" /> View Cart
             <%= if @cart_item_count > 0 do %>
-              <span class="absolute -top-2 -right-2 badge badge-sm badge-secondary" data-testid="cart-count-badge">
+              <span
+                class="absolute -top-2 -right-2 badge badge-sm badge-secondary"
+                data-testid="cart-count-badge"
+              >
                 {@cart_item_count}
               </span>
             <% end %>
           </.link>
           <.link navigate={~p"/dashboard"} class="btn btn-ghost gap-2">
-            <.icon name="hero-arrow-left" class="w-5 h-5" />
-            Back to Dashboard
+            <.icon name="hero-arrow-left" class="w-5 h-5" /> Back to Dashboard
           </.link>
         </div>
       </div>
@@ -133,8 +134,7 @@ defmodule MedishopWeb.ProductsLive do
               data-testid="search-input"
             />
             <button type="submit" class="btn btn-primary gap-2">
-              <.icon name="hero-magnifying-glass" class="w-5 h-5" />
-              Search
+              <.icon name="hero-magnifying-glass" class="w-5 h-5" /> Search
             </button>
           </div>
         </form>
@@ -210,8 +210,7 @@ defmodule MedishopWeb.ProductsLive do
                   phx-value-product_id={product.id}
                   data-testid={"add-to-cart-#{product.id}"}
                 >
-                  <.icon name="hero-shopping-cart" class="w-4 h-4" />
-                  Add to Cart
+                  <.icon name="hero-shopping-cart" class="w-4 h-4" /> Add to Cart
                 </button>
               </div>
             </div>

@@ -157,7 +157,11 @@ defmodule MedishopWeb.CartLiveTest do
       assert html =~ "35.50"
     end
 
-    test "allows incrementing item quantity", %{conn: conn, location: location, product1: product1} do
+    test "allows incrementing item quantity", %{
+      conn: conn,
+      location: location,
+      product1: product1
+    } do
       {:ok, view, _html} = live(conn, ~p"/location/#{location.id}/cart")
 
       # Get the cart item for product1 to find its ID
@@ -176,7 +180,11 @@ defmodule MedishopWeb.CartLiveTest do
       assert html =~ "3"
     end
 
-    test "allows decrementing item quantity", %{conn: conn, location: location, product1: product1} do
+    test "allows decrementing item quantity", %{
+      conn: conn,
+      location: location,
+      product1: product1
+    } do
       {:ok, view, _html} = live(conn, ~p"/location/#{location.id}/cart")
 
       # Get the cart item for product1
@@ -194,7 +202,11 @@ defmodule MedishopWeb.CartLiveTest do
       assert html =~ "1"
     end
 
-    test "prevents decrementing quantity below 1", %{conn: conn, location: location, product2: product2} do
+    test "prevents decrementing quantity below 1", %{
+      conn: conn,
+      location: location,
+      product2: product2
+    } do
       {:ok, view, _html} = live(conn, ~p"/location/#{location.id}/cart")
 
       # Product2 has quantity 1, decrement button should be disabled

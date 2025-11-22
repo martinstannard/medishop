@@ -181,7 +181,10 @@ defmodule MedishopWeb.Layouts do
         data-phx-theme="system"
         title="System theme"
       >
-        <.icon name="hero-computer-desktop-micro" class="size-4 text-gray-600 dark:text-gray-300 opacity-75 hover:opacity-100 transition-opacity" />
+        <.icon
+          name="hero-computer-desktop-micro"
+          class="size-4 text-gray-600 dark:text-gray-300 opacity-75 hover:opacity-100 transition-opacity"
+        />
       </button>
 
       <button
@@ -190,7 +193,10 @@ defmodule MedishopWeb.Layouts do
         data-phx-theme="light"
         title="Light theme"
       >
-        <.icon name="hero-sun-micro" class="size-4 text-gray-600 dark:text-gray-300 opacity-75 hover:opacity-100 transition-opacity" />
+        <.icon
+          name="hero-sun-micro"
+          class="size-4 text-gray-600 dark:text-gray-300 opacity-75 hover:opacity-100 transition-opacity"
+        />
       </button>
 
       <button
@@ -199,7 +205,10 @@ defmodule MedishopWeb.Layouts do
         data-phx-theme="dark"
         title="Dark theme"
       >
-        <.icon name="hero-moon-micro" class="size-4 text-gray-600 dark:text-gray-300 opacity-75 hover:opacity-100 transition-opacity" />
+        <.icon
+          name="hero-moon-micro"
+          class="size-4 text-gray-600 dark:text-gray-300 opacity-75 hover:opacity-100 transition-opacity"
+        />
       </button>
     </div>
     """

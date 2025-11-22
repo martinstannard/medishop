@@ -16,7 +16,8 @@ defmodule MedishopWeb.CartLive do
         {:ok, cart} = Shop.get_or_create_cart_for_location(location_id)
 
         # Load cart with items, product details, and line_total calculation
-        {:ok, cart_with_items} = Shop.get_cart(cart.id, load: [cart_items: [:product, :line_total]])
+        {:ok, cart_with_items} =
+          Shop.get_cart(cart.id, load: [cart_items: [:product, :line_total]])
 
         socket =
           socket
@@ -46,11 +47,14 @@ defmodule MedishopWeb.CartLive do
         case Shop.update_cart_item(cart_item, %{quantity: quantity}) do
           {:ok, updated_item} ->
             # Reload with product relationship and line_total calculation
-            {:ok, item_with_product} = Shop.get_cart_item(updated_item.id, load: [:product, :line_total])
+            {:ok, item_with_product} =
+              Shop.get_cart_item(updated_item.id, load: [:product, :line_total])
 
             # Reload cart to get updated cart_items list for total calculation
             cart = socket.assigns.cart
-            {:ok, cart_with_items} = Shop.get_cart(cart.id, load: [cart_items: [:product, :line_total]])
+
+            {:ok, cart_with_items} =
+              Shop.get_cart(cart.id, load: [cart_items: [:product, :line_total]])
 
             socket =
               socket
@@ -76,7 +80,9 @@ defmodule MedishopWeb.CartLive do
           :ok ->
             # Reload cart to get updated cart_items list for total calculation
             cart = socket.assigns.cart
-            {:ok, cart_with_items} = Shop.get_cart(cart.id, load: [cart_items: [:product, :line_total]])
+
+            {:ok, cart_with_items} =
+              Shop.get_cart(cart.id, load: [cart_items: [:product, :line_total]])
 
             socket =
               socket
@@ -101,7 +107,8 @@ defmodule MedishopWeb.CartLive do
     case Shop.clear_cart(cart) do
       {:ok, cleared_cart} ->
         # Reload cart to get updated cart_items list
-        {:ok, cart_with_items} = Shop.get_cart(cleared_cart.id, load: [cart_items: [:product, :line_total]])
+        {:ok, cart_with_items} =
+          Shop.get_cart(cleared_cart.id, load: [cart_items: [:product, :line_total]])
 
         socket =
           socket
@@ -145,8 +152,7 @@ defmodule MedishopWeb.CartLive do
           </p>
         </div>
         <.link navigate={~p"/dashboard"} class="btn btn-ghost gap-2">
-          <.icon name="hero-arrow-left" class="w-5 h-5" />
-          Back to Dashboard
+          <.icon name="hero-arrow-left" class="w-5 h-5" /> Back to Dashboard
         </.link>
       </div>
 
@@ -159,8 +165,7 @@ defmodule MedishopWeb.CartLive do
             navigate={~p"/location/#{@location.id}/products"}
             class="btn btn-primary gap-2"
           >
-            <.icon name="hero-magnifying-glass" class="w-5 h-5" />
-            Browse Products
+            <.icon name="hero-magnifying-glass" class="w-5 h-5" /> Browse Products
           </.link>
         </div>
       <% else %>
@@ -238,8 +243,7 @@ defmodule MedishopWeb.CartLive do
               data-confirm="Are you sure you want to clear your cart?"
               data-testid="clear-cart-button"
             >
-              <.icon name="hero-trash" class="w-4 h-4" />
-              Clear Cart
+              <.icon name="hero-trash" class="w-4 h-4" /> Clear Cart
             </button>
 
             <div class="flex items-center gap-4">
@@ -247,8 +251,7 @@ defmodule MedishopWeb.CartLive do
                 navigate={~p"/location/#{@location.id}/products"}
                 class="btn btn-ghost gap-2"
               >
-                <.icon name="hero-magnifying-glass" class="w-5 h-5" />
-                Browse Products
+                <.icon name="hero-magnifying-glass" class="w-5 h-5" /> Browse Products
               </.link>
 
               <div class="text-right">
@@ -264,8 +267,7 @@ defmodule MedishopWeb.CartLive do
                 phx-click="place_order"
                 data-testid="place-order-button"
               >
-                <.icon name="hero-shopping-bag" class="w-5 h-5" />
-                Place Order
+                <.icon name="hero-shopping-bag" class="w-5 h-5" /> Place Order
               </button>
             </div>
           </div>

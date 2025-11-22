@@ -13,7 +13,8 @@ defmodule MedishopWeb.OrdersLive do
     case verify_location_access(user.id, location_id) do
       {:ok, location} ->
         # Get all orders for this location
-        {:ok, orders} = Shop.get_orders_for_location(location_id, load: [:user, order_items: [:product]])
+        {:ok, orders} =
+          Shop.get_orders_for_location(location_id, load: [:user, order_items: [:product]])
 
         # Sort orders by placed_at descending (newest first)
         orders = Enum.sort_by(orders, & &1.placed_at, {:desc, DateTime})
@@ -73,15 +74,17 @@ defmodule MedishopWeb.OrdersLive do
             navigate={~p"/dashboard"}
             class="btn btn-secondary"
           >
-            <.icon name="hero-arrow-left" class="w-5 h-5" />
-            Back to Dashboard
+            <.icon name="hero-arrow-left" class="w-5 h-5" /> Back to Dashboard
           </.link>
         </div>
       </div>
 
       <%= if Enum.empty?(@orders) do %>
         <div class="bg-white dark:bg-gray-800 rounded-2xl p-10 text-center border border-gray-200 dark:border-gray-600">
-          <.icon name="hero-document-text" class="w-16 h-16 mx-auto text-gray-400 dark:text-gray-500 mb-4" />
+          <.icon
+            name="hero-document-text"
+            class="w-16 h-16 mx-auto text-gray-400 dark:text-gray-500 mb-4"
+          />
           <p class="text-lg text-gray-700 dark:text-gray-200 mb-2">No orders yet</p>
           <p class="text-gray-600 dark:text-gray-400">
             Orders placed for this location will appear here.
@@ -101,11 +104,20 @@ defmodule MedishopWeb.OrdersLive do
                       <span class={[
                         "inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold",
                         case order.status do
-                          :pending -> "bg-yellow-100 text-yellow-900 dark:bg-yellow-900/50 dark:text-yellow-100"
-                          :confirmed -> "bg-blue-100 text-blue-900 dark:bg-blue-900/50 dark:text-blue-100"
-                          :shipped -> "bg-purple-100 text-purple-900 dark:bg-purple-900/50 dark:text-purple-100"
-                          :delivered -> "bg-green-100 text-green-900 dark:bg-green-900/50 dark:text-green-100"
-                          :cancelled -> "bg-red-100 text-red-900 dark:bg-red-900/50 dark:text-red-100"
+                          :pending ->
+                            "bg-yellow-100 text-yellow-900 dark:bg-yellow-900/50 dark:text-yellow-100"
+
+                          :confirmed ->
+                            "bg-blue-100 text-blue-900 dark:bg-blue-900/50 dark:text-blue-100"
+
+                          :shipped ->
+                            "bg-purple-100 text-purple-900 dark:bg-purple-900/50 dark:text-purple-100"
+
+                          :delivered ->
+                            "bg-green-100 text-green-900 dark:bg-green-900/50 dark:text-green-100"
+
+                          :cancelled ->
+                            "bg-red-100 text-red-900 dark:bg-red-900/50 dark:text-red-100"
                         end
                       ]}>
                         {Phoenix.Naming.humanize(order.status)}
@@ -144,16 +156,14 @@ defmodule MedishopWeb.OrdersLive do
                     navigate={~p"/orders/#{order.id}/confirmation"}
                     class="btn btn-sm btn-primary"
                   >
-                    <.icon name="hero-eye" class="w-4 h-4" />
-                    View Details
+                    <.icon name="hero-eye" class="w-4 h-4" /> View Details
                   </.link>
                   <a
                     href={~p"/orders/#{order.id}/pdf"}
                     class="btn btn-sm btn-secondary"
                     target="_blank"
                   >
-                    <.icon name="hero-arrow-down-tray" class="w-4 h-4" />
-                    Download PDF
+                    <.icon name="hero-arrow-down-tray" class="w-4 h-4" /> Download PDF
                   </a>
                 </div>
               </div>

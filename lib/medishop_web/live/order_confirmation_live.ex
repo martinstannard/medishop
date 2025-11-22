@@ -137,13 +137,11 @@ defmodule MedishopWeb.OrderConfirmationLive do
 
       <div class="flex items-center justify-between">
         <.link navigate={~p"/location/#{@order.location_id}/products"} class="btn btn-ghost gap-2">
-          <.icon name="hero-arrow-left" class="w-5 h-5" />
-          Continue Shopping
+          <.icon name="hero-arrow-left" class="w-5 h-5" /> Continue Shopping
         </.link>
 
         <.link navigate={~p"/dashboard"} class="btn btn-primary gap-2">
-          <.icon name="hero-home" class="w-5 h-5" />
-          Back to Dashboard
+          <.icon name="hero-home" class="w-5 h-5" /> Back to Dashboard
         </.link>
       </div>
     </div>

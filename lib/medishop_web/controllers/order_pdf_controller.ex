@@ -15,7 +15,10 @@ defmodule MedishopWeb.OrderPDFController do
 
           conn
           |> put_resp_content_type("text/html")
-          |> put_resp_header("content-disposition", ~s(inline; filename="order-#{order.order_number}.html"))
+          |> put_resp_header(
+            "content-disposition",
+            ~s(inline; filename="order-#{order.order_number}.html")
+          )
           |> send_resp(200, html)
         else
           conn
@@ -178,17 +181,17 @@ defmodule MedishopWeb.OrderPDFController do
       </div>
 
       #{if order.notes do
-        """
-        <div class="section">
-          <div class="section-title">Order Notes</div>
-          <div style="padding: 12px; background: #f9fafb; border-radius: 8px;">
-            #{order.notes}
-          </div>
+      """
+      <div class="section">
+        <div class="section-title">Order Notes</div>
+        <div style="padding: 12px; background: #f9fafb; border-radius: 8px;">
+          #{order.notes}
         </div>
-        """
-      else
-        ""
-      end}
+      </div>
+      """
+    else
+      ""
+    end}
 
       <div class="section">
         <div class="section-title">Order Items</div>
@@ -202,19 +205,17 @@ defmodule MedishopWeb.OrderPDFController do
             </tr>
           </thead>
           <tbody>
-            #{Enum.map_join(order.order_items, fn item ->
-              """
-              <tr>
-                <td>
-                  <div style="font-weight: 500;">#{item.product.title}</div>
-                  <div style="font-size: 12px; color: #6b7280;">SKU: #{item.product.sku}</div>
-                </td>
-                <td class="text-right">#{item.quantity}</td>
-                <td class="text-right">$#{Decimal.to_string(item.unit_price, :normal)}</td>
-                <td class="text-right">$#{Decimal.to_string(item.line_total, :normal)}</td>
-              </tr>
-              """
-            end)}
+            #{Enum.map_join(order.order_items, fn item -> """
+      <tr>
+        <td>
+          <div style="font-weight: 500;">#{item.product.title}</div>
+          <div style="font-size: 12px; color: #6b7280;">SKU: #{item.product.sku}</div>
+        </td>
+        <td class="text-right">#{item.quantity}</td>
+        <td class="text-right">$#{Decimal.to_string(item.unit_price, :normal)}</td>
+        <td class="text-right">$#{Decimal.to_string(item.line_total, :normal)}</td>
+      </tr>
+      """ end)}
           </tbody>
         </table>
       </div>
