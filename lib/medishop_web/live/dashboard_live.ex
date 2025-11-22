@@ -18,7 +18,7 @@ defmodule MedishopWeb.DashboardLive do
     <div class="max-w-4xl mx-auto py-8 px-4">
       <div class="mb-8">
         <h1 class="text-3xl font-bold text-base-content">Dashboard</h1>
-        <p class="text-base-content/70 mt-2">
+        <p class="text-base-content mt-2">
           Welcome back, <span class="font-semibold">{@current_user.email}</span>
         </p>
       </div>
@@ -29,52 +29,68 @@ defmodule MedishopWeb.DashboardLive do
           
           <%= if Enum.empty?(@memberships) do %>
             <div class="bg-base-200 rounded-lg p-6 text-center">
-              <p class="text-base-content/70">You are not a member of any organizations yet.</p>
+              <p class="text-base-content">You are not a member of any organizations yet.</p>
             </div>
           <% else %>
             <div class="grid gap-6 md:grid-cols-2">
               <%= for membership <- @memberships do %>
-                <.card class="bg-base-100 shadow-lg">
+                <.card class="bg-base-100 shadow-xl border border-base-300">
                   <.card_content class="p-6">
-                    <div class="flex justify-between items-start mb-4">
+                    <div class="flex justify-between items-start mb-6">
                       <div>
-                        <h3 class="text-xl font-bold text-base-content">
+                        <h3 class="text-2xl font-extrabold text-base-content tracking-tight">
                           {membership.organization.name}
                         </h3>
-                        <p class="text-sm text-base-content/60">
-                          {if membership.organization.is_test_organization, do: "Test Organization", else: "Active Organization"}
-                        </p>
-                      </div>
-                      <div class="flex gap-2">
-                        <%= for role <- membership.org_roles do %>
-                          <span class="badge badge-primary badge-outline text-xs">
-                            {Phoenix.Naming.humanize(role)}
-                          </span>
-                        <% end %>
+                        <div class="flex items-center gap-2 mt-1">
+                           <span class={["badge badge-md", if(membership.organization.is_test_organization, do: "badge-warning", else: "badge-success")]}>
+                             {if membership.organization.is_test_organization, do: "Test Org", else: "Active"}
+                           </span>
+                           <%= for role <- membership.org_roles do %>
+                              <span class="badge badge-md badge-outline">
+                                {Phoenix.Naming.humanize(role)}
+                              </span>
+                           <% end %>
+                        </div>
                       </div>
                     </div>
 
-                    <div class="divider my-2"></div>
-
-                    <div>
-                      <h4 class="font-semibold text-sm uppercase tracking-wider text-base-content/50 mb-3">
-                        Authorized Locations
+                    <div class="space-y-4">
+                      <h4 class="font-bold text-base uppercase tracking-wider text-primary border-b border-base-200 pb-2">
+                        Locations & Access
                       </h4>
                       
                       <%= if Enum.empty?(membership.organization_location_memberships) do %>
-                        <p class="text-sm text-base-content/60 italic">No specific location access assigned.</p>
+                        <p class="text-base text-base-content italic">No specific location access assigned.</p>
                       <% else %>
-                        <ul class="space-y-2">
+                        <div class="grid gap-4">
                           <%= for loc_membership <- membership.organization_location_memberships do %>
-                            <li class="flex items-center gap-2 text-sm">
-                              <.icon name="hero-map-pin" class="w-4 h-4 text-secondary" />
-                              <span>{loc_membership.location.name}</span>
-                              <%= if loc_membership.location.store do %>
-                                <span class="badge badge-sm badge-ghost">Store</span>
-                              <% end %>
-                            </li>
+                            <div class="bg-base-200/50 rounded-lg p-3">
+                              <div class="flex items-center justify-between mb-2">
+                                <span class="font-bold text-base-content flex items-center gap-2">
+                                  <.icon name="hero-map-pin" class="w-5 h-5 text-primary" />
+                                  {loc_membership.location.name}
+                                </span>
+                                <%= if loc_membership.location.store do %>
+                                  <span class="badge badge-sm badge-info">Store</span>
+                                <% end %>
+                              </div>
+                              
+                              <div class="pl-7 space-y-1 text-base-content">
+                                <p class="flex items-start gap-1">
+                                  <.icon name="hero-home" class="w-4 h-4 mt-0.5 opacity-80" />
+                                  <span>
+                                    {loc_membership.location.address["street"]}, 
+                                    {loc_membership.location.address["city"]}, {loc_membership.location.address["state"]} {loc_membership.location.address["zip"]}
+                                  </span>
+                                </p>
+                                <p class="flex items-center gap-1">
+                                  <.icon name="hero-phone" class="w-4 h-4 opacity-80" />
+                                  <span>{loc_membership.location.contact_number}</span>
+                                </p>
+                              </div>
+                            </div>
                           <% end %>
-                        </ul>
+                        </div>
                       <% end %>
                     </div>
                   </.card_content>
