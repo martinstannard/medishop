@@ -14,15 +14,63 @@
     },
     {
       "allow_nil?": false,
-      "default": "0",
+      "default": "nil",
       "generated?": false,
       "precision": null,
       "primary_key?": false,
       "references": null,
       "scale": null,
       "size": null,
-      "source": "quantity_available",
-      "type": "bigint"
+      "source": "name",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "address",
+      "type": "map"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "contact_number",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "false",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "store",
+      "type": "boolean"
+    },
+    {
+      "allow_nil?": true,
+      "default": "false",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "test_location",
+      "type": "boolean"
     },
     {
       "allow_nil?": false,
@@ -63,51 +111,20 @@
         "match_type": null,
         "match_with": null,
         "multitenancy": {
-          "attribute": "organization_id",
-          "global": true,
-          "strategy": "attribute"
-        },
-        "name": "location_inventories_location_id_fkey",
-        "on_delete": null,
-        "on_update": null,
-        "primary_key?": true,
-        "schema": "public",
-        "table": "locations"
-      },
-      "scale": null,
-      "size": null,
-      "source": "location_id",
-      "type": "uuid"
-    },
-    {
-      "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": {
-        "deferrable": false,
-        "destination_attribute": "id",
-        "destination_attribute_default": null,
-        "destination_attribute_generated": null,
-        "index?": false,
-        "match_type": null,
-        "match_with": null,
-        "multitenancy": {
           "attribute": null,
           "global": null,
           "strategy": null
         },
-        "name": "location_inventories_product_id_fkey",
+        "name": "locations_organization_id_fkey",
         "on_delete": null,
         "on_update": null,
         "primary_key?": true,
         "schema": "public",
-        "table": "products"
+        "table": "organizations"
       },
       "scale": null,
       "size": null,
-      "source": "product_id",
+      "source": "organization_id",
       "type": "uuid"
     }
   ],
@@ -116,33 +133,14 @@
   "custom_indexes": [],
   "custom_statements": [],
   "has_create_action": true,
-  "hash": "2E4C38AFC7AA2A73C710CFA9226998EFEBBD61A95A50844C0EA36B1C03F6D6A4",
-  "identities": [
-    {
-      "all_tenants?": false,
-      "base_filter": null,
-      "index_name": "location_inventories_unique_location_product_index",
-      "keys": [
-        {
-          "type": "atom",
-          "value": "location_id"
-        },
-        {
-          "type": "atom",
-          "value": "product_id"
-        }
-      ],
-      "name": "unique_location_product",
-      "nils_distinct?": true,
-      "where": null
-    }
-  ],
+  "hash": "6C87FEF6E2B7216D9A73F81142E1D0F6E155C6B070E655ED74A42431EDB44D7F",
+  "identities": [],
   "multitenancy": {
-    "attribute": null,
-    "global": null,
-    "strategy": null
+    "attribute": "organization_id",
+    "global": true,
+    "strategy": "attribute"
   },
   "repo": "Elixir.Medishop.Repo",
   "schema": null,
-  "table": "location_inventories"
+  "table": "locations"
 }

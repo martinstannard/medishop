@@ -21,56 +21,11 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "name",
-      "type": "text"
-    },
-    {
-      "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "address",
-      "type": "map"
-    },
-    {
-      "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "contact_number",
-      "type": "text"
-    },
-    {
-      "allow_nil?": true,
-      "default": "false",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "store",
-      "type": "boolean"
-    },
-    {
-      "allow_nil?": true,
-      "default": "false",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "test_location",
-      "type": "boolean"
+      "source": "org_roles",
+      "type": [
+        "array",
+        "text"
+      ]
     },
     {
       "allow_nil?": false,
@@ -115,7 +70,38 @@
           "global": null,
           "strategy": null
         },
-        "name": "locations_organization_id_fkey",
+        "name": "organization_memberships_user_id_fkey",
+        "on_delete": null,
+        "on_update": null,
+        "primary_key?": true,
+        "schema": "public",
+        "table": "users"
+      },
+      "scale": null,
+      "size": null,
+      "source": "user_id",
+      "type": "uuid"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": {
+        "deferrable": false,
+        "destination_attribute": "id",
+        "destination_attribute_default": null,
+        "destination_attribute_generated": null,
+        "index?": false,
+        "match_type": null,
+        "match_with": null,
+        "multitenancy": {
+          "attribute": null,
+          "global": null,
+          "strategy": null
+        },
+        "name": "organization_memberships_organization_id_fkey",
         "on_delete": null,
         "on_update": null,
         "primary_key?": true,
@@ -133,14 +119,33 @@
   "custom_indexes": [],
   "custom_statements": [],
   "has_create_action": true,
-  "hash": "94B7024CA3F4E4BA83B188BD465BD0AC0E9FC26D824E177732540620389815C3",
-  "identities": [],
+  "hash": "C765D93DD7B9180FB7F39C72DEF42629ADBEE288D3D3318EAAD19CAF55AA718D",
+  "identities": [
+    {
+      "all_tenants?": false,
+      "base_filter": null,
+      "index_name": "organization_memberships_unique_user_organization_index",
+      "keys": [
+        {
+          "type": "atom",
+          "value": "user_id"
+        },
+        {
+          "type": "atom",
+          "value": "organization_id"
+        }
+      ],
+      "name": "unique_user_organization",
+      "nils_distinct?": true,
+      "where": null
+    }
+  ],
   "multitenancy": {
-    "attribute": "organization_id",
-    "global": true,
-    "strategy": "attribute"
+    "attribute": null,
+    "global": null,
+    "strategy": null
   },
   "repo": "Elixir.Medishop.Repo",
   "schema": null,
-  "table": "locations"
+  "table": "organization_memberships"
 }

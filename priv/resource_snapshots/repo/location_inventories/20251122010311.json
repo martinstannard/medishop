@@ -14,6 +14,18 @@
     },
     {
       "allow_nil?": false,
+      "default": "0",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "quantity_available",
+      "type": "bigint"
+    },
+    {
+      "allow_nil?": false,
       "default": "fragment(\"(now() AT TIME ZONE 'utc')\")",
       "generated?": false,
       "precision": null,
@@ -51,20 +63,20 @@
         "match_type": null,
         "match_with": null,
         "multitenancy": {
-          "attribute": null,
-          "global": null,
-          "strategy": null
+          "attribute": "organization_id",
+          "global": true,
+          "strategy": "attribute"
         },
-        "name": "organization_location_memberships_organization_membership_id_fkey",
+        "name": "location_inventories_location_id_fkey",
         "on_delete": null,
         "on_update": null,
         "primary_key?": true,
         "schema": "public",
-        "table": "organization_memberships"
+        "table": "locations"
       },
       "scale": null,
       "size": null,
-      "source": "organization_membership_id",
+      "source": "location_id",
       "type": "uuid"
     },
     {
@@ -82,20 +94,20 @@
         "match_type": null,
         "match_with": null,
         "multitenancy": {
-          "attribute": "organization_id",
-          "global": true,
-          "strategy": "attribute"
+          "attribute": null,
+          "global": null,
+          "strategy": null
         },
-        "name": "organization_location_memberships_location_id_fkey",
+        "name": "location_inventories_product_id_fkey",
         "on_delete": null,
         "on_update": null,
         "primary_key?": true,
         "schema": "public",
-        "table": "locations"
+        "table": "products"
       },
       "scale": null,
       "size": null,
-      "source": "location_id",
+      "source": "product_id",
       "type": "uuid"
     }
   ],
@@ -104,23 +116,23 @@
   "custom_indexes": [],
   "custom_statements": [],
   "has_create_action": true,
-  "hash": "A0C582C35E0A6FE242AD4B07A68437DDED4099A4515E507F34F87B1C6F4F3E93",
+  "hash": "7072CE5CDC830EAFF8AD7F51CB03E27A0AB6D38904102D8B7A7001F03D090561",
   "identities": [
     {
       "all_tenants?": false,
       "base_filter": null,
-      "index_name": "org_location_membership_unique_idx",
+      "index_name": "location_inventories_unique_location_product_index",
       "keys": [
         {
           "type": "atom",
-          "value": "organization_membership_id"
+          "value": "location_id"
         },
         {
           "type": "atom",
-          "value": "location_id"
+          "value": "product_id"
         }
       ],
-      "name": "unique_membership_location",
+      "name": "unique_location_product",
       "nils_distinct?": true,
       "where": null
     }
@@ -132,5 +144,5 @@
   },
   "repo": "Elixir.Medishop.Repo",
   "schema": null,
-  "table": "organization_location_memberships"
+  "table": "location_inventories"
 }

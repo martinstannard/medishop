@@ -14,21 +14,6 @@
     },
     {
       "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "org_roles",
-      "type": [
-        "array",
-        "text"
-      ]
-    },
-    {
-      "allow_nil?": false,
       "default": "fragment(\"(now() AT TIME ZONE 'utc')\")",
       "generated?": false,
       "precision": null,
@@ -70,16 +55,16 @@
           "global": null,
           "strategy": null
         },
-        "name": "organization_memberships_user_id_fkey",
+        "name": "organization_location_memberships_organization_membership_id_fkey",
         "on_delete": null,
         "on_update": null,
         "primary_key?": true,
         "schema": "public",
-        "table": "users"
+        "table": "organization_memberships"
       },
       "scale": null,
       "size": null,
-      "source": "user_id",
+      "source": "organization_membership_id",
       "type": "uuid"
     },
     {
@@ -97,20 +82,20 @@
         "match_type": null,
         "match_with": null,
         "multitenancy": {
-          "attribute": null,
-          "global": null,
-          "strategy": null
+          "attribute": "organization_id",
+          "global": true,
+          "strategy": "attribute"
         },
-        "name": "organization_memberships_organization_id_fkey",
+        "name": "organization_location_memberships_location_id_fkey",
         "on_delete": null,
         "on_update": null,
         "primary_key?": true,
         "schema": "public",
-        "table": "organizations"
+        "table": "locations"
       },
       "scale": null,
       "size": null,
-      "source": "organization_id",
+      "source": "location_id",
       "type": "uuid"
     }
   ],
@@ -119,23 +104,23 @@
   "custom_indexes": [],
   "custom_statements": [],
   "has_create_action": true,
-  "hash": "9F8B447D5948916DEA1BCE6AD4A4711238E8278D1BABD4B71410CBB1B0F397B5",
+  "hash": "F640235A5B042A0984B370BB20272D4969A70B1CBEFDA51EE4AB97819A091FF2",
   "identities": [
     {
       "all_tenants?": false,
       "base_filter": null,
-      "index_name": "organization_memberships_unique_user_organization_index",
+      "index_name": "org_location_membership_unique_idx",
       "keys": [
         {
           "type": "atom",
-          "value": "user_id"
+          "value": "organization_membership_id"
         },
         {
           "type": "atom",
-          "value": "organization_id"
+          "value": "location_id"
         }
       ],
-      "name": "unique_user_organization",
+      "name": "unique_membership_location",
       "nils_distinct?": true,
       "where": null
     }
@@ -147,5 +132,5 @@
   },
   "repo": "Elixir.Medishop.Repo",
   "schema": null,
-  "table": "organization_memberships"
+  "table": "organization_location_memberships"
 }

@@ -17,16 +17,28 @@ alias Medishop.Repo
 # Create test users directly via Repo (bypassing authentication for seeds)
 # Check if users already exist before creating
 admin_user =
-  Repo.get_by(User, email: "admin@medishop.test") ||
-    Repo.insert!(%User{email: "admin@medishop.test"})
+  case Repo.get_by(User, email: "admin@medishop.test") do
+    nil ->
+      {:ok, user} = Medishop.Accounts.register_user("admin@medishop.test", "password", authorize?: false)
+      user
+    user -> user
+  end
 
 buyer_user =
-  Repo.get_by(User, email: "buyer@medishop.test") ||
-    Repo.insert!(%User{email: "buyer@medishop.test"})
+  case Repo.get_by(User, email: "buyer@medishop.test") do
+    nil ->
+      {:ok, user} = Medishop.Accounts.register_user("buyer@medishop.test", "password", authorize?: false)
+      user
+    user -> user
+  end
 
 member_user =
-  Repo.get_by(User, email: "member@medishop.test") ||
-    Repo.insert!(%User{email: "member@medishop.test"})
+  case Repo.get_by(User, email: "member@medishop.test") do
+    nil ->
+      {:ok, user} = Medishop.Accounts.register_user("member@medishop.test", "password", authorize?: false)
+      user
+    user -> user
+  end
 
 # Create organizations using interface functions
 {:ok, org1} =

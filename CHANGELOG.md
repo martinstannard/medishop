@@ -51,6 +51,13 @@ All notable changes to this project will be documented in this file.
   - Products: 17/17 tests ✅
   - Inventory: 13/13 tests ✅
 
+### Fixed
+- **Database & Seeds Repair**
+  - Restored missing database migrations for Organizations and Locations
+  - Added `hashed_password` column to users table (fixed in initial migration)
+  - Updated seeds to generate users with known password "password" for testing
+  - Fixed `Medishop.Accounts` code interface for user registration
+
 ### Technical Notes
 - Following Ash Framework 3.0 best practices and code interface pattern
 - All functionality thoroughly tested before implementation marked complete
