@@ -47,7 +47,17 @@ defmodule MedishopWeb.CartLive do
           {:ok, updated_item} ->
             # Reload with product relationship and line_total calculation
             {:ok, item_with_product} = Shop.get_cart_item(updated_item.id, load: [:product, :line_total])
-            {:noreply, stream_insert(socket, :cart_items, item_with_product)}
+
+            # Reload cart to get updated cart_items list for total calculation
+            cart = socket.assigns.cart
+            {:ok, cart_with_items} = Shop.get_cart(cart.id, load: [cart_items: [:product, :line_total]])
+
+            socket =
+              socket
+              |> assign(:cart, cart_with_items)
+              |> stream_insert(:cart_items, item_with_product)
+
+            {:noreply, socket}
 
           {:error, _error} ->
             {:noreply, put_flash(socket, :error, "Failed to update quantity")}
@@ -64,8 +74,13 @@ defmodule MedishopWeb.CartLive do
       {:ok, cart_item} ->
         case Shop.remove_cart_item(cart_item) do
           :ok ->
+            # Reload cart to get updated cart_items list for total calculation
+            cart = socket.assigns.cart
+            {:ok, cart_with_items} = Shop.get_cart(cart.id, load: [cart_items: [:product, :line_total]])
+
             socket =
               socket
+              |> assign(:cart, cart_with_items)
               |> stream_delete(:cart_items, cart_item)
               |> put_flash(:info, "Item removed from cart")
 
