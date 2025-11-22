@@ -16,136 +16,149 @@ alias Medishop.Repo
 
 # Create test users directly via Repo (bypassing authentication for seeds)
 # Check if users already exist before creating
-admin_user = Repo.get_by(User, email: "admin@medishop.test") ||
-  Repo.insert!(%User{email: "admin@medishop.test"})
-buyer_user = Repo.get_by(User, email: "buyer@medishop.test") ||
-  Repo.insert!(%User{email: "buyer@medishop.test"})
-member_user = Repo.get_by(User, email: "member@medishop.test") ||
-  Repo.insert!(%User{email: "member@medishop.test"})
+admin_user =
+  Repo.get_by(User, email: "admin@medishop.test") ||
+    Repo.insert!(%User{email: "admin@medishop.test"})
+
+buyer_user =
+  Repo.get_by(User, email: "buyer@medishop.test") ||
+    Repo.insert!(%User{email: "buyer@medishop.test"})
+
+member_user =
+  Repo.get_by(User, email: "member@medishop.test") ||
+    Repo.insert!(%User{email: "member@medishop.test"})
 
 # Create organizations using interface functions
-{:ok, org1} = Organizations.create_organization(%{
-  name: "Acme Medical Supply",
-  active: true,
-  is_test_organization: false,
-  invoice_email: "billing@acmemedical.test",
-  billing_address: %{
-    street: "123 Healthcare Blvd",
-    city: "Seattle",
-    state: "WA",
-    zip: "98101",
-    country: "USA"
-  },
-  tax_id: "12-3456789"
-})
+{:ok, org1} =
+  Organizations.create_organization(%{
+    name: "Acme Medical Supply",
+    active: true,
+    is_test_organization: false,
+    invoice_email: "billing@acmemedical.test",
+    billing_address: %{
+      street: "123 Healthcare Blvd",
+      city: "Seattle",
+      state: "WA",
+      zip: "98101",
+      country: "USA"
+    },
+    tax_id: "12-3456789"
+  })
 
-{:ok, org2} = Organizations.create_organization(%{
-  name: "Global Health Partners",
-  active: true,
-  is_test_organization: false,
-  invoice_email: "accounts@globalhealth.test",
-  billing_address: %{
-    street: "456 Wellness Way",
-    city: "Portland",
-    state: "OR",
-    zip: "97201",
-    country: "USA"
-  },
-  tax_id: "98-7654321"
-})
+{:ok, org2} =
+  Organizations.create_organization(%{
+    name: "Global Health Partners",
+    active: true,
+    is_test_organization: false,
+    invoice_email: "accounts@globalhealth.test",
+    billing_address: %{
+      street: "456 Wellness Way",
+      city: "Portland",
+      state: "OR",
+      zip: "97201",
+      country: "USA"
+    },
+    tax_id: "98-7654321"
+  })
 
-{:ok, test_org} = Organizations.create_organization(%{
-  name: "Test Organization",
-  active: true,
-  is_test_organization: true,
-  invoice_email: "test@medishop.test",
-  billing_address: %{
-    street: "789 Test St",
-    city: "Testville",
-    state: "CA",
-    zip: "90001",
-    country: "USA"
-  },
-  tax_id: "00-0000000"
-})
+{:ok, test_org} =
+  Organizations.create_organization(%{
+    name: "Test Organization",
+    active: true,
+    is_test_organization: true,
+    invoice_email: "test@medishop.test",
+    billing_address: %{
+      street: "789 Test St",
+      city: "Testville",
+      state: "CA",
+      zip: "90001",
+      country: "USA"
+    },
+    tax_id: "00-0000000"
+  })
 
 # Create locations for Acme Medical Supply using interface functions
-{:ok, acme_seattle} = Organizations.create_location(%{
-  organization_id: org1.id,
-  name: "Acme Seattle Downtown",
-  address: %{
-    street: "100 Pike Street",
-    city: "Seattle",
-    state: "WA",
-    zip: "98101",
-    country: "USA"
-  },
-  contact_number: "+1-206-555-0100",
-  store: true,
-  test_location: false
-})
+{:ok, acme_seattle} =
+  Organizations.create_location(%{
+    organization_id: org1.id,
+    name: "Acme Seattle Downtown",
+    address: %{
+      street: "100 Pike Street",
+      city: "Seattle",
+      state: "WA",
+      zip: "98101",
+      country: "USA"
+    },
+    contact_number: "+1-206-555-0100",
+    store: true,
+    test_location: false
+  })
 
-{:ok, acme_bellevue} = Organizations.create_location(%{
-  organization_id: org1.id,
-  name: "Acme Bellevue",
-  address: %{
-    street: "200 Bellevue Way",
-    city: "Bellevue",
-    state: "WA",
-    zip: "98004",
-    country: "USA"
-  },
-  contact_number: "+1-425-555-0200",
-  store: true,
-  test_location: false
-})
+{:ok, acme_bellevue} =
+  Organizations.create_location(%{
+    organization_id: org1.id,
+    name: "Acme Bellevue",
+    address: %{
+      street: "200 Bellevue Way",
+      city: "Bellevue",
+      state: "WA",
+      zip: "98004",
+      country: "USA"
+    },
+    contact_number: "+1-425-555-0200",
+    store: true,
+    test_location: false
+  })
 
 # Create locations for Global Health Partners using interface functions
-{:ok, ghp_portland} = Organizations.create_location(%{
-  organization_id: org2.id,
-  name: "GHP Portland Main",
-  address: %{
-    street: "300 SW Broadway",
-    city: "Portland",
-    state: "OR",
-    zip: "97201",
-    country: "USA"
-  },
-  contact_number: "+1-503-555-0300",
-  store: true,
-  test_location: false
-})
+{:ok, ghp_portland} =
+  Organizations.create_location(%{
+    organization_id: org2.id,
+    name: "GHP Portland Main",
+    address: %{
+      street: "300 SW Broadway",
+      city: "Portland",
+      state: "OR",
+      zip: "97201",
+      country: "USA"
+    },
+    contact_number: "+1-503-555-0300",
+    store: true,
+    test_location: false
+  })
 
-{:ok, _ghp_eugene} = Organizations.create_location(%{
-  organization_id: org2.id,
-  name: "GHP Eugene",
-  address: %{
-    street: "400 Willamette St",
-    city: "Eugene",
-    state: "OR",
-    zip: "97401",
-    country: "USA"
-  },
-  contact_number: "+1-541-555-0400",
-  store: false,
-  test_location: false
-})
+{:ok, _ghp_eugene} =
+  Organizations.create_location(%{
+    organization_id: org2.id,
+    name: "GHP Eugene",
+    address: %{
+      street: "400 Willamette St",
+      city: "Eugene",
+      state: "OR",
+      zip: "97401",
+      country: "USA"
+    },
+    contact_number: "+1-541-555-0400",
+    store: false,
+    test_location: false
+  })
 
 # Create location for test organization using interface function
-{:ok, _test_location} = Organizations.create_location(%{
-  organization_id: test_org.id,
-  name: "Test Location",
-  address: %{
-    street: "999 Test Ave",
-    city: "Testville",
-    state: "CA",
-    zip: "90001",
-    country: "USA"
-  },
-  contact_number: "+1-555-555-5555",
-  store: false,
-  test_location: true
-})
+{:ok, _test_location} =
+  Organizations.create_location(%{
+    organization_id: test_org.id,
+    name: "Test Location",
+    address: %{
+      street: "999 Test Ave",
+      city: "Testville",
+      state: "CA",
+      zip: "90001",
+      country: "USA"
+    },
+    contact_number: "+1-555-555-5555",
+    store: false,
+    test_location: true
+  })
 
 # Create organization memberships using interface functions
 # Admin user is org_admin for Acme Medical Supply

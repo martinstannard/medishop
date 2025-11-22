@@ -6,14 +6,17 @@ defmodule Medishop.Organizations.OrganizationMembershipTest do
 
   describe "create_membership/2" do
     test "creates a membership with org_admin role" do
-      membership = Ash.Generator.generate(Generator.organization_membership(org_roles: [:org_admin]))
+      membership =
+        Ash.Generator.generate(Generator.organization_membership(org_roles: [:org_admin]))
 
       assert :org_admin in membership.org_roles
     end
 
     test "creates a membership with multiple roles" do
       membership =
-        Ash.Generator.generate(Generator.organization_membership(org_roles: [:org_admin, :org_buyer]))
+        Ash.Generator.generate(
+          Generator.organization_membership(org_roles: [:org_admin, :org_buyer])
+        )
 
       assert :org_admin in membership.org_roles
       assert :org_buyer in membership.org_roles
@@ -47,6 +50,7 @@ defmodule Medishop.Organizations.OrganizationMembershipTest do
     test "returns memberships for a specific user" do
       user = Ash.Generator.generate(Generator.user())
       organization = Ash.Generator.generate(Generator.organization())
+
       membership1 =
         Ash.Generator.generate(
           Generator.organization_membership(user_id: user.id, organization_id: organization.id)
@@ -111,35 +115,40 @@ defmodule Medishop.Organizations.OrganizationMembershipTest do
 
   describe "calculations" do
     test "is_admin returns true for org_admin role" do
-      membership = Ash.Generator.generate(Generator.organization_membership(org_roles: [:org_admin]))
+      membership =
+        Ash.Generator.generate(Generator.organization_membership(org_roles: [:org_admin]))
 
       {:ok, membership_with_calc} = Ash.load(membership, :is_admin)
       assert membership_with_calc.is_admin == true
     end
 
     test "is_admin returns false for non-admin roles" do
-      membership = Ash.Generator.generate(Generator.organization_membership(org_roles: [:org_member]))
+      membership =
+        Ash.Generator.generate(Generator.organization_membership(org_roles: [:org_member]))
 
       {:ok, membership_with_calc} = Ash.load(membership, :is_admin)
       assert membership_with_calc.is_admin == false
     end
 
     test "can_buy returns true for org_buyer role" do
-      membership = Ash.Generator.generate(Generator.organization_membership(org_roles: [:org_buyer]))
+      membership =
+        Ash.Generator.generate(Generator.organization_membership(org_roles: [:org_buyer]))
 
       {:ok, membership_with_calc} = Ash.load(membership, :can_buy)
       assert membership_with_calc.can_buy == true
     end
 
     test "can_buy returns true for org_admin role" do
-      membership = Ash.Generator.generate(Generator.organization_membership(org_roles: [:org_admin]))
+      membership =
+        Ash.Generator.generate(Generator.organization_membership(org_roles: [:org_admin]))
 
       {:ok, membership_with_calc} = Ash.load(membership, :can_buy)
       assert membership_with_calc.can_buy == true
     end
 
     test "can_buy returns false for org_member role" do
-      membership = Ash.Generator.generate(Generator.organization_membership(org_roles: [:org_member]))
+      membership =
+        Ash.Generator.generate(Generator.organization_membership(org_roles: [:org_member]))
 
       {:ok, membership_with_calc} = Ash.load(membership, :can_buy)
       assert membership_with_calc.can_buy == false

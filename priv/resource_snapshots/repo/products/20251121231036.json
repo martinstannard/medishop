@@ -21,7 +21,7 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "name",
+      "source": "sku",
       "type": "text"
     },
     {
@@ -33,8 +33,35 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "address",
-      "type": "map"
+      "source": "title",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "description",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "[]",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "images",
+      "type": [
+        "array",
+        "text"
+      ]
     },
     {
       "allow_nil?": false,
@@ -45,31 +72,19 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "contact_number",
-      "type": "text"
+      "source": "price",
+      "type": "decimal"
     },
     {
       "allow_nil?": true,
-      "default": "false",
+      "default": "true",
       "generated?": false,
       "precision": null,
       "primary_key?": false,
       "references": null,
       "scale": null,
       "size": null,
-      "source": "store",
-      "type": "boolean"
-    },
-    {
-      "allow_nil?": true,
-      "default": "false",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "test_location",
+      "source": "active",
       "type": "boolean"
     },
     {
@@ -95,37 +110,6 @@
       "size": null,
       "source": "updated_at",
       "type": "utc_datetime_usec"
-    },
-    {
-      "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": {
-        "deferrable": false,
-        "destination_attribute": "id",
-        "destination_attribute_default": null,
-        "destination_attribute_generated": null,
-        "index?": false,
-        "match_type": null,
-        "match_with": null,
-        "multitenancy": {
-          "attribute": null,
-          "global": null,
-          "strategy": null
-        },
-        "name": "locations_organization_id_fkey",
-        "on_delete": null,
-        "on_update": null,
-        "primary_key?": true,
-        "schema": "public",
-        "table": "organizations"
-      },
-      "scale": null,
-      "size": null,
-      "source": "organization_id",
-      "type": "uuid"
     }
   ],
   "base_filter": null,
@@ -133,14 +117,29 @@
   "custom_indexes": [],
   "custom_statements": [],
   "has_create_action": true,
-  "hash": "5C0F08EC760909202073CBA917D60E0C59CB498C1BF3E08BD29218171AFF4093",
-  "identities": [],
+  "hash": "726894477F8969CA2DFD453FB8021A9861265D325F186FB8E75BD48E1688E3F5",
+  "identities": [
+    {
+      "all_tenants?": false,
+      "base_filter": null,
+      "index_name": "products_unique_sku_index",
+      "keys": [
+        {
+          "type": "atom",
+          "value": "sku"
+        }
+      ],
+      "name": "unique_sku",
+      "nils_distinct?": true,
+      "where": null
+    }
+  ],
   "multitenancy": {
-    "attribute": "organization_id",
-    "global": true,
-    "strategy": "attribute"
+    "attribute": null,
+    "global": null,
+    "strategy": null
   },
   "repo": "Elixir.Medishop.Repo",
   "schema": null,
-  "table": "locations"
+  "table": "products"
 }

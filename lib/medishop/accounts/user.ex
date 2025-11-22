@@ -26,42 +26,12 @@ defmodule Medishop.Accounts.User do
         identity_field :email
         registration_enabled? true
       end
-
-      magic_link do
-        identity_field :email
-        registration_enabled? true
-        require_interaction? true
-
-        sender Medishop.Accounts.User.Senders.SendMagicLinkEmail
-      end
     end
   end
 
   postgres do
     table "users"
     repo Medishop.Repo
-  end
-
-  attributes do
-    uuid_primary_key :id
-
-    attribute :email, :ci_string do
-      allow_nil? false
-      public? true
-    end
-
-    attribute :hashed_password, :string do
-      allow_nil? true
-      sensitive? true
-    end
-  end
-
-  relationships do
-    has_many :organization_memberships, Medishop.Organizations.OrganizationMembership
-  end
-
-  identities do
-    identity :unique_email, [:email]
   end
 
   actions do
@@ -85,33 +55,27 @@ defmodule Medishop.Accounts.User do
       accept [:email]
       argument :password, :string, sensitive?: true
     end
+  end
 
-    create :sign_in_with_magic_link do
-      description "Sign in or register a user with magic link."
+  attributes do
+    uuid_primary_key :id
 
-      argument :token, :string do
-        description "The token from the magic link that was sent to the user"
-        allow_nil? false
-      end
-
-      upsert? true
-      upsert_identity :unique_email
-      upsert_fields [:email]
-
-      # Uses the information from the token to create or sign in the user
-      change AshAuthentication.Strategy.MagicLink.SignInChange
-
-      metadata :token, :string do
-        allow_nil? false
-      end
+    attribute :email, :ci_string do
+      allow_nil? false
+      public? true
     end
 
-    action :request_magic_link do
-      argument :email, :ci_string do
-        allow_nil? false
-      end
-
-      run AshAuthentication.Strategy.MagicLink.Request
+    attribute :hashed_password, :string do
+      allow_nil? true
+      sensitive? true
     end
+  end
+
+  relationships do
+    has_many :organization_memberships, Medishop.Organizations.OrganizationMembership
+  end
+
+  identities do
+    identity :unique_email, [:email]
   end
 end

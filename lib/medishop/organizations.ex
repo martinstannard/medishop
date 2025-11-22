@@ -35,8 +35,8 @@ defmodule Medishop.Organizations do
 
     resource Medishop.Organizations.OrganizationLocationMembership do
       define :create_location_membership,
-             action: :create,
-             args: [:organization_membership_id, :location_id]
+        action: :create,
+        args: [:organization_membership_id, :location_id]
 
       define :list_location_memberships, action: :read
       define :get_location_membership, action: :read, get_by: [:id]

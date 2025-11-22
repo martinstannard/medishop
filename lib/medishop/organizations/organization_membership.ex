@@ -74,10 +74,6 @@ defmodule Medishop.Organizations.OrganizationMembership do
              Medishop.Organizations.OrganizationLocationMembership
   end
 
-  identities do
-    identity :unique_user_organization, [:user_id, :organization_id]
-  end
-
   calculations do
     calculate :is_admin,
               :boolean,
@@ -90,5 +86,9 @@ defmodule Medishop.Organizations.OrganizationMembership do
               expr(:org_buyer in org_roles or :org_admin in org_roles) do
       description "Returns true if user can make purchases"
     end
+  end
+
+  identities do
+    identity :unique_user_organization, [:user_id, :organization_id]
   end
 end

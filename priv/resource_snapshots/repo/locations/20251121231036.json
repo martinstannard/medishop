@@ -14,6 +14,66 @@
     },
     {
       "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "name",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "address",
+      "type": "map"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "contact_number",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "false",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "store",
+      "type": "boolean"
+    },
+    {
+      "allow_nil?": true,
+      "default": "false",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "test_location",
+      "type": "boolean"
+    },
+    {
+      "allow_nil?": false,
       "default": "fragment(\"(now() AT TIME ZONE 'utc')\")",
       "generated?": false,
       "precision": null,
@@ -55,47 +115,16 @@
           "global": null,
           "strategy": null
         },
-        "name": "organization_location_memberships_organization_membership_id_fkey",
+        "name": "locations_organization_id_fkey",
         "on_delete": null,
         "on_update": null,
         "primary_key?": true,
         "schema": "public",
-        "table": "organization_memberships"
+        "table": "organizations"
       },
       "scale": null,
       "size": null,
-      "source": "organization_membership_id",
-      "type": "uuid"
-    },
-    {
-      "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": {
-        "deferrable": false,
-        "destination_attribute": "id",
-        "destination_attribute_default": null,
-        "destination_attribute_generated": null,
-        "index?": false,
-        "match_type": null,
-        "match_with": null,
-        "multitenancy": {
-          "attribute": "organization_id",
-          "global": true,
-          "strategy": "attribute"
-        },
-        "name": "organization_location_memberships_location_id_fkey",
-        "on_delete": null,
-        "on_update": null,
-        "primary_key?": true,
-        "schema": "public",
-        "table": "locations"
-      },
-      "scale": null,
-      "size": null,
-      "source": "location_id",
+      "source": "organization_id",
       "type": "uuid"
     }
   ],
@@ -104,33 +133,14 @@
   "custom_indexes": [],
   "custom_statements": [],
   "has_create_action": true,
-  "hash": "AD1809A1761BDE348111812842E7E66A9DF9B5258CC4F58A80951B903403F92F",
-  "identities": [
-    {
-      "all_tenants?": false,
-      "base_filter": null,
-      "index_name": "org_location_membership_unique_idx",
-      "keys": [
-        {
-          "type": "atom",
-          "value": "organization_membership_id"
-        },
-        {
-          "type": "atom",
-          "value": "location_id"
-        }
-      ],
-      "name": "unique_membership_location",
-      "nils_distinct?": true,
-      "where": null
-    }
-  ],
+  "hash": "94B7024CA3F4E4BA83B188BD465BD0AC0E9FC26D824E177732540620389815C3",
+  "identities": [],
   "multitenancy": {
-    "attribute": null,
-    "global": null,
-    "strategy": null
+    "attribute": "organization_id",
+    "global": true,
+    "strategy": "attribute"
   },
   "repo": "Elixir.Medishop.Repo",
   "schema": null,
-  "table": "organization_location_memberships"
+  "table": "locations"
 }

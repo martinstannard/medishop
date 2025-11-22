@@ -93,7 +93,11 @@ defmodule Medishop.OrganizationsFixtures do
   @doc """
   Generate an organization location membership.
   """
-  def organization_location_membership_fixture(organization_membership_id, location_id, _attrs \\ %{}) do
+  def organization_location_membership_fixture(
+        organization_membership_id,
+        location_id,
+        _attrs \\ %{}
+      ) do
     {:ok, location_membership} =
       Organizations.create_location_membership(
         organization_membership_id,
