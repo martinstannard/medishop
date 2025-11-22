@@ -14,30 +14,6 @@
     },
     {
       "allow_nil?": false,
-      "default": "1",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "quantity",
-      "type": "bigint"
-    },
-    {
-      "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "price_at_addition",
-      "type": "decimal"
-    },
-    {
-      "allow_nil?": false,
       "default": "fragment(\"(now() AT TIME ZONE 'utc')\")",
       "generated?": false,
       "precision": null,
@@ -75,51 +51,20 @@
         "match_type": null,
         "match_with": null,
         "multitenancy": {
-          "attribute": null,
-          "global": null,
-          "strategy": null
+          "attribute": "organization_id",
+          "global": true,
+          "strategy": "attribute"
         },
-        "name": "cart_items_cart_id_fkey",
+        "name": "carts_location_id_fkey",
         "on_delete": null,
         "on_update": null,
         "primary_key?": true,
         "schema": "public",
-        "table": "carts"
+        "table": "locations"
       },
       "scale": null,
       "size": null,
-      "source": "cart_id",
-      "type": "uuid"
-    },
-    {
-      "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": {
-        "deferrable": false,
-        "destination_attribute": "id",
-        "destination_attribute_default": null,
-        "destination_attribute_generated": null,
-        "index?": false,
-        "match_type": null,
-        "match_with": null,
-        "multitenancy": {
-          "attribute": null,
-          "global": null,
-          "strategy": null
-        },
-        "name": "cart_items_product_id_fkey",
-        "on_delete": null,
-        "on_update": null,
-        "primary_key?": true,
-        "schema": "public",
-        "table": "products"
-      },
-      "scale": null,
-      "size": null,
-      "source": "product_id",
+      "source": "location_id",
       "type": "uuid"
     }
   ],
@@ -128,23 +73,19 @@
   "custom_indexes": [],
   "custom_statements": [],
   "has_create_action": true,
-  "hash": "A278962CD1B99091A308452B8F650E1460CA455EB5E468A1860D26DB61016942",
+  "hash": "10B5B15BE81037F4114F01E085541538466A8B5F71FA801D31383A36297A7528",
   "identities": [
     {
       "all_tenants?": false,
       "base_filter": null,
-      "index_name": "cart_items_unique_cart_item_per_product_index",
+      "index_name": "carts_unique_cart_per_location_index",
       "keys": [
         {
           "type": "atom",
-          "value": "cart_id"
-        },
-        {
-          "type": "atom",
-          "value": "product_id"
+          "value": "location_id"
         }
       ],
-      "name": "unique_cart_item_per_product",
+      "name": "unique_cart_per_location",
       "nils_distinct?": true,
       "where": null
     }
@@ -156,5 +97,5 @@
   },
   "repo": "Elixir.Medishop.Repo",
   "schema": null,
-  "table": "cart_items"
+  "table": "carts"
 }

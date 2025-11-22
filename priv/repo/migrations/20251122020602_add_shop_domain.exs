@@ -1,4 +1,4 @@
-defmodule Medishop.Repo.Migrations.MigrateResources1 do
+defmodule Medishop.Repo.Migrations.AddShopDomain do
   @moduledoc """
   Updates resources based on their most recent snapshots.
 
@@ -35,8 +35,7 @@ defmodule Medishop.Repo.Migrations.MigrateResources1 do
             name: "orders_location_id_fkey",
             type: :uuid,
             prefix: "public"
-          ),
-          null: false
+          ), null: false
 
       add :user_id,
           references(:users,
@@ -44,8 +43,7 @@ defmodule Medishop.Repo.Migrations.MigrateResources1 do
             name: "orders_user_id_fkey",
             type: :uuid,
             prefix: "public"
-          ),
-          null: false
+          ), null: false
     end
 
     create unique_index(:orders, [:order_number], name: "orders_unique_order_number_index")
@@ -70,8 +68,7 @@ defmodule Medishop.Repo.Migrations.MigrateResources1 do
             name: "order_items_order_id_fkey",
             type: :uuid,
             prefix: "public"
-          ),
-          null: false
+          ), null: false
 
       add :product_id,
           references(:products,
@@ -79,8 +76,7 @@ defmodule Medishop.Repo.Migrations.MigrateResources1 do
             name: "order_items_product_id_fkey",
             type: :uuid,
             prefix: "public"
-          ),
-          null: false
+          ), null: false
     end
 
     create table(:carts, primary_key: false) do
@@ -100,8 +96,7 @@ defmodule Medishop.Repo.Migrations.MigrateResources1 do
             name: "carts_location_id_fkey",
             type: :uuid,
             prefix: "public"
-          ),
-          null: false
+          ), null: false
     end
 
     create unique_index(:carts, [:location_id], name: "carts_unique_cart_per_location_index")
@@ -125,8 +120,7 @@ defmodule Medishop.Repo.Migrations.MigrateResources1 do
             name: "cart_items_cart_id_fkey",
             type: :uuid,
             prefix: "public"
-          ),
-          null: false
+          ), null: false
 
       add :product_id,
           references(:products,
@@ -134,8 +128,7 @@ defmodule Medishop.Repo.Migrations.MigrateResources1 do
             name: "cart_items_product_id_fkey",
             type: :uuid,
             prefix: "public"
-          ),
-          null: false
+          ), null: false
     end
 
     create unique_index(:cart_items, [:cart_id, :product_id],
