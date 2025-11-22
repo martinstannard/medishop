@@ -84,7 +84,7 @@ defmodule MedishopWeb.DashboardLive do
                                   <%= if loc_membership.location.store do %>
                                     <span class="badge badge-sm badge-info">Store</span>
                                   <% end %>
-                                  <%= if :org_buyer in membership.org_roles do %>
+                                  <%= if :org_buyer in membership.org_roles and loc_membership.location.store do %>
                                     <.link
                                       navigate={~p"/location/#{loc_membership.location.id}/cart"}
                                       class="btn btn-sm btn-primary gap-1"

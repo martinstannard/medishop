@@ -15,15 +15,20 @@ defmodule MedishopWeb.ProductsLive do
       {:ok, location} ->
         # Get or create cart for this location
         {:ok, cart} = Shop.get_or_create_cart_for_location(location_id)
+        {:ok, cart_with_items} = Shop.get_cart(cart.id, load: [:cart_items])
 
         # Load active products
         {:ok, products} = Products.list_products()
         active_products = Enum.filter(products, & &1.active)
 
+        # Calculate cart item count
+        cart_item_count = length(cart_with_items.cart_items || [])
+
         socket =
           socket
           |> assign(:location, location)
           |> assign(:cart, cart)
+          |> assign(:cart_item_count, cart_item_count)
           |> assign(:search_query, "")
           |> assign(:products, active_products)
           |> stream(:products, active_products, dom_id: &"product-#{&1.id}")
@@ -67,7 +72,15 @@ defmodule MedishopWeb.ProductsLive do
 
     case Shop.add_or_update_cart_item(cart.id, product_id, 1) do
       {:ok, _cart_item} ->
-        socket = put_flash(socket, :info, "Product added to cart!")
+        # Reload cart to get updated item count
+        {:ok, cart_with_items} = Shop.get_cart(cart.id, load: [:cart_items])
+        cart_item_count = length(cart_with_items.cart_items || [])
+
+        socket =
+          socket
+          |> assign(:cart_item_count, cart_item_count)
+          |> put_flash(:info, "Product added to cart!")
+
         {:noreply, socket}
 
       {:error, _error} ->
@@ -87,9 +100,18 @@ defmodule MedishopWeb.ProductsLive do
           </p>
         </div>
         <div class="flex items-center gap-2">
-          <.link navigate={~p"/location/#{@location.id}/cart"} class="btn btn-primary gap-2">
+          <.link
+            navigate={~p"/location/#{@location.id}/cart"}
+            class="btn btn-primary gap-2 relative"
+            data-testid="view-cart-button"
+          >
             <.icon name="hero-shopping-cart" class="w-5 h-5" />
             View Cart
+            <%= if @cart_item_count > 0 do %>
+              <span class="absolute -top-2 -right-2 badge badge-sm badge-secondary" data-testid="cart-count-badge">
+                {@cart_item_count}
+              </span>
+            <% end %>
           </.link>
           <.link navigate={~p"/dashboard"} class="btn btn-ghost gap-2">
             <.icon name="hero-arrow-left" class="w-5 h-5" />
