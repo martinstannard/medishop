@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 
 ## 2025-11-22
 
+### Fixed
+- **Cart Total Updates**: Cart total now updates in real-time when removing items or changing quantities
+  - Fixed `CartLive.remove_item/2` to reload cart after removing items
+  - Fixed `CartLive.update_quantity/2` to reload cart after quantity changes
+  - Total calculation now uses updated `@cart.cart_items` data
+- **Non-Store Location Cart Button**: Cart buttons no longer appear on non-store locations
+  - Dashboard now only shows cart button for locations with `store=true`
+  - Prevents users from accessing cart for warehouse/office locations
+- **Product Browsing UX**: Added cart item count badge to ProductsLive
+  - "View Cart" button displays badge showing number of items in cart
+  - Badge auto-updates after adding products
+  - Badge only appears when cart has items (count > 0)
+- **Database Duplicates**: Cleared and regenerated seed data to fix duplicate organizations
+  - Used `mix ash.reset` to drop and recreate database
+  - All seed data regenerated cleanly
+
+### Added (earlier today)
+
 ### Added
 - **LiveView Admin UI - Phase 5: Shopping Cart & Purchase Flow** (branch: `inventory`)
   - **CartLive** (`/location/:location_id/cart`) - Full cart management interface
