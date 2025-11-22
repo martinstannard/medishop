@@ -15,8 +15,8 @@ defmodule MedishopWeb.CartLive do
         # Get or create cart for this location
         {:ok, cart} = Shop.get_or_create_cart_for_location(location_id)
 
-        # Load cart with items and product details preloaded
-        {:ok, cart_with_items} = Shop.get_cart(cart.id, load: [cart_items: :product])
+        # Load cart with items, product details, and line_total calculation
+        {:ok, cart_with_items} = Shop.get_cart(cart.id, load: [cart_items: [:product, :line_total]])
 
         socket =
           socket
@@ -45,8 +45,8 @@ defmodule MedishopWeb.CartLive do
       {:ok, cart_item} ->
         case Shop.update_cart_item(cart_item, %{quantity: quantity}) do
           {:ok, updated_item} ->
-            # Reload with product relationship
-            {:ok, item_with_product} = Shop.get_cart_item(updated_item.id, load: [:product])
+            # Reload with product relationship and line_total calculation
+            {:ok, item_with_product} = Shop.get_cart_item(updated_item.id, load: [:product, :line_total])
             {:noreply, stream_insert(socket, :cart_items, item_with_product)}
 
           {:error, _error} ->
@@ -84,9 +84,13 @@ defmodule MedishopWeb.CartLive do
     cart = socket.assigns.cart
 
     case Shop.clear_cart(cart) do
-      {:ok, _cleared_cart} ->
+      {:ok, cleared_cart} ->
+        # Reload cart to get updated cart_items list
+        {:ok, cart_with_items} = Shop.get_cart(cleared_cart.id, load: [cart_items: [:product, :line_total]])
+
         socket =
           socket
+          |> assign(:cart, cart_with_items)
           |> stream(:cart_items, [], reset: true)
           |> put_flash(:info, "Cart cleared successfully")
 

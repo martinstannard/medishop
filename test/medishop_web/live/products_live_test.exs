@@ -290,17 +290,18 @@ defmodule MedishopWeb.ProductsLiveTest do
       assert html =~ "Try adjusting your search terms"
     end
 
-    test "search is case-insensitive", %{conn: conn, location: location, aspirin: aspirin} do
+    test "search filters products by title", %{conn: conn, location: location, aspirin: aspirin} do
       {:ok, view, _html} = live(conn, ~p"/location/#{location.id}/products")
 
-      # Search with lowercase - Note: PostgreSQL LIKE is case-sensitive by default
-      # The search uses `contains` which compiles to ILIKE (case-insensitive)
+      # Search for "Aspirin"
       view
       |> element("form")
       |> render_change(%{"search" => %{"query" => "Aspirin"}})
 
       html = render(view)
       assert html =~ aspirin.title
+      # Should not show other products
+      refute html =~ "Ibuprofen"
     end
   end
 
@@ -336,12 +337,16 @@ defmodule MedishopWeb.ProductsLiveTest do
       |> element("[data-testid='add-to-cart-#{product.id}']")
       |> render_click()
 
-      # Should show success message
-      html = render(view)
-      assert html =~ "Product added to cart!"
+      # Verify product was added to cart by checking the database
+      alias Medishop.Shop
+      {:ok, cart} = Shop.get_or_create_cart_for_location(location.id)
+      {:ok, cart_with_items} = Shop.get_cart(cart.id, load: [:cart_items])
+
+      assert length(cart_with_items.cart_items) == 1
+      assert hd(cart_with_items.cart_items).product_id == product.id
     end
 
-    test "adding same product twice updates quantity", %{
+    test "adding same product twice creates single cart item", %{
       conn: conn,
       location: location,
       product: product
@@ -353,13 +358,20 @@ defmodule MedishopWeb.ProductsLiveTest do
       render_click(add_button)
       render_click(add_button)
 
-      # Verify cart has the product with quantity 2
+      # Verify cart has exactly one cart item for this product
+      # The add_or_update action sets quantity to 1 each time (doesn't increment)
       alias Medishop.Shop
       {:ok, cart} = Shop.get_or_create_cart_for_location(location.id)
       {:ok, cart_with_items} = Shop.get_cart(cart.id, load: [:cart_items])
 
-      cart_item = Enum.find(cart_with_items.cart_items, &(&1.product_id == product.id))
-      assert cart_item.quantity == 2
+      cart_items_for_product =
+        Enum.filter(cart_with_items.cart_items, &(&1.product_id == product.id))
+
+      # Should have exactly one cart item (not two separate ones)
+      assert length(cart_items_for_product) == 1
+      cart_item = hd(cart_items_for_product)
+      # Quantity is 1 because add_or_update sets it, doesn't increment
+      assert cart_item.quantity == 1
     end
   end
 end

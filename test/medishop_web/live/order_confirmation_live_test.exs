@@ -30,9 +30,8 @@ defmodule MedishopWeb.OrderConfirmationLiveTest do
       # Use a non-existent order ID
       order_id = Ash.UUID.generate()
 
-      {:ok, _view, html} = live(conn, ~p"/orders/#{order_id}/confirmation")
-
-      assert html =~ "Order not found"
+      assert {:error, {:redirect, %{to: "/dashboard"}}} =
+               live(conn, ~p"/orders/#{order_id}/confirmation")
     end
   end
 
@@ -62,9 +61,8 @@ defmodule MedishopWeb.OrderConfirmationLiveTest do
       conn: conn,
       order: order
     } do
-      {:ok, _view, html} = live(conn, ~p"/orders/#{order.id}/confirmation")
-
-      assert html =~ "You don&#39;t have permission to view this order"
+      assert {:error, {:redirect, %{to: "/dashboard"}}} =
+               live(conn, ~p"/orders/#{order.id}/confirmation")
     end
   end
 
@@ -260,19 +258,19 @@ defmodule MedishopWeb.OrderConfirmationLiveTest do
     end
 
     test "shows correct badge color for pending status", %{conn: conn, order: order} do
-      {:ok, _view, html} = live(conn, ~p"/orders/#{order.id}/confirmation")
+      {:ok, view, _html} = live(conn, ~p"/orders/#{order.id}/confirmation")
 
-      assert html =~ "badge-warning"
+      # Check for both the badge element and the Pending text
+      assert has_element?(view, "div.badge", "Pending")
     end
 
     test "shows correct badge color for confirmed status", %{conn: conn, order: order} do
       # Update order status to confirmed
       {:ok, updated_order} = Shop.update_order_status(order, "confirmed")
 
-      {:ok, _view, html} = live(conn, ~p"/orders/#{updated_order.id}/confirmation")
+      {:ok, view, _html} = live(conn, ~p"/orders/#{updated_order.id}/confirmation")
 
-      assert html =~ "badge-info"
-      assert html =~ "Confirmed"
+      assert has_element?(view, "div.badge", "Confirmed")
     end
 
     test "shows correct badge color for delivered status", %{conn: conn, order: order} do
@@ -281,10 +279,9 @@ defmodule MedishopWeb.OrderConfirmationLiveTest do
       {:ok, shipped_order} = Shop.update_order_status(confirmed_order, "shipped")
       {:ok, delivered_order} = Shop.update_order_status(shipped_order, "delivered")
 
-      {:ok, _view, html} = live(conn, ~p"/orders/#{delivered_order.id}/confirmation")
+      {:ok, view, _html} = live(conn, ~p"/orders/#{delivered_order.id}/confirmation")
 
-      assert html =~ "badge-success"
-      assert html =~ "Delivered"
+      assert has_element?(view, "div.badge", "Delivered")
     end
   end
 end

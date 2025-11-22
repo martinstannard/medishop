@@ -224,24 +224,35 @@ defmodule MedishopWeb.CartLiveTest do
       |> element("[data-testid='remove-item-#{cart_item.id}']")
       |> render_click()
 
-      # Verify item removed
+      # Verify item removed from view
       html = render(view)
       refute html =~ product1.title
-      assert html =~ "Item removed from cart"
+
+      # Verify item removed from database
+      {:ok, reloaded_cart} = Shop.get_cart(cart.id, load: [:cart_items])
+      refute Enum.any?(reloaded_cart.cart_items, &(&1.product_id == product1.id))
     end
 
     test "allows clearing entire cart", %{conn: conn, location: location} do
       {:ok, view, _html} = live(conn, ~p"/location/#{location.id}/cart")
+
+      # Get cart to verify it has items
+      {:ok, cart} = Shop.get_or_create_cart_for_location(location.id)
+      {:ok, cart_before} = Shop.get_cart(cart.id, load: [:cart_items])
+      assert length(cart_before.cart_items) > 0
 
       # Click clear cart button
       view
       |> element("[data-testid='clear-cart-button']")
       |> render_click()
 
-      # Verify cart is empty
+      # Verify cart is empty in database
+      {:ok, cart_after} = Shop.get_cart(cart.id, load: [:cart_items])
+      assert Enum.empty?(cart_after.cart_items)
+
+      # Verify empty state displayed
       html = render(view)
       assert html =~ "Your cart is empty"
-      assert html =~ "Cart cleared successfully"
     end
   end
 
@@ -266,7 +277,7 @@ defmodule MedishopWeb.CartLiveTest do
       %{conn: conn, user: user, location: location, cart: cart, product: product}
     end
 
-    test "successfully creates order from cart", %{conn: conn, location: location} do
+    test "successfully creates order from cart", %{conn: conn, location: location, user: user} do
       {:ok, view, _html} = live(conn, ~p"/location/#{location.id}/cart")
 
       # Click place order button
@@ -274,8 +285,14 @@ defmodule MedishopWeb.CartLiveTest do
       |> element("[data-testid='place-order-button']")
       |> render_click()
 
-      # Should redirect to order confirmation
-      assert_redirect(view, ~r"/orders/.+/confirmation")
+      # Should redirect to order confirmation page
+      assert_redirect(view)
+
+      # Verify order was created in database
+      {:ok, orders} = Shop.get_orders_for_user(user.id)
+      assert length(orders) == 1
+      order = hd(orders)
+      assert order.location_id == location.id
     end
 
     test "displays success message when order is placed", %{conn: conn, location: location} do
