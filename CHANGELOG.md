@@ -2,6 +2,57 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2025-11-22
+
+### Added
+- **Medication Purchasing System - Phase 1: Products Domain** (branch: `inventory`)
+  - Created Products domain (`lib/medishop/products.ex`)
+  - Product resource with attributes: sku (unique), title, description, images (array), price, active
+  - Product search functionality with filters: title (partial match), SKU (exact), active status
+  - Product sorting by title, price, or created_at (asc/desc)
+  - Price validation (must be positive, non-zero)
+  - Code interface functions for all CRUD operations and search
+  - Comprehensive test suite (`test/medishop/products/product_test.exs`) - 17/17 tests passing
+  - Product fixtures (`test/support/products_fixtures.ex`)
+  - Database migration for products table
+  - Configured Products domain in `config/config.exs`
+
+- **Medication Purchasing System - Phase 2: Inventory Domain** (branch: `inventory`)
+  - Created Inventory domain (`lib/medishop/inventory.ex`)
+  - LocationInventory resource tracking product stock per location
+  - Attributes: location_id, product_id, quantity_available (defaults to 0)
+  - Unique constraint on location + product combination
+  - Quantity validation (must be non-negative)
+  - Relationships: belongs_to Location and Product
+  - Filter actions: get_by_location, get_by_product
+  - Added `has_many :location_inventories` to Location and Product resources
+  - Code interface functions for all CRUD operations
+  - Comprehensive test suite (`test/medishop/inventory/location_inventory_test.exs`) - 13/13 tests passing
+  - Inventory fixtures (`test/support/inventory_fixtures.ex`)
+  - Database migration for location_inventories table with foreign keys and unique index
+  - Configured Inventory domain in `config/config.exs`
+
+- **Implementation Planning and Progress Tracking**
+  - Created detailed 18-step implementation plan (`docs/medication-purchasing-implementation-plan.md`)
+  - Documented three new domains: Products, Inventory, and Shop
+  - Defined acceptance criteria and phase breakdown
+  - Emphasized mandatory testing requirements (TDD approach, 113+ planned tests)
+  - Updated progress tracking with completed Phases 1 and 2
+  - All checklist items for Steps 1-8 marked as completed
+
+### Changed
+- Updated `docs/PROGRESS.md` with Phase 1 and Phase 2 completion details
+- Test summary now shows 67/67 tests passing (100% pass rate)
+  - Organizations: 37/37 tests ✅
+  - Products: 17/17 tests ✅
+  - Inventory: 13/13 tests ✅
+
+### Technical Notes
+- Following Ash Framework 3.0 best practices and code interface pattern
+- All functionality thoroughly tested before implementation marked complete
+- Database migrations generated with `mix ash_postgres.generate_migrations`
+- Next phase: Shop Domain (Carts and Orders) - Steps 9-15
+
 ## 2025-11-21
 
 ### Added
