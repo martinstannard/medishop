@@ -6,6 +6,27 @@ This file tracks the high-level progress of work on the Medishop project. Update
 
 ## 2025-11-22
 
+### LiveView Admin UI - Dashboard & Authentication
+
+**Commit:** `c275127` - Improve dashboard legibility and styling
+
+**What was accomplished:**
+- **Dashboard Implementation:**
+  - Created `DashboardLive` acting as the central hub for user activities
+  - Displays all organizations a user is a member of
+  - Lists authorized locations with detailed address and contact info within each organization card
+  - Optimized data fetching with preloaded associations in `OrganizationMembership`
+- **Authentication Flow Refinement:**
+  - Fixed sign-in redirects (success → `/dashboard`, failure → `/`)
+  - Resolved password hashing issues in seeds and registration
+  - Implemented user menu with "Dashboard" and "Sign Out" options
+- **Layout & Styling:**
+  - Updated application layout with a responsive header and user dropdown
+  - Styled dashboard with high-contrast, readable typography and badges
+  - Used Tailwind CSS and DaisyUI for a clean, modern look
+
+---
+
 ### LiveView Admin UI - Phase 1: Authentication UI
 
 **Commit:** `7eeba5e` - Implement initial Sign-In UI

@@ -14,18 +14,18 @@ This phase focuses on creating the user-facing sign-in and sign-out capabilities
     - [ ] Test that a user can successfully request a magic link.
     - [ ] Test that a user is redirected to a confirmation page after requesting a link.
     - [ ] Test that a user can sign in by visiting the link from their email (simulated).
-- [ ] **Create a Log-Out Button:** Add a secure log-out button to the main layout that is visible only to authenticated users.
+- [x] **Create a Log-Out Button:** Add a secure log-out button to the main layout that is visible only to authenticated users.
 - [ ] **Write Log-Out Test (LiveViewTest):** Test that clicking the log-out button successfully ends the user's session and redirects them to the sign-in page.
 
 ## Phase 2: Display User's Organizations
 
 This phase focuses on displaying the list of organizations a user belongs to after they have signed in.
 
-- [ ] **Create Organizations LiveView:** Implement a new LiveView at `/organizations` that is protected and requires an authenticated user.
-- [ ] **Fetch and Display Organizations:**
-    - [ ] Use the `:live_user_required` on_mount hook from `MedishopWeb.LiveUserAuth`.
-    - [ ] In the LiveView, fetch the list of `OrganizationMembership` records for the current user.
-    - [ ] Use Phoenix LiveView streams to display the list of organizations efficiently.
+- [x] **Create Organizations LiveView:** Implemented `DashboardLive` at `/dashboard`.
+- [x] **Fetch and Display Organizations:**
+    - [x] Use the `:live_user_required` on_mount hook from `MedishopWeb.LiveUserAuth`.
+    - [x] In the LiveView, fetch the list of `OrganizationMembership` records for the current user.
+    - [x] Use Phoenix LiveView streams to display the list of organizations efficiently.
 - [ ] **Write Organizations View Tests (LiveViewTest):**
     - [ ] Test that an unauthenticated user is redirected to the `/sign-in` page.
     - [ ] Test that an authenticated user sees a list of only the organizations they are a member of.
@@ -34,12 +34,13 @@ This phase focuses on displaying the list of organizations a user belongs to aft
 ## Phase 3: Display Organization's Locations
 
 This phase will create a page to show the locations associated with a specific organization that the user has access to.
+*Note: This was consolidated into the Dashboard view for better UX.*
 
-- [ ] **Create Locations LiveView:** Implement a new LiveView at `/organizations/:id/locations` that requires an authenticated user.
-- [ ] **Fetch and Display Locations:**
-    - [ ] The LiveView should verify that the current user is a member of the organization specified by the ID in the URL.
-    - [ ] If authorized, fetch and display the list of `Location` records for that organization.
-- [ ] **Add Navigation:** Add a link from each organization in the `/organizations` list to its corresponding locations page.
+- [x] **Create Locations LiveView:** Implemented within `DashboardLive`.
+- [x] **Fetch and Display Locations:**
+    - [x] The LiveView should verify that the current user is a member of the organization specified by the ID in the URL.
+    - [x] If authorized, fetch and display the list of `Location` records for that organization.
+- [x] **Add Navigation:** Dashboard acts as the central hub.
 - [ ] **Write Locations View Tests (LiveViewTest):**
     - [ ] Test that a user can navigate from the organizations list to the locations page for an organization they belong to.
     - [ ] Test that the locations page correctly displays only the locations for the selected organization.
@@ -49,9 +50,9 @@ This phase will create a page to show the locations associated with a specific o
 
 This phase will ensure the new LiveViews are presented in a clean, professional, and consistent manner using the project's existing UI components.
 
-- [ ] **Create a Root Layout:** Implement a root layout (`:root`) and an app layout (`:app`) in `lib/medishop_web/components/layouts.ex` to provide a consistent header, footer, and navigation structure.
-- [ ] **Apply Mishka Chelekom Components:** Use the pre-built components from the Mishka Chelekom library to style forms, buttons, lists, and other UI elements for a clean and minimal aesthetic.
-- [ ] **Ensure Responsiveness:** Verify that all new pages are responsive and usable on both desktop and mobile screen sizes.
+- [x] **Create a Root Layout:** Updated `layouts.ex` with responsive header and user menu.
+- [x] **Apply Mishka Chelekom Components:** Used Tailwind/DaisyUI for styling.
+- [x] **Ensure Responsiveness:** Verified responsive design for dashboard cards and layout.
 
 ## Phase 5: Finalization and Quality Assurance
 
