@@ -104,6 +104,8 @@ defmodule Medishop.Organizations.Location do
 
     has_many :organization_location_memberships,
              Medishop.Organizations.OrganizationLocationMembership
+
+    has_many :location_inventories, Medishop.Inventory.LocationInventory
   end
 
   calculations do

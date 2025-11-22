@@ -74,7 +74,12 @@ config :spark,
 config :medishop,
   ecto_repos: [Medishop.Repo],
   generators: [timestamp_type: :utc_datetime],
-  ash_domains: [Medishop.Accounts, Medishop.Organizations, Medishop.Products]
+  ash_domains: [
+    Medishop.Accounts,
+    Medishop.Organizations,
+    Medishop.Products,
+    Medishop.Inventory
+  ]
 
 # Configures the endpoint
 config :medishop, MedishopWeb.Endpoint,

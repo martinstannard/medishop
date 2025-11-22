@@ -121,6 +121,10 @@ defmodule Medishop.Products.Product do
     update_timestamp :updated_at
   end
 
+  relationships do
+    has_many :location_inventories, Medishop.Inventory.LocationInventory
+  end
+
   identities do
     identity :unique_sku, [:sku]
   end
