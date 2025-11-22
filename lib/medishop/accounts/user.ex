@@ -29,6 +29,24 @@ defmodule Medishop.Accounts.User do
     end
   end
 
+  policies do
+    bypass AshAuthentication.Checks.AshAuthenticationInteraction do
+      authorize_if always()
+    end
+
+    policy action(:sign_in_with_password) do
+      authorize_if always()
+    end
+
+    policy action(:register) do
+      authorize_if always()
+    end
+
+    policy action(:read) do
+      authorize_if always()
+    end
+  end
+
   postgres do
     table "users"
     repo Medishop.Repo
@@ -53,7 +71,9 @@ defmodule Medishop.Accounts.User do
     create :register do
       primary? true
       accept [:email]
-      argument :password, :string, sensitive?: true
+      argument :password, :string, sensitive?: true, allow_nil?: false
+      change set_context(%{strategy_name: :password})
+      change AshAuthentication.Strategy.Password.HashPasswordChange
     end
   end
 

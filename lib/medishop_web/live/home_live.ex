@@ -26,7 +26,7 @@ defmodule MedishopWeb.HomeLive do
 
     form
     |> Form.validate(user_params)
-    |> Form.submit()
+    |> Form.submit(params: user_params)
     |> case do
       {:ok, _user} ->
         {:noreply, assign(socket, trigger_action: true, form: to_form(form))}
