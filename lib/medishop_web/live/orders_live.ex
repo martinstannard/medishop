@@ -13,16 +13,19 @@ defmodule MedishopWeb.OrdersLive do
     case verify_location_access(user.id, location_id) do
       {:ok, location} ->
         # Get all orders for this location
-        {:ok, orders} =
+        {:ok, all_orders} =
           Shop.get_orders_for_location(location_id, load: [:user, order_items: [:product]])
 
         # Sort orders by placed_at descending (newest first)
-        orders = Enum.sort_by(orders, & &1.placed_at, {:desc, DateTime})
+        all_orders = Enum.sort_by(all_orders, & &1.placed_at, {:desc, DateTime})
 
         socket =
           socket
           |> assign(:location, location)
-          |> assign(:orders, orders)
+          |> assign(:all_orders, all_orders)
+          |> assign(:filtered_orders, all_orders)
+          |> assign(:status_filter, :all)
+          |> assign(:search_query, "")
           |> assign(:page_title, "Orders - #{location.name}")
 
         {:ok, socket}
@@ -35,6 +38,62 @@ defmodule MedishopWeb.OrdersLive do
 
         {:ok, socket}
     end
+  end
+
+  def handle_event("filter_status", %{"status" => status}, socket) do
+    status_atom =
+      case status do
+        "all" -> :all
+        "pending" -> :pending
+        "confirmed" -> :confirmed
+        "shipped" -> :shipped
+        "delivered" -> :delivered
+        "cancelled" -> :cancelled
+        _ -> :all
+      end
+
+    socket =
+      socket
+      |> assign(:status_filter, status_atom)
+      |> apply_filters()
+
+    {:noreply, socket}
+  end
+
+  def handle_event("search", %{"search" => query}, socket) do
+    socket =
+      socket
+      |> assign(:search_query, query)
+      |> apply_filters()
+
+    {:noreply, socket}
+  end
+
+  defp apply_filters(socket) do
+    orders = socket.assigns.all_orders
+    status_filter = socket.assigns.status_filter
+    search_query = String.downcase(socket.assigns.search_query)
+
+    filtered =
+      orders
+      |> filter_by_status(status_filter)
+      |> filter_by_search(search_query)
+
+    assign(socket, :filtered_orders, filtered)
+  end
+
+  defp filter_by_status(orders, :all), do: orders
+
+  defp filter_by_status(orders, status) do
+    Enum.filter(orders, &(&1.status == status))
+  end
+
+  defp filter_by_search(orders, ""), do: orders
+
+  defp filter_by_search(orders, query) do
+    Enum.filter(orders, fn order ->
+      String.contains?(String.downcase(order.order_number), query)
+    end)
   end
 
   defp verify_location_access(user_id, location_id) do
@@ -70,16 +129,118 @@ defmodule MedishopWeb.OrdersLive do
               {@location.name}
             </p>
           </div>
-          <.link
-            navigate={~p"/dashboard"}
-            class="btn btn-secondary"
-          >
+          <.link navigate={~p"/dashboard"} class="btn btn-secondary">
             <.icon name="hero-arrow-left" class="w-5 h-5" /> Back to Dashboard
           </.link>
         </div>
       </div>
+      <%!-- Filters and Search --%>
+      <div class="mb-6 bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-600">
+        <div class="flex flex-col md:flex-row gap-4">
+          <%!-- Search Bar --%>
+          <div class="flex-1">
+            <form phx-submit="search" phx-change="search">
+              <input
+                type="text"
+                name="search"
+                value={@search_query}
+                placeholder="Search by order number..."
+                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </form>
+          </div>
+          <%!-- Status Filter --%>
+          <div class="flex gap-2 flex-wrap">
+            <button
+              phx-click="filter_status"
+              phx-value-status="all"
+              class={[
+                "px-4 py-2 rounded-lg text-sm font-semibold transition-colors",
+                if(@status_filter == :all,
+                  do:
+                    "bg-blue-600 text-white dark:bg-blue-500",
+                  else:
+                    "bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+                )
+              ]}
+            >
+              All
+            </button>
+            <button
+              phx-click="filter_status"
+              phx-value-status="pending"
+              class={[
+                "px-4 py-2 rounded-lg text-sm font-semibold transition-colors",
+                if(@status_filter == :pending,
+                  do: "bg-yellow-600 text-white dark:bg-yellow-500",
+                  else:
+                    "bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+                )
+              ]}
+            >
+              Pending
+            </button>
+            <button
+              phx-click="filter_status"
+              phx-value-status="confirmed"
+              class={[
+                "px-4 py-2 rounded-lg text-sm font-semibold transition-colors",
+                if(@status_filter == :confirmed,
+                  do: "bg-blue-600 text-white dark:bg-blue-500",
+                  else:
+                    "bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+                )
+              ]}
+            >
+              Confirmed
+            </button>
+            <button
+              phx-click="filter_status"
+              phx-value-status="shipped"
+              class={[
+                "px-4 py-2 rounded-lg text-sm font-semibold transition-colors",
+                if(@status_filter == :shipped,
+                  do: "bg-purple-600 text-white dark:bg-purple-500",
+                  else:
+                    "bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+                )
+              ]}
+            >
+              Shipped
+            </button>
+            <button
+              phx-click="filter_status"
+              phx-value-status="delivered"
+              class={[
+                "px-4 py-2 rounded-lg text-sm font-semibold transition-colors",
+                if(@status_filter == :delivered,
+                  do: "bg-green-600 text-white dark:bg-green-500",
+                  else:
+                    "bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+                )
+              ]}
+            >
+              Delivered
+            </button>
+            <button
+              phx-click="filter_status"
+              phx-value-status="cancelled"
+              class={[
+                "px-4 py-2 rounded-lg text-sm font-semibold transition-colors",
+                if(@status_filter == :cancelled,
+                  do: "bg-red-600 text-white dark:bg-red-500",
+                  else:
+                    "bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+                )
+              ]}
+            >
+              Cancelled
+            </button>
+          </div>
+        </div>
+      </div>
 
-      <%= if Enum.empty?(@orders) do %>
+      <%= if Enum.empty?(@filtered_orders) do %>
         <div class="bg-white dark:bg-gray-800 rounded-2xl p-10 text-center border border-gray-200 dark:border-gray-600">
           <.icon
             name="hero-document-text"
@@ -92,7 +253,7 @@ defmodule MedishopWeb.OrdersLive do
         </div>
       <% else %>
         <div class="space-y-4">
-          <%= for order <- @orders do %>
+          <%= for order <- @filtered_orders do %>
             <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-600 overflow-hidden hover:shadow-xl transition-shadow">
               <div class="p-6">
                 <div class="flex items-start justify-between mb-4">
