@@ -139,7 +139,7 @@ member_user =
     test_location: false
   })
 
-{:ok, _ghp_eugene} =
+{:ok, ghp_eugene} =
   Organizations.create_location(%{
     organization_id: org2.id,
     name: "GHP Eugene",
@@ -182,6 +182,15 @@ member_user =
     authorize?: false
   )
 
+# Admin user is also a member of Global Health Partners (multitenancy demo)
+{:ok, admin_ghp_membership} =
+  Organizations.create_membership(
+    admin_user.id,
+    org2.id,
+    [:org_member],
+    authorize?: false
+  )
+
 # Buyer user is org_buyer for Global Health Partners
 {:ok, buyer_membership} =
   Organizations.create_membership(
@@ -192,7 +201,7 @@ member_user =
   )
 
 # Member user is org_member for both organizations
-{:ok, _member_membership_org1} =
+{:ok, member_membership_org1} =
   Organizations.create_membership(
     member_user.id,
     org1.id,
@@ -220,9 +229,26 @@ member_user =
     authorize?: false
   )
 
-# Buyer user can buy for GHP Portland only
+# Admin user has access to GHP Portland as a member
+{:ok, _} =
+  Organizations.create_location_membership(admin_ghp_membership.id, ghp_portland.id,
+    authorize?: false
+  )
+
+# Buyer user can buy for both GHP locations
 {:ok, _} =
   Organizations.create_location_membership(buyer_membership.id, ghp_portland.id,
+    authorize?: false
+  )
+
+{:ok, _} =
+  Organizations.create_location_membership(buyer_membership.id, ghp_eugene.id,
+    authorize?: false
+  )
+
+# Member user has specific access to Acme Seattle
+{:ok, _} =
+  Organizations.create_location_membership(member_membership_org1.id, acme_seattle.id,
     authorize?: false
   )
 
@@ -231,6 +257,6 @@ IO.puts("\nCreated:")
 IO.puts("- 3 users (admin@medishop.test, buyer@medishop.test, member@medishop.test)")
 IO.puts("- 3 organizations (Acme Medical Supply, Global Health Partners, Test Organization)")
 IO.puts("- 5 locations across all organizations")
-IO.puts("- 4 organization memberships")
-IO.puts("- 3 location memberships")
+IO.puts("- 6 organization memberships (Enriched)")
+IO.puts("- 6 location memberships (Enriched)")
 IO.puts("\nYou can now test the organization and location features!")
