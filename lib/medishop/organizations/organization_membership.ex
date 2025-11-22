@@ -29,6 +29,7 @@ defmodule Medishop.Organizations.OrganizationMembership do
       argument :user_id, :uuid, allow_nil?: false
 
       filter expr(user_id == ^arg(:user_id))
+      prepare build(load: [:organization, organization_location_memberships: :location])
     end
 
     read :for_organization do

@@ -18,7 +18,7 @@ defmodule Medishop.Organizations do
       define :create_location, action: :create
       define :list_locations, action: :read
       define :get_location, action: :read, get_by: [:id]
-      define :get_locations_by_organization, action: :get_by_organization
+      define :get_locations_by_organization, action: :get_by_organization, args: [:organization_id]
       define :update_location, action: :update
       define :destroy_location, action: :destroy
     end
@@ -27,8 +27,8 @@ defmodule Medishop.Organizations do
       define :create_membership, action: :create, args: [:user_id, :organization_id, :org_roles]
       define :list_memberships, action: :read
       define :get_membership, action: :read, get_by: [:id]
-      define :get_memberships_for_user, action: :for_user
-      define :get_memberships_for_organization, action: :for_organization
+      define :get_memberships_for_user, action: :for_user, args: [:user_id]
+      define :get_memberships_for_organization, action: :for_organization, args: [:organization_id]
       define :update_membership, action: :update
       define :destroy_membership, action: :destroy
     end
@@ -40,8 +40,8 @@ defmodule Medishop.Organizations do
 
       define :list_location_memberships, action: :read
       define :get_location_membership, action: :read, get_by: [:id]
-      define :get_location_memberships_for_user, action: :for_user
-      define :get_location_memberships_for_location, action: :for_location
+      define :get_location_memberships_for_user, action: :for_user, args: [:user_id]
+      define :get_location_memberships_for_location, action: :for_location, args: [:location_id]
       define :destroy_location_membership, action: :destroy
     end
   end

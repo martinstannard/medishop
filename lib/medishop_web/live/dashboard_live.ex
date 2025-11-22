@@ -8,10 +8,7 @@ defmodule MedishopWeb.DashboardLive do
   def mount(_params, _session, socket) do
     user = socket.assigns.current_user
 
-    memberships =
-      user.id
-      |> Organizations.get_memberships_for_user!()
-      |> Ash.load([:organization, organization_location_memberships: :location])
+    {:ok, memberships} = Organizations.get_memberships_for_user(user.id)
 
     {:ok, assign(socket, memberships: memberships, page_title: "Dashboard")}
   end
