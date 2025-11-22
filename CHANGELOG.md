@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 ## 2025-11-22
 
+### Added
+- **Product Gradient Thumbnails**: Beautiful SVG-based thumbnails for products without images
+  - Created `MedishopWeb.Helpers.ProductThumbnail` module
+  - Generates colorful gradient backgrounds with product initials and SKU
+  - 20 predefined gradient color pairs (purple, pink-red, blue-cyan, green, etc.)
+  - Deterministic: same product always gets same colors (based on title hash)
+  - Modern, professional design perfect for pharmaceutical products
+  - Initials extracted intelligently from product title
+  - SVG-based (scales perfectly, lightweight)
+  - Inline data URI (no external requests)
+
 ### Fixed
 - **Cart Total Updates**: Cart total now updates in real-time when removing items or changing quantities
   - Fixed `CartLive.remove_item/2` to reload cart after removing items
