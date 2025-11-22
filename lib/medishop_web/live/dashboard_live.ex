@@ -15,8 +15,7 @@ defmodule MedishopWeb.DashboardLive do
 
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash}>
-      <div class="max-w-7xl mx-auto py-10 px-6">
+    <div class="max-w-7xl mx-auto py-10 px-6">
         <div class="mb-10">
           <h1 class="text-5xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
           <p class="text-gray-700 dark:text-gray-200 mt-3 text-xl">
@@ -124,8 +123,7 @@ defmodule MedishopWeb.DashboardLive do
             <% end %>
           </section>
         </div>
-      </div>
-    </Layouts.app>
+    </div>
     """
   end
 end

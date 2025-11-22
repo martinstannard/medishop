@@ -35,7 +35,7 @@ defmodule MedishopWeb.Layouts do
 
   def app(assigns) do
     ~H"""
-    <header class="bg-white border-b border-gray-200 dark:border-gray-800 shadow-sm">
+    <header class="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shadow-sm">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-16">
           <div class="flex items-center gap-8">
@@ -110,7 +110,11 @@ defmodule MedishopWeb.Layouts do
 
     <main class="min-h-screen bg-gray-50 dark:bg-slate-900">
       <div class="mx-auto space-y-4">
-        {render_slot(@inner_block)}
+        <%= if assigns[:inner_block] do %>
+          {render_slot(@inner_block)}
+        <% else %>
+          {@inner_content}
+        <% end %>
       </div>
     </main>
 

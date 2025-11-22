@@ -24,7 +24,9 @@ defmodule MedishopWeb.Router do
   scope "/", MedishopWeb do
     pipe_through :browser
 
-    ash_authentication_live_session :authenticated_routes do
+    ash_authentication_live_session :authenticated_routes,
+      on_mount: [{MedishopWeb.LiveUserAuth, :live_user_optional}],
+      layout: {MedishopWeb.Layouts, :app} do
       live "/", HomeLive, :index
       live "/dashboard", DashboardLive
       live "/location/:location_id/cart", CartLive
