@@ -129,6 +129,92 @@ The distinction between `accept` and `argument` in Ash actions:
 
 ---
 
+### Medication Purchasing System - Phase 1: Products Domain
+
+**Commit:** `b844631` - Implement Phase 1: Products Domain with comprehensive test suite
+
+**Branch:** `organisations` (later merged to `inventory`)
+
+**What was accomplished:**
+- Created Products domain with Product resource
+- Implemented comprehensive product search with filters and sorting
+- Created full test suite (17 tests, all passing ✅)
+- Generated and ran database migration for products table
+- Fixed magic link authentication security warning
+
+**Products Domain Features:**
+- Product attributes: SKU (unique), title, description, images (array), price, active status
+- Price validation (must be greater than 0)
+- Search functionality:
+  - Title search (partial match, case-insensitive)
+  - SKU search (exact match)
+  - Active status filtering
+  - Sorting by title, price, or created_at (asc/desc)
+- Code interface functions for all CRUD operations
+
+**Test Coverage (17/17 passing):**
+- Product creation (full and minimal attributes)
+- SKU uniqueness enforcement
+- Price validation (positive, non-zero)
+- Active/inactive products
+- Product updates and deletion
+- Comprehensive search tests
+- Sorting functionality
+- Combined search filters
+
+**Files Created:**
+- `lib/medishop/products.ex` - Products domain module
+- `lib/medishop/products/product.ex` - Product resource
+- `test/medishop/products/product_test.exs` - 17 comprehensive tests
+- `test/support/products_fixtures.ex` - Test fixtures
+- `priv/repo/migrations/20251121231036_add_products_table.exs`
+
+---
+
+### Medication Purchasing System - Phase 2: Inventory Domain
+
+**Commit:** `62063f8` - Implement Phase 2: Inventory Domain with comprehensive test suite
+
+**Branch:** `inventory`
+
+**What was accomplished:**
+- Created Inventory domain with LocationInventory resource
+- Implemented location-based inventory tracking per product
+- Created full test suite (13 tests, all passing ✅)
+- Generated and ran database migration for location_inventories table
+- Added relationships to Location and Product resources
+
+**Inventory Domain Features:**
+- LocationInventory attributes: location_id, product_id, quantity_available
+- Unique constraint on location + product combination
+- Quantity validation (must be >= 0, defaults to 0)
+- Relationships: belongs_to Location and Product
+- Filter capabilities:
+  - Get all inventory for a specific location
+  - Get all locations carrying a specific product
+- Code interface functions for all CRUD operations
+
+**Test Coverage (13/13 passing):**
+- Inventory creation with defaults
+- Unique constraint enforcement
+- Quantity validation and updates
+- Relationship loading
+- Filtering by location and product
+
+**Files Created:**
+- `lib/medishop/inventory.ex` - Inventory domain module
+- `lib/medishop/inventory/location_inventory.ex` - LocationInventory resource
+- `test/medishop/inventory/location_inventory_test.exs` - 13 comprehensive tests
+- `test/support/inventory_fixtures.ex` - Test fixtures
+- `priv/repo/migrations/20251122001502_add_inventory_table.exs`
+
+**Files Modified:**
+- Added `has_many :location_inventories` to Location resource
+- Added `has_many :location_inventories` to Product resource
+- Updated config to include Inventory domain
+
+---
+
 ## Project Status
 
 ### Completed
@@ -139,11 +225,26 @@ The distinction between `accept` and `argument` in Ash actions:
 - ✅ Test fixtures and support modules
 - ✅ Documentation (CLAUDE.md, CHANGELOG.md)
 - ✅ All 37 Organizations domain tests passing
-- ✅ Test fixtures for all Organizations resources
+- ✅ **Products Domain (Phase 1) - 17/17 tests passing**
+- ✅ **Inventory Domain (Phase 2) - 13/13 tests passing**
 
 ### In Progress
-- 🔄 Planning medication purchasing system implementation
+- 🔄 Shop Domain (Phase 3) - Carts and Orders implementation
 
 ### Upcoming
-- ⏳ Begin implementing medication purchasing system (18-step plan in `docs/medication-purchasing-implementation-plan.md`)
-- ⏳ Additional features TBD
+- ⏳ Phase 4: Integration & Polish (Authorization, seeds, documentation)
+- ⏳ Additional enhancements (see implementation plan)
+
+### Test Summary
+- Organizations: 37/37 tests ✅
+- Products: 17/17 tests ✅
+- Inventory: 13/13 tests ✅
+- **Total: 67/67 tests passing** (100% pass rate)
+
+### Medication Purchasing Progress
+- ✅ Phase 1: Products Domain (Steps 1-4) - Complete
+- ✅ Phase 2: Inventory Domain (Steps 5-8) - Complete
+- 🔄 Phase 3: Shop Domain (Steps 9-15) - Ready to start
+- ⏳ Phase 4: Integration & Polish (Steps 16-18) - Pending
+
+**Overall Progress:** 30/113+ planned tests (27% complete)
