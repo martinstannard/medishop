@@ -13,7 +13,9 @@ defmodule MedishopWeb.LiveUserAuth do
     {:cont, AshAuthentication.Phoenix.LiveSession.assign_new_resources(socket, session)}
   end
 
-  def on_mount(:live_user_optional, _params, _session, socket) do
+  def on_mount(:live_user_optional, _params, session, socket) do
+    socket = AshAuthentication.Phoenix.LiveSession.assign_new_resources(socket, session)
+
     if socket.assigns[:current_user] do
       {:cont, socket}
     else
@@ -21,7 +23,9 @@ defmodule MedishopWeb.LiveUserAuth do
     end
   end
 
-  def on_mount(:live_user_required, _params, _session, socket) do
+  def on_mount(:live_user_required, _params, session, socket) do
+    socket = AshAuthentication.Phoenix.LiveSession.assign_new_resources(socket, session)
+
     if socket.assigns[:current_user] do
       {:cont, socket}
     else
