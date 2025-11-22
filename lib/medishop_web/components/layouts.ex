@@ -90,7 +90,7 @@ defmodule MedishopWeb.Layouts do
                   </li>
                   <li>
                     <a
-                      href="/auth/user/sign_out"
+                      href={~p"/sign-out"}
                       class="text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
                     >
                       <.icon name="hero-arrow-right-on-rectangle" class="size-4" /> Sign Out
