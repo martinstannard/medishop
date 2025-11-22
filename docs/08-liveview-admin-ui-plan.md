@@ -8,8 +8,8 @@ Testing is a mandatory part of this process. Each new piece of functionality mus
 
 This phase focuses on creating the user-facing sign-in and sign-out capabilities using the existing `AshAuthentication` setup.
 
-- [ ] **Create Sign-In LiveView:** Implement a new LiveView at `/sign-in` that allows users to enter their email address to request a magic link.
-- [ ] **Implement Sign-In Logic:** Use the `AshAuthentication.Strategy.MagicLink.Request` action to handle the magic link request.
+- [x] **Create Sign-In LiveView:** Implement a new LiveView at `/sign-in` (currently `/`) that allows users to enter their credentials.
+- [x] **Implement Sign-In Logic:** Use `AshAuthentication` strategy (Password implemented).
 - [ ] **Write Sign-In Tests (LiveViewTest):**
     - [ ] Test that a user can successfully request a magic link.
     - [ ] Test that a user is redirected to a confirmation page after requesting a link.

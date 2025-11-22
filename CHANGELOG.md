@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 ## 2025-11-22
 
 ### Added
+- **LiveView Admin UI - Phase 1: Authentication UI**
+  - Created `HomeLive` at `/` for user sign-in
+  - Implemented password-based authentication form with Mishka components
+  - Configured authenticated LiveView session in `router.ex`
 - **Medication Purchasing System - Phase 1: Products Domain** (branch: `inventory`)
   - Created Products domain (`lib/medishop/products.ex`)
   - Product resource with attributes: sku (unique), title, description, images (array), price, active
