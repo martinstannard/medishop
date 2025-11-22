@@ -24,6 +24,9 @@ defmodule MedishopWeb.Router do
   scope "/", MedishopWeb do
     pipe_through :browser
 
+    # PDF download route (needs authentication but not LiveView session)
+    get "/orders/:id/pdf", OrderPDFController, :show
+
     ash_authentication_live_session :authenticated_routes,
       on_mount: [{MedishopWeb.LiveUserAuth, :live_user_optional}],
       layout: {MedishopWeb.Layouts, :app} do
@@ -31,6 +34,7 @@ defmodule MedishopWeb.Router do
       live "/dashboard", DashboardLive
       live "/location/:location_id/cart", CartLive
       live "/location/:location_id/products", ProductsLive
+      live "/location/:location_id/orders", OrdersLive
       live "/orders/:order_id/confirmation", OrderConfirmationLive
     end
   end

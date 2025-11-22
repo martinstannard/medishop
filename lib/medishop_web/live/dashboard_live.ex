@@ -88,15 +88,26 @@ defmodule MedishopWeb.DashboardLive do
                                       <% end %>
                                     </div>
                                   </div>
-                                  <%= if :org_buyer in membership.org_roles and loc_membership.location.store do %>
+                                  <div class="flex gap-2">
+                                    <%= if :org_buyer in membership.org_roles and loc_membership.location.store do %>
+                                      <.link
+                                        navigate={~p"/location/#{loc_membership.location.id}/cart"}
+                                        class="btn btn-sm btn-primary flex-shrink-0"
+                                        data-testid={"cart-button-#{loc_membership.location.id}"}
+                                        title="Shopping Cart"
+                                      >
+                                        <.icon name="hero-shopping-cart" class="w-5 h-5" />
+                                      </.link>
+                                    <% end %>
                                     <.link
-                                      navigate={~p"/location/#{loc_membership.location.id}/cart"}
-                                      class="btn btn-sm btn-primary flex-shrink-0"
-                                      data-testid={"cart-button-#{loc_membership.location.id}"}
+                                      navigate={~p"/location/#{loc_membership.location.id}/orders"}
+                                      class="btn btn-sm btn-secondary flex-shrink-0"
+                                      data-testid={"orders-button-#{loc_membership.location.id}"}
+                                      title="View Orders"
                                     >
-                                      <.icon name="hero-shopping-cart" class="w-5 h-5" />
+                                      <.icon name="hero-document-text" class="w-5 h-5" />
                                     </.link>
-                                  <% end %>
+                                  </div>
                                 </div>
 
                                 <div class="space-y-2 text-sm text-gray-700 dark:text-gray-200 mt-3">

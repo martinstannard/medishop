@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 ## 2025-11-22
 
 ### Added
+- **Order Viewing and PDF Export**: New OrdersLive page to view all orders for a location
+  - Orders button added to each location card on Dashboard
+  - OrdersLive displays all orders for a location sorted by date (newest first)
+  - Order list shows order number, status badge, placed date, total, and items summary
+  - Each order has "View Details" link to existing OrderConfirmationLive
+  - Each order has "Download PDF" link to generate printable order document
+  - PDF includes order header, items table, totals, and professional styling
+  - Authorization: users must have location access to view orders
+  - Empty state when no orders exist for location
+  - Route: `/location/:location_id/orders`
+
 - **Dashboard UI Improvements**: Completely redesigned for better readability and usability
   - Increased text sizes throughout (page title: text-5xl, org names: text-2xl, badges: text-sm)
   - Added generous spacing and padding (p-8 cards, gap-8 grids, space-y-4)
