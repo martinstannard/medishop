@@ -65,7 +65,7 @@ defmodule MedishopWeb.Layouts do
                   class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
                 >
                   <div class="flex items-center justify-center w-8 h-8 bg-blue-600 text-white rounded-full text-sm font-semibold">
-                    {String.slice(@current_user.email, 0, 2) |> String.upcase()}
+                    {to_string(@current_user.email) |> String.slice(0, 2) |> String.upcase()}
                   </div>
                   <.icon name="hero-chevron-down" class="size-4 text-gray-600 dark:text-gray-400" />
                 </div>
@@ -74,10 +74,11 @@ defmodule MedishopWeb.Layouts do
                   class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow-lg bg-white dark:bg-gray-800 rounded-xl w-56 border border-gray-200 dark:border-gray-700"
                 >
                   <li class="px-4 py-2 text-xs text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
-                    {String.slice(@current_user.email, 0, 30)}{if String.length(@current_user.email) >
-                                                                    30,
-                                                                  do: "...",
-                                                                  else: ""}
+                    <%= if String.length(to_string(@current_user.email)) > 30 do %>
+                      {String.slice(to_string(@current_user.email), 0, 30)}...
+                    <% else %>
+                      {to_string(@current_user.email)}
+                    <% end %>
                   </li>
                   <li>
                     <.link
