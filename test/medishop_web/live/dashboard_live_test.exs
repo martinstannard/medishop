@@ -90,15 +90,15 @@ defmodule MedishopWeb.DashboardLiveTest do
       {:ok, view, _html} = live(conn, ~p"/dashboard")
 
       # Check for humanized role names (Phoenix.Naming.humanize converts :org_admin to "Org admin")
-      assert has_element?(view, "span.badge", "Org admin")
-      assert has_element?(view, "span.badge", "Org buyer")
-      assert has_element?(view, "span.badge", "Org member")
+      assert has_element?(view, "span", "Org admin")
+      assert has_element?(view, "span", "Org buyer")
+      assert has_element?(view, "span", "Org member")
     end
 
     test "shows active badge for non-test organizations", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/dashboard")
 
-      assert has_element?(view, "span.badge-success", "Active")
+      assert has_element?(view, "span", "Active")
     end
 
     test "shows test badge for test organizations", %{conn: conn, user: user} do
@@ -173,9 +173,9 @@ defmodule MedishopWeb.DashboardLiveTest do
     } do
       {:ok, view, _html} = live(conn, ~p"/dashboard")
 
-      assert has_element?(view, "h4", "Locations & Access")
-      assert has_element?(view, "span", location1.name)
-      assert has_element?(view, "span", location2.name)
+      assert has_element?(view, "span", "Locations")
+      assert has_element?(view, "p", location1.name)
+      assert has_element?(view, "p", location2.name)
     end
 
     test "does not display locations user does not have access to", %{conn: conn, org: org} do
@@ -199,7 +199,7 @@ defmodule MedishopWeb.DashboardLiveTest do
     test "shows store badge for store locations", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/dashboard")
 
-      assert has_element?(view, "span.badge-info", "Store")
+      assert has_element?(view, "span", "Store")
     end
 
     test "does not show store badge for non-store locations", %{conn: conn, location2: location2} do
@@ -208,7 +208,8 @@ defmodule MedishopWeb.DashboardLiveTest do
       # The non-store location should be displayed but without the store badge
       assert html =~ location2.name
       # Count store badges - should only be 1 (for location1)
-      badge_count = html |> String.split("badge-info") |> length() |> Kernel.-(1)
+      # Count occurrences of "bg-purple-100" which is the store badge class
+      badge_count = html |> String.split("bg-purple-100") |> length() |> Kernel.-(1)
       assert badge_count == 1
     end
 
@@ -222,7 +223,7 @@ defmodule MedishopWeb.DashboardLiveTest do
 
       {:ok, view, _html} = live(conn, ~p"/dashboard")
 
-      assert has_element?(view, "p", "No specific location access assigned.")
+      assert has_element?(view, "p", "No location access")
     end
   end
 
@@ -251,7 +252,7 @@ defmodule MedishopWeb.DashboardLiveTest do
       {:ok, view, _html} = live(conn, ~p"/dashboard")
 
       # Verify location data is accessible
-      assert has_element?(view, "span", location.name)
+      assert has_element?(view, "p", location.name)
       assert has_element?(view, "span", location.address["street"])
     end
 

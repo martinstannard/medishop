@@ -35,44 +35,78 @@ defmodule MedishopWeb.Layouts do
 
   def app(assigns) do
     ~H"""
-    <header class="navbar px-4 sm:px-6 lg:px-8 bg-base-100 shadow-sm">
-      <div class="flex-1">
-        <a href="/" class="flex-1 flex w-fit items-center gap-2 text-xl font-bold text-primary">
-          <.icon name="hero-heart" class="size-8" />
-          <span>MediShop</span>
-        </a>
-      </div>
-      <div class="flex-none gap-4">
-        <.theme_toggle />
-
-        <%= if assigns[:current_user] do %>
-          <div class="dropdown dropdown-end">
-            <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar placeholder">
-              <div class="bg-neutral text-neutral-content rounded-full w-10">
-                <span class="text-xs">
-                  {String.slice(@current_user.email, 0, 2) |> String.upcase()}
+    <header class="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shadow-sm">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16">
+          <div class="flex items-center gap-8">
+            <a href="/" class="flex items-center gap-2.5 group">
+              <div class="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg shadow-md group-hover:shadow-lg transition-shadow">
+                <.icon name="hero-shopping-bag" class="size-6 text-white" />
+              </div>
+              <div class="flex flex-col">
+                <span class="text-xl font-bold text-gray-900 dark:text-white tracking-tight">
+                  Medishop
+                </span>
+                <span class="text-xs text-gray-500 dark:text-gray-400 -mt-1">
+                  Healthcare Supply Platform
                 </span>
               </div>
-            </div>
-            <ul
-              tabindex="0"
-              class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52"
-            >
-              <li class="menu-title text-xs opacity-50 px-4 py-2">{@current_user.email}</li>
-              <li><.link navigate="/dashboard">Dashboard</.link></li>
-              <li><a href="/auth/user/sign_out">Sign Out</a></li>
-            </ul>
+            </a>
           </div>
-        <% else %>
-          <a href="/" class="btn btn-primary btn-sm">
-            Sign In
-          </a>
-        <% end %>
+
+          <div class="flex items-center gap-4">
+            <.theme_toggle />
+
+            <%= if assigns[:current_user] do %>
+              <div class="dropdown dropdown-end">
+                <div
+                  tabindex="0"
+                  role="button"
+                  class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+                >
+                  <div class="flex items-center justify-center w-8 h-8 bg-blue-600 text-white rounded-full text-sm font-semibold">
+                    {String.slice(@current_user.email, 0, 2) |> String.upcase()}
+                  </div>
+                  <.icon name="hero-chevron-down" class="size-4 text-gray-600 dark:text-gray-400" />
+                </div>
+                <ul
+                  tabindex="0"
+                  class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow-lg bg-white dark:bg-gray-800 rounded-xl w-56 border border-gray-200 dark:border-gray-700"
+                >
+                  <li class="px-4 py-2 text-xs text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
+                    {String.slice(@current_user.email, 0, 30)}{if String.length(@current_user.email) > 30,
+                      do: "...",
+                      else: ""}
+                  </li>
+                  <li>
+                    <.link navigate="/dashboard" class="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                      <.icon name="hero-squares-2x2" class="size-4" />
+                      Dashboard
+                    </.link>
+                  </li>
+                  <li>
+                    <a
+                      href="/auth/user/sign_out"
+                      class="text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+                    >
+                      <.icon name="hero-arrow-right-on-rectangle" class="size-4" />
+                      Sign Out
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            <% else %>
+              <a href="/" class="btn btn-primary">
+                Sign In
+              </a>
+            <% end %>
+          </div>
+        </div>
       </div>
     </header>
 
-    <main class="px-4 py-8 sm:px-6 lg:px-8">
-      <div class="mx-auto max-w-7xl space-y-4">
+    <main class="min-h-screen bg-gray-50 dark:bg-gray-950">
+      <div class="mx-auto space-y-4">
         {render_slot(@inner_block)}
       </div>
     </main>
