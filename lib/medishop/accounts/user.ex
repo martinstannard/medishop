@@ -29,24 +29,6 @@ defmodule Medishop.Accounts.User do
     end
   end
 
-  policies do
-    bypass AshAuthentication.Checks.AshAuthenticationInteraction do
-      authorize_if always()
-    end
-
-    policy action(:sign_in_with_password) do
-      authorize_if always()
-    end
-
-    policy action(:register) do
-      authorize_if always()
-    end
-
-    policy action(:read) do
-      authorize_if always()
-    end
-  end
-
   postgres do
     table "users"
     repo Medishop.Repo
@@ -77,6 +59,24 @@ defmodule Medishop.Accounts.User do
     end
   end
 
+  policies do
+    bypass AshAuthentication.Checks.AshAuthenticationInteraction do
+      authorize_if always()
+    end
+
+    policy action(:sign_in_with_password) do
+      authorize_if always()
+    end
+
+    policy action(:register) do
+      authorize_if always()
+    end
+
+    policy action(:read) do
+      authorize_if always()
+    end
+  end
+
   attributes do
     uuid_primary_key :id
 
@@ -93,6 +93,10 @@ defmodule Medishop.Accounts.User do
 
   relationships do
     has_many :organization_memberships, Medishop.Organizations.OrganizationMembership
+
+    has_many :orders, Medishop.Shop.Order do
+      public? true
+    end
   end
 
   identities do

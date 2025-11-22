@@ -44,7 +44,8 @@ defmodule Medishop.Repo.Migrations.AddOrganizationsAndInventory do
             name: "organization_memberships_user_id_fkey",
             type: :uuid,
             prefix: "public"
-          ), null: false
+          ),
+          null: false
 
       add :organization_id,
           references(:organizations,
@@ -52,7 +53,8 @@ defmodule Medishop.Repo.Migrations.AddOrganizationsAndInventory do
             name: "organization_memberships_organization_id_fkey",
             type: :uuid,
             prefix: "public"
-          ), null: false
+          ),
+          null: false
     end
 
     create unique_index(:organization_memberships, [:user_id, :organization_id],
@@ -76,7 +78,8 @@ defmodule Medishop.Repo.Migrations.AddOrganizationsAndInventory do
             name: "organization_location_memberships_organization_membership_id_fkey",
             type: :uuid,
             prefix: "public"
-          ), null: false
+          ),
+          null: false
 
       add :location_id, :uuid, null: false
     end
@@ -122,7 +125,8 @@ defmodule Medishop.Repo.Migrations.AddOrganizationsAndInventory do
             name: "locations_organization_id_fkey",
             type: :uuid,
             prefix: "public"
-          ), null: false
+          ),
+          null: false
     end
 
     create table(:location_inventories, primary_key: false) do
@@ -143,7 +147,8 @@ defmodule Medishop.Repo.Migrations.AddOrganizationsAndInventory do
             name: "location_inventories_location_id_fkey",
             type: :uuid,
             prefix: "public"
-          ), null: false
+          ),
+          null: false
 
       add :product_id,
           references(:products,
@@ -151,7 +156,8 @@ defmodule Medishop.Repo.Migrations.AddOrganizationsAndInventory do
             name: "location_inventories_product_id_fkey",
             type: :uuid,
             prefix: "public"
-          ), null: false
+          ),
+          null: false
     end
 
     create unique_index(:location_inventories, [:location_id, :product_id],

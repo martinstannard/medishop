@@ -123,6 +123,14 @@ defmodule Medishop.Products.Product do
 
   relationships do
     has_many :location_inventories, Medishop.Inventory.LocationInventory
+
+    has_many :cart_items, Medishop.Shop.CartItem do
+      public? true
+    end
+
+    has_many :order_items, Medishop.Shop.OrderItem do
+      public? true
+    end
   end
 
   identities do

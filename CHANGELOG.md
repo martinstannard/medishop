@@ -40,13 +40,51 @@ All notable changes to this project will be documented in this file.
   - Database migration for location_inventories table with foreign keys and unique index
   - Configured Inventory domain in `config/config.exs`
 
+- **Medication Purchasing System - Phase 3: Shop Domain** (branch: `inventory`)
+  - Created Shop domain (`lib/medishop/shop.ex`) with 4 core resources
+  - **Cart Resource** (`lib/medishop/shop/cart.ex`)
+    - Singleton pattern: one cart per location (unique constraint on location_id)
+    - Actions: create, read, update, destroy, get_or_create_for_location, clear
+    - Relationships: belongs_to :location, has_many :cart_items
+    - Clear action removes all cart items
+  - **CartItem Resource** (`lib/medishop/shop/cart_item.ex`)
+    - Attributes: quantity (min: 1), price_at_addition (price snapshot)
+    - Unique constraint on [cart_id, product_id]
+    - Actions: create, read, update, destroy, add_or_update
+    - Calculation: line_total (quantity * price_at_addition)
+    - Relationships: belongs_to :cart, belongs_to :product
+  - **Order Resource** (`lib/medishop/shop/order.ex`)
+    - Auto-generated unique order numbers (format: ORD-YYYYMMDD-XXXXXX)
+    - Status workflow with validation: pending → confirmed → shipped → delivered (with cancel option)
+    - Timestamp tracking: placed_at, confirmed_at, shipped_at, delivered_at, cancelled_at
+    - Actions: create, read, update, destroy, create_from_cart, update_status, get_by_location, get_by_user
+    - Relationships: belongs_to :location, belongs_to :user, has_many :order_items
+    - Custom create_from_cart action: copies cart items, calculates totals, clears cart
+  - **OrderItem Resource** (`lib/medishop/shop/order_item.ex`)
+    - Immutable (read-only after creation, no update/destroy actions)
+    - Attributes: quantity, unit_price, line_total (all captured at order time)
+    - Relationships: belongs_to :order, belongs_to :product
+  - Added 50+ code interface functions to Shop domain
+  - Added relationships to existing resources:
+    - Location: has_one :cart, has_many :orders
+    - User: has_many :orders
+    - Product: has_many :cart_items, has_many :order_items
+  - Comprehensive test suite (63 tests, all passing):
+    - `test/medishop/shop/cart_test.exs` - 10/10 tests passing
+    - `test/medishop/shop/cart_item_test.exs` - 14/14 tests passing
+    - `test/medishop/shop/order_test.exs` - 29/29 tests passing
+    - `test/medishop/shop/order_item_test.exs` - 10/10 tests passing
+  - Shop fixtures (`test/support/shop_fixtures.ex`) with comprehensive test helpers
+  - Database migrations for carts, cart_items, orders, order_items tables
+  - Configured Shop domain in `config/config.exs`
+
 - **Implementation Planning and Progress Tracking**
   - Created detailed 18-step implementation plan (`docs/medication-purchasing-implementation-plan.md`)
   - Documented three new domains: Products, Inventory, and Shop
   - Defined acceptance criteria and phase breakdown
-  - Emphasized mandatory testing requirements (TDD approach, 113+ planned tests)
-  - Updated progress tracking with completed Phases 1 and 2
-  - All checklist items for Steps 1-8 marked as completed
+  - Emphasized mandatory testing requirements (TDD approach)
+  - Updated progress tracking: Phases 1, 2, and 3 completed (Steps 1-15)
+  - All checklist items for Steps 1-15 marked as completed
 
 ### Changed
 - Updated `docs/PROGRESS.md` with Phase 1 and Phase 2 completion details

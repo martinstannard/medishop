@@ -27,21 +27,20 @@ defmodule Medishop.Shop.Cart do
       returns :struct
 
       run fn input, _context ->
-        require Ash.Query
         location_id = input.arguments.location_id
 
-        # Try to find existing cart
-        case Medishop.Shop.Cart
-             |> Ash.Query.filter(location_id == ^location_id)
-             |> Ash.read_one() do
-          {:ok, cart} when not is_nil(cart) ->
+        # Try to find existing cart using code interface
+        case Medishop.Shop.get_cart_by_location(location_id) do
+          {:ok, cart} ->
             {:ok, cart}
 
-          {:ok, nil} ->
-            # Create new cart if none exists
-            Medishop.Shop.Cart
-            |> Ash.Changeset.for_create(:create, %{location_id: location_id})
-            |> Ash.create()
+          {:error, %Ash.Error.Invalid{errors: [%Ash.Error.Query.NotFound{} | _]}} ->
+            # Create new cart if none exists using code interface
+            Medishop.Shop.create_cart(%{location_id: location_id})
+
+          {:error, %Ash.Error.Query.NotFound{}} ->
+            # Direct NotFound error
+            Medishop.Shop.create_cart(%{location_id: location_id})
 
           {:error, error} ->
             {:error, error}
@@ -50,9 +49,22 @@ defmodule Medishop.Shop.Cart do
     end
 
     update :clear do
-      # Logic to be added when CartItem resource exists
-      # Will use a manual action or manage_relationship to remove items
+      require_atomic? false
       accept []
+
+      change fn changeset, _context ->
+        cart = changeset.data
+
+        # Load cart with items
+        {:ok, cart_with_items} = Medishop.Shop.get_cart(cart.id, load: [:cart_items])
+
+        # Delete all cart items
+        Enum.each(cart_with_items.cart_items, fn item ->
+          Medishop.Shop.remove_cart_item(item)
+        end)
+
+        changeset
+      end
     end
   end
 
@@ -76,7 +88,9 @@ defmodule Medishop.Shop.Cart do
       public? true
     end
 
-    # has_many :cart_items will be added in Step 10
+    has_many :cart_items, Medishop.Shop.CartItem do
+      public? true
+    end
   end
 
   identities do

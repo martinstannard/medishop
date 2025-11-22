@@ -26,7 +26,7 @@ defmodule MedishopWeb.DashboardLive do
       <div class="space-y-8">
         <section>
           <h2 class="text-2xl font-semibold mb-4 text-primary">My Organizations</h2>
-          
+
           <%= if Enum.empty?(@memberships) do %>
             <div class="bg-base-200 rounded-lg p-6 text-center">
               <p class="text-base-content">You are not a member of any organizations yet.</p>
@@ -42,14 +42,22 @@ defmodule MedishopWeb.DashboardLive do
                           {membership.organization.name}
                         </h3>
                         <div class="flex items-center gap-2 mt-1">
-                           <span class={["badge badge-md", if(membership.organization.is_test_organization, do: "badge-warning", else: "badge-success")]}>
-                             {if membership.organization.is_test_organization, do: "Test Org", else: "Active"}
-                           </span>
-                           <%= for role <- membership.org_roles do %>
-                              <span class="badge badge-md badge-outline">
-                                {Phoenix.Naming.humanize(role)}
-                              </span>
-                           <% end %>
+                          <span class={[
+                            "badge badge-md",
+                            if(membership.organization.is_test_organization,
+                              do: "badge-warning",
+                              else: "badge-success"
+                            )
+                          ]}>
+                            {if membership.organization.is_test_organization,
+                              do: "Test Org",
+                              else: "Active"}
+                          </span>
+                          <%= for role <- membership.org_roles do %>
+                            <span class="badge badge-md badge-outline">
+                              {Phoenix.Naming.humanize(role)}
+                            </span>
+                          <% end %>
                         </div>
                       </div>
                     </div>
@@ -58,9 +66,11 @@ defmodule MedishopWeb.DashboardLive do
                       <h4 class="font-bold text-base uppercase tracking-wider text-primary border-b border-base-200 pb-2">
                         Locations & Access
                       </h4>
-                      
+
                       <%= if Enum.empty?(membership.organization_location_memberships) do %>
-                        <p class="text-base text-base-content italic">No specific location access assigned.</p>
+                        <p class="text-base text-base-content italic">
+                          No specific location access assigned.
+                        </p>
                       <% else %>
                         <div class="grid gap-4">
                           <%= for loc_membership <- membership.organization_location_memberships do %>
@@ -74,13 +84,16 @@ defmodule MedishopWeb.DashboardLive do
                                   <span class="badge badge-sm badge-info">Store</span>
                                 <% end %>
                               </div>
-                              
+
                               <div class="pl-7 space-y-1 text-base-content">
                                 <p class="flex items-start gap-1">
                                   <.icon name="hero-home" class="w-4 h-4 mt-0.5 opacity-80" />
                                   <span>
-                                    {loc_membership.location.address["street"]}, 
-                                    {loc_membership.location.address["city"]}, {loc_membership.location.address["state"]} {loc_membership.location.address["zip"]}
+                                    {loc_membership.location.address["street"]}, {loc_membership.location.address[
+                                      "city"
+                                    ]}, {loc_membership.location.address["state"]} {loc_membership.location.address[
+                                      "zip"
+                                    ]}
                                   </span>
                                 </p>
                                 <p class="flex items-center gap-1">

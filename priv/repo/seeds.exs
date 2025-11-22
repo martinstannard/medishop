@@ -19,25 +19,37 @@ alias Medishop.Repo
 admin_user =
   case Repo.get_by(User, email: "admin@medishop.test") do
     nil ->
-      {:ok, user} = Medishop.Accounts.register_user("admin@medishop.test", "password", authorize?: false)
+      {:ok, user} =
+        Medishop.Accounts.register_user("admin@medishop.test", "password", authorize?: false)
+
       user
-    user -> user
+
+    user ->
+      user
   end
 
 buyer_user =
   case Repo.get_by(User, email: "buyer@medishop.test") do
     nil ->
-      {:ok, user} = Medishop.Accounts.register_user("buyer@medishop.test", "password", authorize?: false)
+      {:ok, user} =
+        Medishop.Accounts.register_user("buyer@medishop.test", "password", authorize?: false)
+
       user
-    user -> user
+
+    user ->
+      user
   end
 
 member_user =
   case Repo.get_by(User, email: "member@medishop.test") do
     nil ->
-      {:ok, user} = Medishop.Accounts.register_user("member@medishop.test", "password", authorize?: false)
+      {:ok, user} =
+        Medishop.Accounts.register_user("member@medishop.test", "password", authorize?: false)
+
       user
-    user -> user
+
+    user ->
+      user
   end
 
 # Create organizations using interface functions
@@ -242,9 +254,7 @@ member_user =
   )
 
 {:ok, _} =
-  Organizations.create_location_membership(buyer_membership.id, ghp_eugene.id,
-    authorize?: false
-  )
+  Organizations.create_location_membership(buyer_membership.id, ghp_eugene.id, authorize?: false)
 
 # Member user has specific access to Acme Seattle
 {:ok, _} =

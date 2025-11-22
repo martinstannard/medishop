@@ -106,6 +106,14 @@ defmodule Medishop.Organizations.Location do
              Medishop.Organizations.OrganizationLocationMembership
 
     has_many :location_inventories, Medishop.Inventory.LocationInventory
+
+    has_one :cart, Medishop.Shop.Cart do
+      public? true
+    end
+
+    has_many :orders, Medishop.Shop.Order do
+      public? true
+    end
   end
 
   calculations do

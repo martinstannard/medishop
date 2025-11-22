@@ -44,15 +44,20 @@ defmodule MedishopWeb.Layouts do
       </div>
       <div class="flex-none gap-4">
         <.theme_toggle />
-        
+
         <%= if assigns[:current_user] do %>
           <div class="dropdown dropdown-end">
             <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar placeholder">
               <div class="bg-neutral text-neutral-content rounded-full w-10">
-                <span class="text-xs">{String.slice(@current_user.email, 0, 2) |> String.upcase()}</span>
+                <span class="text-xs">
+                  {String.slice(@current_user.email, 0, 2) |> String.upcase()}
+                </span>
               </div>
             </div>
-            <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
+            <ul
+              tabindex="0"
+              class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52"
+            >
               <li class="menu-title text-xs opacity-50 px-4 py-2">{@current_user.email}</li>
               <li><.link navigate="/dashboard">Dashboard</.link></li>
               <li><a href="/auth/user/sign_out">Sign Out</a></li>
