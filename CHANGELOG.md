@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 ## 2025-11-22
 
 ### Added
+- **Order Filtering and Search**: Enhanced OrdersLive with filtering and search capabilities
+  - Status filter buttons: All, Pending, Confirmed, Shipped, Delivered, Cancelled
+  - Search bar for filtering by order number (case-insensitive, real-time)
+  - Filters work together (status AND search)
+  - Active filter buttons highlighted with appropriate colors
+  - Responsive design (stacks on mobile, inline on desktop)
+  - Real-time updates as you type
+
 - **Order Viewing and PDF Export**: New OrdersLive page to view all orders for a location
   - Orders button added to each location card on Dashboard
   - OrdersLive displays all orders for a location sorted by date (newest first)
