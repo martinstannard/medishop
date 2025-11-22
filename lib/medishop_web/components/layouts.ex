@@ -35,35 +35,39 @@ defmodule MedishopWeb.Layouts do
 
   def app(assigns) do
     ~H"""
-    <header class="navbar px-4 sm:px-6 lg:px-8">
+    <header class="navbar px-4 sm:px-6 lg:px-8 bg-base-100 shadow-sm">
       <div class="flex-1">
-        <a href="/" class="flex-1 flex w-fit items-center gap-2">
-          <img src={~p"/images/logo.svg"} width="36" />
-          <span class="text-sm font-semibold">v{Application.spec(:phoenix, :vsn)}</span>
+        <a href="/" class="flex-1 flex w-fit items-center gap-2 text-xl font-bold text-primary">
+          <.icon name="hero-heart" class="size-8" />
+          <span>MediShop</span>
         </a>
       </div>
-      <div class="flex-none">
-        <ul class="flex flex-column px-1 space-x-4 items-center">
-          <li>
-            <a href="https://phoenixframework.org/" class="btn btn-ghost">Website</a>
-          </li>
-          <li>
-            <a href="https://github.com/phoenixframework/phoenix" class="btn btn-ghost">GitHub</a>
-          </li>
-          <li>
-            <.theme_toggle />
-          </li>
-          <li>
-            <a href="https://hexdocs.pm/phoenix/overview.html" class="btn btn-primary">
-              Get Started <span aria-hidden="true">&rarr;</span>
-            </a>
-          </li>
-        </ul>
+      <div class="flex-none gap-4">
+        <.theme_toggle />
+        
+        <%= if assigns[:current_user] do %>
+          <div class="dropdown dropdown-end">
+            <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar placeholder">
+              <div class="bg-neutral text-neutral-content rounded-full w-10">
+                <span class="text-xs">{String.slice(@current_user.email, 0, 2) |> String.upcase()}</span>
+              </div>
+            </div>
+            <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
+              <li class="menu-title text-xs opacity-50 px-4 py-2">{@current_user.email}</li>
+              <li><.link navigate="/dashboard">Dashboard</.link></li>
+              <li><a href="/auth/user/sign_out">Sign Out</a></li>
+            </ul>
+          </div>
+        <% else %>
+          <a href="/" class="btn btn-primary btn-sm">
+            Sign In
+          </a>
+        <% end %>
       </div>
     </header>
 
-    <main class="px-4 py-20 sm:px-6 lg:px-8">
-      <div class="mx-auto max-w-2xl space-y-4">
+    <main class="px-4 py-8 sm:px-6 lg:px-8">
+      <div class="mx-auto max-w-7xl space-y-4">
         {render_slot(@inner_block)}
       </div>
     </main>

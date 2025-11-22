@@ -26,6 +26,7 @@ defmodule MedishopWeb.Router do
 
     ash_authentication_live_session :authenticated_routes do
       live "/", HomeLive, :index
+      live "/dashboard", DashboardLive
     end
   end
 
