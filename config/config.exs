@@ -78,7 +78,8 @@ config :medishop,
     Medishop.Accounts,
     Medishop.Organizations,
     Medishop.Products,
-    Medishop.Inventory
+    Medishop.Inventory,
+    Medishop.Shop
   ]
 
 # Configures the endpoint
