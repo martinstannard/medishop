@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 ## 2025-11-22
 
 ### Added
+- **Unified Shopping Experience (ShopLive)**: New split-pane shopping interface
+  - Cart panel always visible on right side (384px wide)
+  - Products grid on left with responsive layout (1-3 columns)
+  - Full-height scrollable panes for comfortable browsing
+  - Add products, manage cart, and place orders all on one page
+  - Real-time cart updates (item count and total)
+  - Product search integrated into main view
+  - Route: `/location/:location_id/shop`
+  - Dashboard updated with "Shop" button
+  - No navigation needed between cart and products
+
 - **Order Filtering and Search**: Enhanced OrdersLive with filtering and search capabilities
   - Status filter buttons: All, Pending, Confirmed, Shipped, Delivered, Cancelled
   - Search bar for filtering by order number (case-insensitive, real-time)
