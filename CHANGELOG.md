@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2025-11-23
+
+### Changed
+- **Inventory Management Plan Updated to Use AshEvents**: Revised implementation approach for event-sourced inventory system
+  - Updated `docs/09-inventory-management-plan.md` to use `ash_events` package instead of custom implementation
+  - Added AshEvents extension configuration for InventoryEvent resource
+  - Actor attribution now handled automatically via `actor_id` field (replaces `performed_by_user_id`)
+  - Event versioning and metadata tracking built-in via AshEvents
+  - Database schema updated to include AshEvents fields: `actor_id`, `version`, `metadata`
+  - Benefits: Better regulatory compliance, maintained by Ash team, event replay capabilities
+  - Added `ash_events` dependency to Phase 1 MVP requirements
+  - Updated technical implementation details with AshEvents architecture
+  - Modified `create_inventory_events_for_order/2` example to use actor from context
+
 ## 2025-11-22
 
 ### Added

@@ -19,16 +19,20 @@ This plan describes the implementation of a comprehensive inventory management s
 - Usage tracking (administered, expired, disposed)
 - UI for managing inventory
 
-## Proposed Architecture: Event-Sourced Inventory
+## Proposed Architecture: Event-Sourced Inventory with AshEvents
 
-### Why Event Sourcing?
+### Why Event Sourcing with AshEvents?
 
-Event sourcing provides:
-- **Complete audit trail**: Every inventory change is recorded
+We'll use **AshEvents** (`ash_events` package) for built-in event sourcing capabilities:
+
+- **Complete audit trail**: Every inventory change is recorded automatically
+- **Actor attribution**: Automatically tracks who made each change
+- **Versioning**: Built-in version tracking for all events
 - **Point-in-time queries**: "What was the stock level on date X?"
-- **Regulatory compliance**: Required for pharmaceutical inventory
+- **Event replay**: Reconstruct state from event history
+- **Regulatory compliance**: Required for pharmaceutical inventory with full audit trail
 - **Reconciliation**: Easy to identify discrepancies
-- **Undo capability**: Can reverse erroneous entries
+- **Maintained by Ash team**: Less maintenance burden than custom implementation
 
 ### Core Concepts
 
@@ -53,32 +57,59 @@ LocationInventory (Aggregate Root)
 
 ### Phase 1: Event-Sourced Inventory Foundation
 
-#### 1.1 Create InventoryEvent Resource
+#### 1.1 Create InventoryEvent Resource with AshEvents
 
-**Purpose**: Immutable event log of all inventory changes
+**Purpose**: Immutable event log of all inventory changes using AshEvents extension
+
+**Setup**:
+```elixir
+use Ash.Resource,
+  otp_app: :medishop,
+  domain: Medishop.Inventory,
+  data_layer: AshPostgres.DataLayer,
+  extensions: [AshEvents.Event]  # Add AshEvents extension
+```
 
 **Attributes**:
 - `id` (uuid, primary key)
 - `location_id` (uuid, references locations)
 - `product_id` (uuid, references products)
-- `event_type` (enum: :purchase_received, :administered, :expired, :disposed, :adjustment, :transfer_in, :transfer_out)
+- `event_type` (enum: :purchase_received, :administered, :expired, :disposed, :adjustment)
 - `quantity_change` (integer, positive for additions, negative for removals)
 - `batch_number` (string, optional - lot number)
 - `expiration_date` (date, optional)
 - `reference_type` (string, optional - "Order", "Transfer", etc.)
 - `reference_id` (uuid, optional - links to order, transfer, etc.)
 - `reason` (string, optional - why was this done)
-- `performed_by_user_id` (uuid, references users)
 - `occurred_at` (utc_datetime_usec, when event happened)
-- `created_at` (utc_datetime_usec, when recorded in system)
+
+**AshEvents Automatic Fields** (provided by extension):
+- `actor_id` (uuid) - Automatically set by AshEvents to track who made the change
+- `version` (integer) - Event version for ordering and replay
+- `metadata` (map) - Additional event metadata
+- `created_at` (utc_datetime_usec) - Automatically set when event is recorded
 
 **Actions**:
-- `create` - Record new inventory event
+- `create` - Record new inventory event (AshEvents handles actor attribution)
 - `read` - Query events (with filtering by location, product, date range)
-- No update/delete - events are immutable
+- No update/delete - events are immutable (enforced by AshEvents)
 
 **Calculations**:
 - `net_change` - Returns quantity_change (for aggregation)
+
+**AshEvents Configuration**:
+```elixir
+events do
+  # Configure event versioning
+  event_source :inventory_events
+
+  # Automatically track actor (performed_by_user_id becomes actor_id)
+  track_actor? true
+
+  # Store changed attributes in metadata
+  store_changed_attributes? true
+end
+```
 
 **Policies**:
 - ✅ **All users with location access** can create and read events (per requirements #3)
@@ -191,25 +222,30 @@ end
 
 **Implementation**:
 ```elixir
-defp create_inventory_events_for_order(order) do
+defp create_inventory_events_for_order(order, context) do
   # Load order items with products
   {:ok, order} = Shop.get_order(order.id, load: [:order_items])
 
   # Create inventory event for each order item
+  # AshEvents will automatically set actor_id from context
   Enum.each(order.order_items, fn item ->
-    Inventory.create_inventory_event(%{
-      location_id: order.location_id,
-      product_id: item.product_id,
-      event_type: :purchase_received,
-      quantity_change: item.quantity,
-      reference_type: "Order",
-      reference_id: order.id,
-      performed_by_user_id: order.user_id,
-      occurred_at: DateTime.utc_now()
-    })
+    Inventory.create_inventory_event(
+      %{
+        location_id: order.location_id,
+        product_id: item.product_id,
+        event_type: :purchase_received,
+        quantity_change: item.quantity,
+        reference_type: "Order",
+        reference_id: order.id,
+        occurred_at: DateTime.utc_now()
+      },
+      actor: context.actor  # AshEvents uses actor from context
+    )
   end)
 end
 ```
+
+**Note**: With AshEvents, we no longer need `performed_by_user_id` as the extension automatically tracks the actor via `actor_id` field.
 
 #### 2.3 Validation: Prevent Duplicate Inventory Events
 
@@ -311,38 +347,55 @@ If needed for regulatory compliance:
 
 ## Technical Implementation Details
 
-### Using Ash Framework Features
+### Using AshEvents Extension
 
-#### Event Sourcing with Ash
+#### Event Sourcing with AshEvents
 
-Ash doesn't have built-in event sourcing (like Commanded), but we can implement it using:
+We'll use the **AshEvents** extension from the Ash project for built-in event sourcing:
 
-1. **Immutable InventoryEvent resource** (append-only log)
-2. **Calculations/Aggregates** for current state
-3. **Change tracking** via `after_action` hooks
+**Package**: `ash_events` (https://github.com/ash-project/ash_events)
+**Released**: May 2025
 
-**Not using AshEvents**: The blog post you referenced (https://alembic.com.au/blog/ash-events-event-sourcing-made-simple-for-ash-framework) is about the Ash Eventing system for notifications, not event sourcing for domain events.
+#### Key Features We'll Use
 
-#### Alternative: Simple Event Log Pattern
+1. **Automatic Event Logging**: All inventory changes recorded automatically
+2. **Actor Attribution**: Automatic tracking of who made each change via `actor_id`
+3. **Versioning**: Built-in event versioning for ordering and replay
+4. **Immutability**: Events are append-only by design (no updates/deletes)
+5. **Metadata Tracking**: Changed attributes stored automatically
+6. **Event Replay**: Reconstruct state from event history for audits
 
-Since we're not using Commanded or EventStore:
+#### Architecture with AshEvents
 
 ```elixir
+# InventoryEvent resource with AshEvents extension
+use Ash.Resource,
+  extensions: [AshEvents.Event]
+
+# Configure event sourcing behavior
+events do
+  event_source :inventory_events
+  track_actor? true
+  store_changed_attributes? true
+end
+
 # LocationInventory becomes a read model
-# InventoryEvent is the source of truth
-# Current quantity is calculated from events
+# InventoryEvent (with AshEvents) is the source of truth
+# Current quantity is calculated from events using aggregates
 ```
 
-**Benefits**:
-- Simpler than full event sourcing framework
-- Still provides audit trail
-- Easy to understand and maintain
-- Works well with Ash Framework patterns
+**Benefits of AshEvents**:
+- **Regulatory compliance**: Complete audit trail with actor attribution
+- **Maintained by Ash team**: Less maintenance burden
+- **Event replay**: Can reconstruct inventory state at any point in time
+- **Versioning**: Built-in event ordering and version management
+- **Simpler code**: Less boilerplate than custom implementation
+- **Future-proof**: Can add event replay for physical count reconciliation (Phase 2)
 
 ### Database Schema
 
 ```sql
--- New table
+-- New table with AshEvents fields
 CREATE TABLE inventory_events (
   id UUID PRIMARY KEY,
   location_id UUID REFERENCES locations(id),
@@ -354,8 +407,12 @@ CREATE TABLE inventory_events (
   reference_type VARCHAR(100),
   reference_id UUID,
   reason TEXT,
-  performed_by_user_id UUID REFERENCES users(id),
   occurred_at TIMESTAMP NOT NULL,
+
+  -- AshEvents automatic fields
+  actor_id UUID REFERENCES users(id),  -- Replaces performed_by_user_id
+  version INTEGER NOT NULL,            -- Event version for ordering
+  metadata JSONB,                      -- Additional event metadata
   created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
@@ -363,6 +420,10 @@ CREATE INDEX idx_inventory_events_location_product
   ON inventory_events(location_id, product_id);
 CREATE INDEX idx_inventory_events_occurred_at
   ON inventory_events(occurred_at DESC);
+CREATE INDEX idx_inventory_events_actor_id
+  ON inventory_events(actor_id);
+CREATE INDEX idx_inventory_events_version
+  ON inventory_events(version);
 
 -- Optional: Batches table
 CREATE TABLE inventory_batches (
@@ -458,12 +519,13 @@ end
 ### Start Simple, Iterate
 
 **Phase 1 MVP** (1-2 weeks):
-1. InventoryEvent resource (without batch tracking)
-2. Update LocationInventory to calculate from events
-3. UI control for marking orders as delivered (OrdersLive or OrderConfirmationLive)
-4. Order integration (auto-create events on :delivered)
-5. Basic inventory list UI showing current stock levels
-6. **Current Stock Levels Report** (REQUIRED)
+1. Add `ash_events` dependency to mix.exs
+2. InventoryEvent resource with AshEvents extension (without batch tracking)
+3. Update LocationInventory to calculate from events
+4. UI control for marking orders as delivered (OrdersLive or OrderConfirmationLive)
+5. Order integration (auto-create events on :delivered with actor tracking)
+6. Basic inventory list UI showing current stock levels
+7. **Current Stock Levels Report** (REQUIRED)
    - View: `/location/:location_id/inventory`
    - Shows all products with current quantities
    - Filter by product name/SKU
@@ -493,11 +555,20 @@ end
 
 ## Next Steps
 
-After clarification of the questions above:
-1. Review and approve this plan
-2. Create InventoryEvent resource
-3. Update LocationInventory to use calculated quantity
-4. Implement order integration
-5. Build inventory management UI
-6. Write comprehensive tests
-7. Deploy and train users
+1. ✅ Review and approve this plan (DONE - using AshEvents)
+2. Add `ash_events` dependency to mix.exs
+3. Create InventoryEvent resource with AshEvents extension
+4. Update LocationInventory to use calculated quantity from events
+5. Add UI control for marking orders as delivered
+6. Implement order integration with automatic event creation
+7. Build inventory list UI (current stock levels report)
+8. Build inventory management UI for recording events
+9. Write comprehensive tests
+10. Deploy and train users
+
+## Dependencies
+
+**Add to mix.exs**:
+```elixir
+{:ash_events, "~> 0.1"}  # Event sourcing extension for Ash
+```
