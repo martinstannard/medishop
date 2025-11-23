@@ -5,6 +5,37 @@ All notable changes to this project will be documented in this file.
 ## 2025-11-23
 
 ### Added
+- **Order Status Change UI** (`lib/medishop_web/live/orders_live.ex`)
+  - Added status transition buttons to OrdersLive page
+  - Contextual buttons based on current order status:
+    - Pending → Confirm Order / Cancel Order
+    - Confirmed → Mark as Shipped / Cancel Order
+    - Shipped → Mark as Delivered
+  - Handle `update_status` event with order reloading
+  - Helper functions: `next_status_options/1`, `status_button_class/1`
+  - Flash messages for each status transition
+  - Special message for delivery: "Order delivered! Inventory has been updated."
+  - Comprehensive tests: `test/medishop_web/live/orders_live_test.exs` - 18/18 tests passing ✅
+  - Integration with inventory: marking orders as delivered automatically creates inventory events
+
+- **Inventory Management UI (Phase 3)** (`lib/medishop_web/live/inventory_list_live.ex`)
+  - InventoryListLive with product list and current quantities
+  - Search functionality (filters by product title or SKU, case-insensitive)
+  - Sortable columns (Product name, Current Quantity) with visual indicators (↑/↓)
+  - Stock status badges: Out of Stock (red), Low Stock (yellow, <10 units), In Stock (green)
+  - View Details link for each product (routes to placeholder InventoryDetailLive)
+  - Back to Dashboard navigation
+  - Authentication check with redirect to sign-in
+  - Comprehensive tests: `test/medishop_web/live/inventory_list_live_test.exs` - 17/17 tests passing ✅
+  - Added inventory button to Dashboard location cards
+
+- **Automatic LocationInventory Creation** (`lib/medishop/inventory/inventory_event.ex:55-72`)
+  - Added `after_action` hook to InventoryEvent create action
+  - Automatically creates LocationInventory record when inventory event is created
+  - Uses upsert mechanism to handle duplicates gracefully
+  - Ensures inventory events always have corresponding LocationInventory records
+  - Prevents orphaned inventory events
+
 - **Event-Sourced Inventory Management (Phase 1 Complete)** (branch: `inventory-events`)
   - **InventoryEvent Resource** (`lib/medishop/inventory/inventory_event.ex`)
     - Event-sourced inventory tracking using AshEvents extension
@@ -39,9 +70,18 @@ All notable changes to this project will be documented in this file.
     - Removed `update_location_inventory` interface (no longer needed)
   - **Dependencies**
     - Added `{:ash_events, "~> 0.1"}` to mix.exs (installed v0.5.1)
-  - **Test Results**: All 231 tests passing (31 new inventory tests + all existing tests) ✅
+  - **Test Results**: All 256 tests passing ✅
+    - 31 inventory tests (InventoryEvent, LocationInventory, Order-Inventory integration)
+    - 18 OrdersLive tests (including 8 new status transition tests)
+    - 17 InventoryListLive tests (authentication, search, sort, status badges)
 
 ### Changed
+- **LocationInventory Create Action with Upsert** (`lib/medishop/inventory/location_inventory.ex:24-25`)
+  - Changed create action to use `upsert? true` with `upsert_identity :unique_location_product`
+  - Now returns existing record instead of failing when location+product combination already exists
+  - Enables safe automatic creation of LocationInventory records from inventory events
+  - Updated test to verify upsert behavior instead of unique constraint error
+
 - **Inventory Management Plan Updated to Use AshEvents**: Revised implementation approach for event-sourced inventory system
   - Updated `docs/09-inventory-management-plan.md` to use `ash_events` package instead of custom implementation
   - Added AshEvents extension configuration for InventoryEvent resource

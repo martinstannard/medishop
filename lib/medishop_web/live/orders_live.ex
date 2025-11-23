@@ -69,6 +69,57 @@ defmodule MedishopWeb.OrdersLive do
     {:noreply, socket}
   end
 
+  def handle_event("update_status", %{"order-id" => order_id, "new-status" => new_status}, socket) do
+    user = socket.assigns.current_user
+
+    # Get the order
+    case Shop.get_order(order_id, load: [:user, order_items: [:product]], actor: user) do
+      {:ok, order} ->
+        new_status_atom = String.to_existing_atom(new_status)
+
+        # Update the order status
+        case Shop.update_order_status(order, new_status_atom, actor: user) do
+          {:ok, _updated_order} ->
+            # Reload all orders with updated data
+            {:ok, all_orders} =
+              Shop.get_orders_for_location(socket.assigns.location.id, load: [:user, order_items: [:product]], actor: user)
+
+            all_orders = Enum.sort_by(all_orders, & &1.placed_at, {:desc, DateTime})
+
+            flash_message = case new_status_atom do
+              :confirmed -> "Order confirmed successfully"
+              :shipped -> "Order marked as shipped"
+              :delivered -> "Order delivered! Inventory has been updated."
+              :cancelled -> "Order cancelled"
+              _ -> "Order status updated"
+            end
+
+            socket =
+              socket
+              |> assign(:all_orders, all_orders)
+              |> apply_filters()
+              |> put_flash(:info, flash_message)
+
+            {:noreply, socket}
+
+          {:error, error} ->
+            error_message = case error do
+              %{errors: errors} when is_list(errors) ->
+                errors
+                |> Enum.map(fn e -> e.message || "Unknown error" end)
+                |> Enum.join(", ")
+              _ ->
+                "Failed to update order status"
+            end
+
+            {:noreply, put_flash(socket, :error, error_message)}
+        end
+
+      {:error, _} ->
+        {:noreply, put_flash(socket, :error, "Order not found")}
+    end
+  end
+
   defp apply_filters(socket) do
     orders = socket.assigns.all_orders
     status_filter = socket.assigns.status_filter
@@ -117,6 +168,21 @@ defmodule MedishopWeb.OrdersLive do
       {:error, :unauthorized}
     end
   end
+
+  defp next_status_options(current_status) do
+    case current_status do
+      :pending -> [:confirmed, :cancelled]
+      :confirmed -> [:shipped, :cancelled]
+      :shipped -> [:delivered]
+      _ -> []
+    end
+  end
+
+  defp status_button_class(:confirmed), do: "btn-primary"
+  defp status_button_class(:shipped), do: "btn-secondary"
+  defp status_button_class(:delivered), do: "btn-success"
+  defp status_button_class(:cancelled), do: "btn-error"
+  defp status_button_class(_), do: "btn-secondary"
 
   def render(assigns) do
     ~H"""
@@ -311,7 +377,7 @@ defmodule MedishopWeb.OrdersLive do
                   </div>
                 </div>
 
-                <div class="flex gap-3 mt-6">
+                <div class="flex flex-wrap gap-3 mt-6">
                   <.link
                     navigate={~p"/orders/#{order.id}/confirmation"}
                     class="btn btn-sm btn-primary"
@@ -325,6 +391,32 @@ defmodule MedishopWeb.OrdersLive do
                   >
                     <.icon name="hero-arrow-down-tray" class="w-4 h-4" /> Download PDF
                   </a>
+
+                  <%!-- Status transition buttons --%>
+                  <%= for next_status <- next_status_options(order.status) do %>
+                    <button
+                      phx-click="update_status"
+                      phx-value-order-id={order.id}
+                      phx-value-new-status={next_status}
+                      class={["btn btn-sm", status_button_class(next_status)]}
+                      data-confirm={
+                        if next_status == :cancelled,
+                          do: "Are you sure you want to cancel this order?",
+                          else: nil
+                      }
+                    >
+                      <%= case next_status do %>
+                        <% :confirmed -> %>
+                          <.icon name="hero-check-circle" class="w-4 h-4" /> Confirm Order
+                        <% :shipped -> %>
+                          <.icon name="hero-truck" class="w-4 h-4" /> Mark as Shipped
+                        <% :delivered -> %>
+                          <.icon name="hero-check-badge" class="w-4 h-4" /> Mark as Delivered
+                        <% :cancelled -> %>
+                          <.icon name="hero-x-circle" class="w-4 h-4" /> Cancel Order
+                      <% end %>
+                    </button>
+                  <% end %>
                 </div>
               </div>
             </div>

@@ -21,6 +21,8 @@ defmodule Medishop.Inventory.LocationInventory do
     create :create do
       primary? true
       accept [:location_id, :product_id]
+      upsert? true
+      upsert_identity :unique_location_product
     end
 
     read :get_by_location do

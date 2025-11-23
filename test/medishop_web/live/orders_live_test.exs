@@ -164,4 +164,143 @@ defmodule MedishopWeb.OrdersLiveTest do
       assert html =~ "No orders yet"
     end
   end
+
+  describe "OrdersLive - order status transitions" do
+    setup %{conn: conn} do
+      user = user_fixture()
+      org = organization_fixture()
+      location = location_fixture(org.id)
+
+      # Create membership with location access
+      membership = organization_membership_fixture(user.id, org.id)
+      organization_location_membership_fixture(membership.id, location.id)
+
+      # Create a pending order
+      order = order_fixture(location.id, user.id)
+
+      # Log in the user
+      conn = log_in_user(conn, user)
+
+      %{conn: conn, user: user, location: location, order: order}
+    end
+
+    test "displays confirm order button for pending orders", %{
+      conn: conn,
+      location: location
+    } do
+      {:ok, view, _html} = live(conn, ~p"/location/#{location.id}/orders")
+
+      assert has_element?(view, "button", "Confirm Order")
+    end
+
+    test "displays cancel order button for pending orders", %{
+      conn: conn,
+      location: location
+    } do
+      {:ok, view, _html} = live(conn, ~p"/location/#{location.id}/orders")
+
+      assert has_element?(view, "button", "Cancel Order")
+    end
+
+    test "can confirm a pending order", %{conn: conn, location: location, order: _order} do
+      {:ok, view, _html} = live(conn, ~p"/location/#{location.id}/orders")
+
+      # Click confirm button
+      view
+      |> element("button", "Confirm Order")
+      |> render_click()
+
+      # Should show success message
+      assert render(view) =~ "Order confirmed successfully"
+
+      # Status should be updated
+      assert has_element?(view, "span", "Confirmed")
+    end
+
+    test "can mark confirmed order as shipped", %{conn: conn, location: location, order: order, user: user} do
+      # First confirm the order
+      {:ok, _confirmed_order} = Medishop.Shop.update_order_status(order, :confirmed, actor: user)
+
+      {:ok, view, _html} = live(conn, ~p"/location/#{location.id}/orders")
+
+      # Should show "Mark as Shipped" button
+      assert has_element?(view, "button", "Mark as Shipped")
+
+      # Click shipped button
+      view
+      |> element("button", "Mark as Shipped")
+      |> render_click()
+
+      # Should show success message
+      assert render(view) =~ "Order marked as shipped"
+
+      # Status should be updated
+      assert has_element?(view, "span", "Shipped")
+    end
+
+    test "can mark shipped order as delivered", %{conn: conn, location: location, order: order, user: user} do
+      # First ship the order
+      {:ok, confirmed_order} = Medishop.Shop.update_order_status(order, :confirmed, actor: user)
+      {:ok, _shipped_order} = Medishop.Shop.update_order_status(confirmed_order, :shipped, actor: user)
+
+      {:ok, view, _html} = live(conn, ~p"/location/#{location.id}/orders")
+
+      # Should show "Mark as Delivered" button
+      assert has_element?(view, "button", "Mark as Delivered")
+
+      # Click delivered button
+      view
+      |> element("button", "Mark as Delivered")
+      |> render_click()
+
+      # Should show success message with inventory note
+      assert render(view) =~ "Order delivered! Inventory has been updated."
+
+      # Status should be updated
+      assert has_element?(view, "span", "Delivered")
+    end
+
+    test "does not show status buttons for delivered orders", %{conn: conn, location: location, order: order, user: user} do
+      # Deliver the order
+      {:ok, confirmed_order} = Medishop.Shop.update_order_status(order, :confirmed, actor: user)
+      {:ok, shipped_order} = Medishop.Shop.update_order_status(confirmed_order, :shipped, actor: user)
+      {:ok, _delivered_order} = Medishop.Shop.update_order_status(shipped_order, :delivered, actor: user)
+
+      {:ok, view, _html} = live(conn, ~p"/location/#{location.id}/orders")
+
+      # Should not show any status transition buttons
+      refute has_element?(view, "button", "Confirm Order")
+      refute has_element?(view, "button", "Mark as Shipped")
+      refute has_element?(view, "button", "Mark as Delivered")
+      refute has_element?(view, "button", "Cancel Order")
+    end
+
+    test "can cancel a pending order", %{conn: conn, location: location} do
+      {:ok, view, _html} = live(conn, ~p"/location/#{location.id}/orders")
+
+      # Click cancel button
+      view
+      |> element("button", "Cancel Order")
+      |> render_click()
+
+      # Should show success message
+      assert render(view) =~ "Order cancelled"
+
+      # Status should be updated
+      assert has_element?(view, "span", "Cancelled")
+    end
+
+    test "does not show status buttons for cancelled orders", %{conn: conn, location: location, order: order, user: user} do
+      # Cancel the order
+      {:ok, _cancelled_order} = Medishop.Shop.update_order_status(order, :cancelled, actor: user)
+
+      {:ok, view, _html} = live(conn, ~p"/location/#{location.id}/orders")
+
+      # Should not show any status transition buttons
+      refute has_element?(view, "button", "Confirm Order")
+      refute has_element?(view, "button", "Mark as Shipped")
+      refute has_element?(view, "button", "Mark as Delivered")
+      refute has_element?(view, "button", "Cancel Order")
+    end
+  end
 end

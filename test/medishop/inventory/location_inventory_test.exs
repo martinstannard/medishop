@@ -38,23 +38,26 @@ defmodule Medishop.Inventory.LocationInventoryTest do
       assert inventory.current_quantity == 0
     end
 
-    test "enforces unique constraint on location+product" do
+    test "upserts when location+product combination already exists" do
       organization = organization_fixture()
       location = location_fixture(organization.id)
       product = product_fixture()
 
-      {:ok, _inventory1} =
+      {:ok, inventory1} =
         Inventory.create_location_inventory(%{
           location_id: location.id,
           product_id: product.id
         })
 
-      # Try to create duplicate
-      assert {:error, _error} =
-               Inventory.create_location_inventory(%{
-                 location_id: location.id,
-                 product_id: product.id
-               })
+      # Try to create duplicate - should return existing record (upsert)
+      {:ok, inventory2} =
+        Inventory.create_location_inventory(%{
+          location_id: location.id,
+          product_id: product.id
+        })
+
+      # Should return the same record ID
+      assert inventory1.id == inventory2.id
     end
   end
 

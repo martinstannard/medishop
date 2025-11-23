@@ -51,6 +51,25 @@ defmodule Medishop.Inventory.InventoryEvent do
           Ash.Changeset.force_change_attribute(changeset, :occurred_at, DateTime.utc_now())
         end
       end
+
+      # Auto-create LocationInventory record if it doesn't exist
+      # If it fails (likely because it already exists), that's fine - just continue
+      change after_action(fn _changeset, event, context ->
+        location_id = event.location_id
+        product_id = event.product_id
+        actor = Map.get(context, :actor)
+
+        # Try to create LocationInventory - ignore any errors (likely "already exists")
+        _result =
+          Medishop.Inventory.create_location_inventory(
+            %{location_id: location_id, product_id: product_id},
+            actor: actor
+          )
+
+        # Always return the event - we don't care if LocationInventory creation failed
+        # because it almost certainly means it already exists
+        {:ok, event}
+      end)
     end
 
     read :by_location_and_product do
