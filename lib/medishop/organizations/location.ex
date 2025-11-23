@@ -1,4 +1,9 @@
 defmodule Medishop.Organizations.Location do
+  @moduledoc """
+  Location resource representing a physical location within an organization, such as a store or warehouse.
+  Uses multitenancy by organization_id and tracks location details including address, contact information, and store designation.
+  """
+
   use Ash.Resource,
     otp_app: :medishop,
     domain: Medishop.Organizations,

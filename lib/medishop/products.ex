@@ -1,4 +1,12 @@
 defmodule Medishop.Products do
+  @moduledoc """
+  The Products domain manages the product catalog.
+
+  This domain handles:
+  - Product definitions (medications, medical supplies)
+  - Product attributes (SKU, title, description, pricing)
+  - Product search and filtering
+  """
   use Ash.Domain, otp_app: :medishop, extensions: [AshAdmin.Domain]
 
   admin do

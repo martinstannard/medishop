@@ -1,8 +1,8 @@
 defmodule MedishopWeb.OrdersLive do
   use MedishopWeb, :live_view
 
-  alias Medishop.Shop
   alias Medishop.Organizations
+  alias Medishop.Shop
 
   on_mount {MedishopWeb.LiveUserAuth, :live_user_required}
 
@@ -157,8 +157,7 @@ defmodule MedishopWeb.OrdersLive do
               class={[
                 "px-4 py-2 rounded-lg text-sm font-semibold transition-colors",
                 if(@status_filter == :all,
-                  do:
-                    "bg-blue-600 text-white dark:bg-blue-500",
+                  do: "bg-blue-600 text-white dark:bg-blue-500",
                   else:
                     "bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
                 )

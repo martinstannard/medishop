@@ -1,4 +1,9 @@
 defmodule Medishop.Organizations.OrganizationLocationMembership do
+  @moduledoc """
+  Location access resource that grants organization members access to specific locations within their organization.
+  Represents the many-to-many relationship between organization memberships and locations for fine-grained access control.
+  """
+
   use Ash.Resource,
     otp_app: :medishop,
     domain: Medishop.Organizations,

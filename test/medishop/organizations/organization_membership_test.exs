@@ -1,8 +1,8 @@
 defmodule Medishop.Organizations.OrganizationMembershipTest do
   use Medishop.DataCase
 
-  alias Medishop.Organizations
   alias Medishop.Generator
+  alias Medishop.Organizations
 
   describe "create_membership/2" do
     test "creates a membership with org_admin role" do

@@ -1,4 +1,9 @@
 defmodule Medishop.Organizations.Organization do
+  @moduledoc """
+  Organization resource representing a business entity with locations, members, and billing information.
+  Manages organizational settings including active status, test organization flag, invoice email, billing address, and tax ID.
+  """
+
   use Ash.Resource,
     otp_app: :medishop,
     domain: Medishop.Organizations,

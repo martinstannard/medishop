@@ -1,4 +1,9 @@
 defmodule Medishop.Inventory.LocationInventory do
+  @moduledoc """
+  Location inventory tracking resource that manages stock levels for products at specific locations.
+  Maintains quantity available for each product-location combination with validation to ensure non-negative stock levels.
+  """
+
   use Ash.Resource,
     otp_app: :medishop,
     domain: Medishop.Inventory,

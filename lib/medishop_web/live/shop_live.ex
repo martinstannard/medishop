@@ -1,9 +1,9 @@
 defmodule MedishopWeb.ShopLive do
   use MedishopWeb, :live_view
 
+  alias Medishop.Organizations
   alias Medishop.Products
   alias Medishop.Shop
-  alias Medishop.Organizations
   alias MedishopWeb.Helpers.ProductThumbnail
 
   on_mount {MedishopWeb.LiveUserAuth, :live_user_required}
@@ -224,7 +224,7 @@ defmodule MedishopWeb.ShopLive do
   end
 
   defp sort_cart_items(cart_items) do
-    Enum.sort_by(cart_items, & &1.inserted_at, {:asc, DateTime})
+    Enum.sort_by(cart_items, & &1.created_at, {:asc, DateTime})
   end
 
   defp calculate_total(cart_items) do
@@ -249,8 +249,7 @@ defmodule MedishopWeb.ShopLive do
                 </p>
               </div>
               <.link navigate={~p"/dashboard"} class="btn btn-secondary">
-                <.icon name="hero-arrow-left" class="w-5 h-5" />
-                Back to Dashboard
+                <.icon name="hero-arrow-left" class="w-5 h-5" /> Back to Dashboard
               </.link>
             </div>
 
@@ -320,8 +319,7 @@ defmodule MedishopWeb.ShopLive do
                     phx-value-product_id={product.id}
                     class="btn btn-primary btn-sm"
                   >
-                    <.icon name="hero-plus" class="w-4 h-4" />
-                    Add to Cart
+                    <.icon name="hero-plus" class="w-4 h-4" /> Add to Cart
                   </button>
                 </div>
               </div>
@@ -334,7 +332,9 @@ defmodule MedishopWeb.ShopLive do
         <div class="p-6 border-b border-gray-200 dark:border-gray-700">
           <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Your Cart</h2>
           <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
-            {length(@cart.cart_items || [])} {if length(@cart.cart_items || []) == 1, do: "item", else: "items"}
+            {length(@cart.cart_items || [])} {if length(@cart.cart_items || []) == 1,
+              do: "item",
+              else: "items"}
           </p>
         </div>
 
@@ -421,12 +421,10 @@ defmodule MedishopWeb.ShopLive do
             <%!-- Actions --%>
             <div class="space-y-2">
               <button phx-click="place_order" class="btn btn-primary w-full">
-                <.icon name="hero-shopping-bag" class="w-5 h-5" />
-                Place Order
+                <.icon name="hero-shopping-bag" class="w-5 h-5" /> Place Order
               </button>
               <button phx-click="clear_cart" class="btn btn-secondary w-full">
-                <.icon name="hero-trash" class="w-5 h-5" />
-                Clear Cart
+                <.icon name="hero-trash" class="w-5 h-5" /> Clear Cart
               </button>
             </div>
           </div>

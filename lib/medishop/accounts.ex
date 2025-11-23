@@ -1,4 +1,12 @@
 defmodule Medishop.Accounts do
+  @moduledoc """
+  The Accounts domain handles user authentication and authorization.
+
+  This domain manages:
+  - User accounts with email-based authentication
+  - Authentication tokens for magic link login
+  - User session management
+  """
   use Ash.Domain, otp_app: :medishop, extensions: [AshAdmin.Domain]
 
   admin do

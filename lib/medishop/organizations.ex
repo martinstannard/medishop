@@ -1,4 +1,13 @@
 defmodule Medishop.Organizations do
+  @moduledoc """
+  The Organizations domain manages organizational structure and membership.
+
+  This domain handles:
+  - Organizations (companies, hospitals, pharmacies)
+  - Locations (physical sites belonging to organizations)
+  - Organization memberships (user roles within organizations)
+  - Location access control (which users can access which locations)
+  """
   use Ash.Domain, otp_app: :medishop, extensions: [AshAdmin.Domain]
 
   admin do

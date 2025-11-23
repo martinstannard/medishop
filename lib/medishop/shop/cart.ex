@@ -1,4 +1,9 @@
 defmodule Medishop.Shop.Cart do
+  @moduledoc """
+  Shopping cart resource that holds items selected for purchase at a specific location.
+  Each location has one cart, which can be retrieved or created on-demand and cleared when orders are placed.
+  """
+
   use Ash.Resource,
     otp_app: :medishop,
     domain: Medishop.Shop,

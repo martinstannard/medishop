@@ -1,9 +1,9 @@
 defmodule MedishopWeb.ProductsLive do
   use MedishopWeb, :live_view
 
+  alias Medishop.Organizations
   alias Medishop.Products
   alias Medishop.Shop
-  alias Medishop.Organizations
   alias MedishopWeb.Helpers.ProductThumbnail
 
   on_mount {MedishopWeb.LiveUserAuth, :live_user_required}

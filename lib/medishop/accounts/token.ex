@@ -1,4 +1,9 @@
 defmodule Medishop.Accounts.Token do
+  @moduledoc """
+  Authentication token resource for managing session tokens, magic link tokens, and revocation tokens.
+  Provides actions for storing, retrieving, revoking, and expunging tokens as part of the AshAuthentication flow.
+  """
+
   use Ash.Resource,
     otp_app: :medishop,
     domain: Medishop.Accounts,

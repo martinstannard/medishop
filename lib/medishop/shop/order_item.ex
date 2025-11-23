@@ -1,4 +1,9 @@
 defmodule Medishop.Shop.OrderItem do
+  @moduledoc """
+  Order item resource representing an immutable line item in a completed order.
+  Captures product, quantity, unit price, and line total at the time of order placement for historical record-keeping.
+  """
+
   use Ash.Resource,
     otp_app: :medishop,
     domain: Medishop.Shop,

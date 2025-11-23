@@ -107,8 +107,7 @@ defmodule MedishopWeb.DashboardLive do
                                       data-testid={"shop-button-#{loc_membership.location.id}"}
                                       title="Shop"
                                     >
-                                      <.icon name="hero-shopping-cart" class="w-5 h-5" />
-                                      Shop
+                                      <.icon name="hero-shopping-cart" class="w-5 h-5" /> Shop
                                     </.link>
                                   <% end %>
                                   <.link

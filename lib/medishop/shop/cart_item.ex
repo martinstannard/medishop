@@ -1,4 +1,9 @@
 defmodule Medishop.Shop.CartItem do
+  @moduledoc """
+  Cart item resource representing a product in a shopping cart with its quantity and price at addition.
+  Provides actions to add or update items in the cart, capturing product prices to preserve pricing information.
+  """
+
   use Ash.Resource,
     otp_app: :medishop,
     domain: Medishop.Shop,

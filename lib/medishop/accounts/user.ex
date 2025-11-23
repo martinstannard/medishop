@@ -1,4 +1,10 @@
 defmodule Medishop.Accounts.User do
+  @moduledoc """
+  User resource for authentication and authorization.
+
+  Users can authenticate via email and password, with support for magic link authentication.
+  Users belong to organizations through organization memberships.
+  """
   use Ash.Resource,
     otp_app: :medishop,
     domain: Medishop.Accounts,

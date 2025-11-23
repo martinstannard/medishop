@@ -1,4 +1,9 @@
 defmodule Medishop.Products.Product do
+  @moduledoc """
+  Product catalog resource representing items available for purchase in the system.
+  Includes attributes for SKU, title, description, pricing, and availability, with support for filtering and searching.
+  """
+
   use Ash.Resource,
     otp_app: :medishop,
     domain: Medishop.Products,

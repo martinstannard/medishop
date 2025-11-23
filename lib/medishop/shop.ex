@@ -1,4 +1,13 @@
 defmodule Medishop.Shop do
+  @moduledoc """
+  The Shop domain manages shopping carts and order processing.
+
+  This domain handles:
+  - Shopping carts (one per location)
+  - Cart items with quantities and prices
+  - Order creation from carts
+  - Order tracking and status management
+  """
   use Ash.Domain, otp_app: :medishop, extensions: [AshAdmin.Domain]
 
   admin do

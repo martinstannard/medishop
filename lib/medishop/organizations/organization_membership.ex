@@ -1,4 +1,9 @@
 defmodule Medishop.Organizations.OrganizationMembership do
+  @moduledoc """
+  Organization membership resource connecting users to organizations with role assignments.
+  Manages user roles (org_admin, org_member, org_buyer) and provides calculations for permission checking and location access tracking.
+  """
+
   use Ash.Resource,
     otp_app: :medishop,
     domain: Medishop.Organizations,

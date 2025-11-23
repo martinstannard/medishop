@@ -1,4 +1,9 @@
 defmodule Medishop.Shop.Order do
+  @moduledoc """
+  Order resource representing a customer purchase with status tracking through the fulfillment lifecycle.
+  Supports creating orders from carts, managing status transitions (pending, confirmed, shipped, delivered, cancelled), and generating unique order numbers.
+  """
+
   use Ash.Resource,
     otp_app: :medishop,
     domain: Medishop.Shop,
@@ -257,22 +262,18 @@ defmodule Medishop.Shop.Order do
   end
 
   defp valid_status_transition?(current, new) do
-    case {current, new} do
-      # From pending
-      {:pending, :confirmed} -> true
-      {:pending, :cancelled} -> true
-      # From confirmed
-      {:confirmed, :shipped} -> true
-      {:confirmed, :cancelled} -> true
-      # From shipped
-      {:shipped, :delivered} -> true
-      # Invalid transitions
-      {:delivered, _} -> false
-      {:cancelled, _} -> false
-      # Same status is allowed (idempotent)
-      {same, same} -> true
-      # All other transitions are invalid
-      _ -> false
+    # Same status is allowed (idempotent)
+    if current == new do
+      true
+    else
+      terminal_status?(current) == false and allowed_transition?(current, new)
     end
   end
+
+  defp terminal_status?(status), do: status in [:delivered, :cancelled]
+
+  defp allowed_transition?(:pending, new), do: new in [:confirmed, :cancelled]
+  defp allowed_transition?(:confirmed, new), do: new in [:shipped, :cancelled]
+  defp allowed_transition?(:shipped, new), do: new == :delivered
+  defp allowed_transition?(_, _), do: false
 end

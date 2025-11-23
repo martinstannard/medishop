@@ -1,8 +1,8 @@
 defmodule MedishopWeb.CartLive do
   use MedishopWeb, :live_view
 
-  alias Medishop.Shop
   alias Medishop.Organizations
+  alias Medishop.Shop
 
   on_mount {MedishopWeb.LiveUserAuth, :live_user_required}
 

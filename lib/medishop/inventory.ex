@@ -1,4 +1,12 @@
 defmodule Medishop.Inventory do
+  @moduledoc """
+  The Inventory domain manages location-based product inventory.
+
+  This domain handles:
+  - Inventory levels per location
+  - Stock tracking for each product at each location
+  - Inventory queries by location or product
+  """
   use Ash.Domain, otp_app: :medishop, extensions: [AshAdmin.Domain]
 
   admin do
