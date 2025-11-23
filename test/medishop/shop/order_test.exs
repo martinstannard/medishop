@@ -381,4 +381,116 @@ defmodule Medishop.Shop.OrderTest do
       assert length(full_order.order_items) == 1
     end
   end
+
+  describe "inventory events on delivery" do
+    test "creates inventory events when order status changes to delivered" do
+      scenario = setup_shop_scenario()
+      {:ok, cart} = Shop.create_cart(%{location_id: scenario.location.id})
+
+      # Add multiple products to cart
+      product2 = product_fixture(%{sku: "PROD-002"})
+      _item1 = cart_item_fixture(cart.id, scenario.product.id, %{quantity: 3})
+      _item2 = cart_item_fixture(cart.id, product2.id, %{quantity: 5})
+
+      # Create order from cart
+      {:ok, order} = Shop.create_order_from_cart(cart.id, scenario.user.id)
+
+      # Transition order to shipped status first
+      {:ok, shipped_order} = Shop.update_order_status(order, :confirmed)
+      {:ok, shipped_order} = Shop.update_order_status(shipped_order, :shipped)
+
+      # Verify no inventory events exist yet
+      {:ok, events_before} = Medishop.Inventory.get_events_by_location(%{location_id: scenario.location.id})
+      assert Enum.empty?(events_before)
+
+      # Transition to delivered - this should create inventory events
+      {:ok, delivered_order} = Shop.update_order_status(shipped_order, :delivered)
+
+      # Verify inventory events were created
+      {:ok, events_after} = Medishop.Inventory.get_events_by_location(%{location_id: scenario.location.id})
+      assert length(events_after) == 2
+
+      # Verify event details for first product
+      event1 = Enum.find(events_after, fn e -> e.product_id == scenario.product.id end)
+      assert event1.event_type == :purchase_received
+      assert event1.quantity_change == 3
+      assert event1.location_id == scenario.location.id
+      assert event1.reference_type == "Order"
+      assert event1.reference_id == delivered_order.id
+
+      # Verify event details for second product
+      event2 = Enum.find(events_after, fn e -> e.product_id == product2.id end)
+      assert event2.event_type == :purchase_received
+      assert event2.quantity_change == 5
+      assert event2.location_id == scenario.location.id
+      assert event2.reference_type == "Order"
+      assert event2.reference_id == delivered_order.id
+    end
+
+    test "does not create duplicate events if status is already delivered" do
+      scenario = setup_shop_scenario()
+      {:ok, cart} = Shop.create_cart(%{location_id: scenario.location.id})
+
+      _item = cart_item_fixture(cart.id, scenario.product.id, %{quantity: 2})
+
+      {:ok, order} = Shop.create_order_from_cart(cart.id, scenario.user.id)
+
+      # Transition to delivered
+      {:ok, order} = Shop.update_order_status(order, :confirmed)
+      {:ok, order} = Shop.update_order_status(order, :shipped)
+      {:ok, delivered_order} = Shop.update_order_status(order, :delivered)
+
+      # Get events count
+      {:ok, events} = Medishop.Inventory.get_events_by_location(%{location_id: scenario.location.id})
+      initial_count = length(events)
+
+      # Try to update status to delivered again (should be idempotent)
+      {:ok, _still_delivered} = Shop.update_order_status(delivered_order, :delivered)
+
+      # Verify no new events were created
+      {:ok, events_after} = Medishop.Inventory.get_events_by_location(%{location_id: scenario.location.id})
+      assert length(events_after) == initial_count
+    end
+
+    test "inventory events are not created for other status transitions" do
+      scenario = setup_shop_scenario()
+      {:ok, cart} = Shop.create_cart(%{location_id: scenario.location.id})
+
+      _item = cart_item_fixture(cart.id, scenario.product.id, %{quantity: 2})
+
+      {:ok, order} = Shop.create_order_from_cart(cart.id, scenario.user.id)
+
+      # Transition through various statuses (but not delivered)
+      {:ok, confirmed_order} = Shop.update_order_status(order, :confirmed)
+      {:ok, _shipped_order} = Shop.update_order_status(confirmed_order, :shipped)
+
+      # Verify no inventory events were created
+      {:ok, events} = Medishop.Inventory.get_events_by_location(%{location_id: scenario.location.id})
+      assert Enum.empty?(events)
+    end
+
+    test "creates correct inventory events for order with single item" do
+      scenario = setup_shop_scenario()
+      {:ok, cart} = Shop.create_cart(%{location_id: scenario.location.id})
+
+      _item = cart_item_fixture(cart.id, scenario.product.id, %{quantity: 10})
+
+      {:ok, order} = Shop.create_order_from_cart(cart.id, scenario.user.id)
+
+      # Deliver the order
+      {:ok, order} = Shop.update_order_status(order, :confirmed)
+      {:ok, order} = Shop.update_order_status(order, :shipped)
+      {:ok, delivered_order} = Shop.update_order_status(order, :delivered)
+
+      # Verify exactly one event was created
+      {:ok, events} = Medishop.Inventory.get_events_by_location(%{location_id: scenario.location.id})
+      assert length(events) == 1
+
+      event = Enum.at(events, 0)
+      assert event.product_id == scenario.product.id
+      assert event.quantity_change == 10
+      assert event.event_type == :purchase_received
+      assert event.reference_id == delivered_order.id
+    end
+  end
 end

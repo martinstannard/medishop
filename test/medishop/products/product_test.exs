@@ -243,4 +243,107 @@ defmodule Medishop.Products.ProductTest do
       assert hd(results).title == "Aspirin 100mg"
     end
   end
+
+  describe "relationship loading" do
+    test "loads location_inventories relationship" do
+      import Medishop.OrganizationsFixtures
+      import Medishop.InventoryFixtures
+
+      product = product_fixture()
+      organization = organization_fixture()
+      location = location_fixture(organization.id)
+
+      # Create inventory for this product at the location
+      _inventory = location_inventory_fixture(location.id, product.id)
+
+      # Load product with location_inventories
+      {:ok, product_with_inventories} = Products.get_product(product.id, load: [:location_inventories])
+
+      assert length(product_with_inventories.location_inventories) == 1
+      assert Enum.at(product_with_inventories.location_inventories, 0).product_id == product.id
+      assert Enum.at(product_with_inventories.location_inventories, 0).location_id == location.id
+    end
+
+    test "loads cart_items relationship" do
+      import Medishop.OrganizationsFixtures
+      import Medishop.ShopFixtures
+
+      product = product_fixture()
+      organization = organization_fixture()
+      location = location_fixture(organization.id)
+
+      # Create cart and cart item
+      {:ok, cart} = Medishop.Shop.create_cart(%{location_id: location.id})
+      _cart_item = cart_item_fixture(cart.id, product.id, %{quantity: 5})
+
+      # Load product with cart_items
+      {:ok, product_with_cart_items} = Products.get_product(product.id, load: [:cart_items])
+
+      assert length(product_with_cart_items.cart_items) == 1
+      cart_item = Enum.at(product_with_cart_items.cart_items, 0)
+      assert cart_item.product_id == product.id
+      assert cart_item.quantity == 5
+    end
+
+    test "loads order_items relationship" do
+      import Medishop.OrganizationsFixtures
+      import Medishop.ShopFixtures
+
+      product = product_fixture()
+      user = user_fixture()
+      organization = organization_fixture()
+      location = location_fixture(organization.id)
+
+      # Create order with order item
+      order = order_fixture(location.id, user.id)
+      {:ok, _order_item} = Medishop.Shop.create_order_item(%{
+        order_id: order.id,
+        product_id: product.id,
+        quantity: 3,
+        unit_price: product.price,
+        line_total: Decimal.mult(product.price, Decimal.new(3))
+      })
+
+      # Load product with order_items
+      {:ok, product_with_order_items} = Products.get_product(product.id, load: [:order_items])
+
+      assert length(product_with_order_items.order_items) == 1
+      order_item = Enum.at(product_with_order_items.order_items, 0)
+      assert order_item.product_id == product.id
+      assert order_item.quantity == 3
+    end
+
+    test "loads multiple relationships at once" do
+      import Medishop.OrganizationsFixtures
+      import Medishop.InventoryFixtures
+      import Medishop.ShopFixtures
+
+      product = product_fixture()
+      user = user_fixture()
+      organization = organization_fixture()
+      location = location_fixture(organization.id)
+
+      # Create inventory, cart item, and order item
+      _inventory = location_inventory_fixture(location.id, product.id)
+
+      {:ok, cart} = Medishop.Shop.create_cart(%{location_id: location.id})
+      _cart_item = cart_item_fixture(cart.id, product.id, %{quantity: 2})
+
+      order = order_fixture(location.id, user.id)
+      {:ok, _order_item} = Medishop.Shop.create_order_item(%{
+        order_id: order.id,
+        product_id: product.id,
+        quantity: 1,
+        unit_price: product.price,
+        line_total: product.price
+      })
+
+      # Load all relationships
+      {:ok, product_fully_loaded} = Products.get_product(product.id, load: [:location_inventories, :cart_items, :order_items])
+
+      assert length(product_fully_loaded.location_inventories) == 1
+      assert length(product_fully_loaded.cart_items) == 1
+      assert length(product_fully_loaded.order_items) == 1
+    end
+  end
 end

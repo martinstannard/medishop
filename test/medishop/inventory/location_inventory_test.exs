@@ -334,4 +334,110 @@ defmodule Medishop.Inventory.LocationInventoryTest do
       refute Enum.any?(inventories, &(&1.id == inventory.id))
     end
   end
+
+  describe "relationship loading" do
+    test "loads location relationship" do
+      organization = organization_fixture()
+      location = location_fixture(organization.id, %{name: "Test Location"})
+      product = product_fixture()
+
+      {:ok, inventory} =
+        Inventory.create_location_inventory(%{
+          location_id: location.id,
+          product_id: product.id
+        })
+
+      # Load with location relationship
+      {:ok, inventory_with_location} = Inventory.get_location_inventory(inventory.id, load: [:location])
+
+      assert inventory_with_location.location.id == location.id
+      assert inventory_with_location.location.name == "Test Location"
+    end
+
+    test "loads product relationship" do
+      organization = organization_fixture()
+      location = location_fixture(organization.id)
+      product = product_fixture(%{title: "Test Product"})
+
+      {:ok, inventory} =
+        Inventory.create_location_inventory(%{
+          location_id: location.id,
+          product_id: product.id
+        })
+
+      # Load with product relationship
+      {:ok, inventory_with_product} = Inventory.get_location_inventory(inventory.id, load: [:product])
+
+      assert inventory_with_product.product.id == product.id
+      assert inventory_with_product.product.title == "Test Product"
+    end
+
+    test "loads inventory_events relationship" do
+      organization = organization_fixture()
+      location = location_fixture(organization.id)
+      product = product_fixture()
+
+      {:ok, inventory} =
+        Inventory.create_location_inventory(%{
+          location_id: location.id,
+          product_id: product.id
+        })
+
+      # Create some inventory events
+      {:ok, _event1} =
+        Inventory.create_inventory_event(%{
+          location_id: location.id,
+          product_id: product.id,
+          event_type: :purchase_received,
+          quantity_change: 100,
+          occurred_at: DateTime.utc_now()
+        })
+
+      {:ok, _event2} =
+        Inventory.create_inventory_event(%{
+          location_id: location.id,
+          product_id: product.id,
+          event_type: :administered,
+          quantity_change: -10,
+          occurred_at: DateTime.utc_now()
+        })
+
+      # Load with inventory_events relationship
+      {:ok, inventory_with_events} = Inventory.get_location_inventory(inventory.id, load: [:inventory_events])
+
+      assert length(inventory_with_events.inventory_events) == 2
+      event_types = Enum.map(inventory_with_events.inventory_events, & &1.event_type)
+      assert :purchase_received in event_types
+      assert :administered in event_types
+    end
+
+    test "loads all relationships at once" do
+      organization = organization_fixture()
+      location = location_fixture(organization.id, %{name: "Full Test Location"})
+      product = product_fixture(%{title: "Full Test Product"})
+
+      {:ok, inventory} =
+        Inventory.create_location_inventory(%{
+          location_id: location.id,
+          product_id: product.id
+        })
+
+      # Create an inventory event
+      {:ok, _event} =
+        Inventory.create_inventory_event(%{
+          location_id: location.id,
+          product_id: product.id,
+          event_type: :purchase_received,
+          quantity_change: 50,
+          occurred_at: DateTime.utc_now()
+        })
+
+      # Load all relationships
+      {:ok, fully_loaded} = Inventory.get_location_inventory(inventory.id, load: [:location, :product, :inventory_events])
+
+      assert fully_loaded.location.name == "Full Test Location"
+      assert fully_loaded.product.title == "Full Test Product"
+      assert length(fully_loaded.inventory_events) == 1
+    end
+  end
 end

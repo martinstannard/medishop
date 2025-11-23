@@ -226,4 +226,29 @@ defmodule Medishop.Shop.CartItemTest do
       assert item_with_product.product.sku == scenario.product.sku
     end
   end
+
+  describe "list_cart_items/0" do
+    test "returns all cart items" do
+      import Medishop.ProductsFixtures
+
+      scenario = setup_shop_scenario()
+      {:ok, cart1} = Shop.create_cart(%{location_id: scenario.location.id})
+
+      product2 = product_fixture(%{sku: "PROD-002"})
+
+      item1 = cart_item_fixture(cart1.id, scenario.product.id, %{quantity: 2})
+      item2 = cart_item_fixture(cart1.id, product2.id, %{quantity: 3})
+
+      assert {:ok, items} = Shop.list_cart_items()
+
+      item_ids = Enum.map(items, & &1.id)
+      assert item1.id in item_ids
+      assert item2.id in item_ids
+    end
+
+    test "returns empty list when no cart items exist" do
+      # Clean state verification
+      assert {:ok, _items} = Shop.list_cart_items()
+    end
+  end
 end

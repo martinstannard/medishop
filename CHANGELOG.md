@@ -4,6 +4,43 @@ All notable changes to this project will be documented in this file.
 
 ## 2025-11-23
 
+### Added - Test Coverage Improvements
+- **Critical Business Logic Tests** (20 new tests, 312 total)
+  - **Inventory Events on Order Delivery** (`test/medishop/shop/order_test.exs`):
+    - Test that inventory events are created when order status changes to delivered
+    - Verify no duplicate events created if order is already delivered
+    - Ensure inventory events NOT created for other status transitions
+    - Test correct event creation for orders with single and multiple items
+    - Tests the core business logic linking order fulfillment to inventory updates
+  - **LocationInventory Auto-Creation** (`test/medishop/inventory/inventory_event_test.exs`):
+    - Test auto-creation of LocationInventory when first event is recorded
+    - Verify no duplicate LocationInventory records created on subsequent events
+    - Test unique location-product combinations create separate records
+    - Verify LocationInventory exists at different locations for same product
+    - Tests the critical after_action hook that ensures inventory records exist
+  - **Relationship Loading Tests**:
+    - Product relationships (`test/medishop/products/product_test.exs`):
+      - Test loading location_inventories relationship
+      - Test loading cart_items relationship
+      - Test loading order_items relationship
+      - Test loading multiple relationships simultaneously
+    - LocationInventory relationships (`test/medishop/inventory/location_inventory_test.exs`):
+      - Test loading location relationship
+      - Test loading product relationship
+      - Test loading inventory_events relationship
+      - Test loading all relationships simultaneously
+    - Ensures Ash framework relationship loading works correctly for data display
+  - **List Action Tests**:
+    - Cart list action (`test/medishop/shop/cart_test.exs`):
+      - Test returning all carts across locations
+      - Test empty list behavior
+    - CartItem list action (`test/medishop/shop/cart_item_test.exs`):
+      - Test returning all cart items
+      - Test empty list behavior
+    - Verifies basic CRUD coverage for resource retrieval
+
+## 2025-11-23
+
 ### Added
 - **Dashboard Low Stock Alerts Widget (Phase 3.4 Complete)** (`lib/medishop_web/live/dashboard_live.ex`)
   - Added "Low Stock Alerts" section to main Dashboard

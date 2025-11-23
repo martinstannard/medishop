@@ -400,4 +400,139 @@ defmodule Medishop.Inventory.InventoryEventTest do
       assert event_with_calc.net_change == 100
     end
   end
+
+  describe "LocationInventory auto-creation" do
+    setup :setup_location_and_product
+
+    test "creates LocationInventory when first event is created", %{
+      location: location,
+      product: product
+    } do
+      # Verify no LocationInventory exists yet
+      {:ok, inventories_before} = Inventory.get_inventory_by_location(%{location_id: location.id})
+      assert Enum.empty?(inventories_before)
+
+      # Create first inventory event
+      {:ok, _event} =
+        Inventory.create_inventory_event(%{
+          location_id: location.id,
+          product_id: product.id,
+          event_type: :purchase_received,
+          quantity_change: 100,
+          occurred_at: DateTime.utc_now()
+        })
+
+      # Verify LocationInventory was auto-created
+      {:ok, inventories_after} = Inventory.get_inventory_by_location(%{location_id: location.id})
+      assert length(inventories_after) == 1
+
+      inventory = Enum.at(inventories_after, 0)
+      assert inventory.location_id == location.id
+      assert inventory.product_id == product.id
+    end
+
+    test "does not create duplicate LocationInventory when subsequent events are created", %{
+      location: location,
+      product: product
+    } do
+      # Create first event (creates LocationInventory)
+      {:ok, _event1} =
+        Inventory.create_inventory_event(%{
+          location_id: location.id,
+          product_id: product.id,
+          event_type: :purchase_received,
+          quantity_change: 100,
+          occurred_at: DateTime.utc_now()
+        })
+
+      # Get initial count
+      {:ok, inventories} = Inventory.get_inventory_by_location(%{location_id: location.id})
+      initial_count = length(inventories)
+      assert initial_count == 1
+
+      # Create second event (should NOT create duplicate)
+      {:ok, _event2} =
+        Inventory.create_inventory_event(%{
+          location_id: location.id,
+          product_id: product.id,
+          event_type: :administered,
+          quantity_change: -10,
+          occurred_at: DateTime.utc_now()
+        })
+
+      # Verify count hasn't changed
+      {:ok, inventories_after} = Inventory.get_inventory_by_location(%{location_id: location.id})
+      assert length(inventories_after) == initial_count
+    end
+
+    test "creates LocationInventory for each unique location-product combination", %{
+      location: location
+    } do
+      product1 = product_fixture(%{sku: "PROD-001"})
+      product2 = product_fixture(%{sku: "PROD-002"})
+
+      # Create events for two different products at the same location
+      {:ok, _event1} =
+        Inventory.create_inventory_event(%{
+          location_id: location.id,
+          product_id: product1.id,
+          event_type: :purchase_received,
+          quantity_change: 50,
+          occurred_at: DateTime.utc_now()
+        })
+
+      {:ok, _event2} =
+        Inventory.create_inventory_event(%{
+          location_id: location.id,
+          product_id: product2.id,
+          event_type: :purchase_received,
+          quantity_change: 75,
+          occurred_at: DateTime.utc_now()
+        })
+
+      # Verify two LocationInventory records were created
+      {:ok, inventories} = Inventory.get_inventory_by_location(%{location_id: location.id})
+      assert length(inventories) == 2
+
+      product_ids = Enum.map(inventories, & &1.product_id)
+      assert product1.id in product_ids
+      assert product2.id in product_ids
+    end
+
+    test "creates LocationInventory at different locations for same product" do
+      org1 = organization_fixture()
+      location1 = location_fixture(org1.id, %{name: "Location 1"})
+      org2 = organization_fixture()
+      location2 = location_fixture(org2.id, %{name: "Location 2"})
+      product = product_fixture()
+
+      # Create events at two different locations for the same product
+      {:ok, _event1} =
+        Inventory.create_inventory_event(%{
+          location_id: location1.id,
+          product_id: product.id,
+          event_type: :purchase_received,
+          quantity_change: 50,
+          occurred_at: DateTime.utc_now()
+        })
+
+      {:ok, _event2} =
+        Inventory.create_inventory_event(%{
+          location_id: location2.id,
+          product_id: product.id,
+          event_type: :purchase_received,
+          quantity_change: 75,
+          occurred_at: DateTime.utc_now()
+        })
+
+      # Verify LocationInventory exists at both locations
+      {:ok, inventories1} = Inventory.get_inventory_by_location(%{location_id: location1.id})
+      assert length(inventories1) == 1
+      assert Enum.at(inventories1, 0).product_id == product.id
+
+      {:ok, inventories2} = Inventory.get_inventory_by_location(%{location_id: location2.id})
+      assert length(inventories2) == 1
+      assert Enum.at(inventories2, 0).product_id == product.id
+    end
+  end
 end
