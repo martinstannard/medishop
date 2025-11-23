@@ -10,15 +10,13 @@ defmodule Medishop.InventoryFixtures do
 
   @doc """
   Generate a location inventory record.
+  Note: Current quantity is calculated from inventory events, not stored directly.
   """
-  def location_inventory_fixture(location_id, product_id, attrs \\ %{}) do
-    quantity_available = Map.get(attrs, :quantity_available, 100)
-
+  def location_inventory_fixture(location_id, product_id, _attrs \\ %{}) do
     {:ok, inventory} =
       Inventory.create_location_inventory(%{
         location_id: location_id,
-        product_id: product_id,
-        quantity_available: quantity_available
+        product_id: product_id
       })
 
     inventory

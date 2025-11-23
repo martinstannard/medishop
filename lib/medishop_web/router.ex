@@ -36,6 +36,8 @@ defmodule MedishopWeb.Router do
       live "/location/:location_id/cart", CartLive
       live "/location/:location_id/products", ProductsLive
       live "/location/:location_id/orders", OrdersLive
+      live "/location/:location_id/inventory", InventoryListLive
+      live "/location/:location_id/inventory/:product_id", InventoryDetailLive
       live "/orders/:order_id/confirmation", OrderConfirmationLive
     end
   end

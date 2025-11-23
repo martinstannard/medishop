@@ -118,6 +118,14 @@ defmodule MedishopWeb.DashboardLive do
                                   >
                                     <.icon name="hero-document-text" class="w-5 h-5" />
                                   </.link>
+                                  <.link
+                                    navigate={~p"/location/#{loc_membership.location.id}/inventory"}
+                                    class="btn btn-sm btn-secondary flex-shrink-0"
+                                    data-testid={"inventory-button-#{loc_membership.location.id}"}
+                                    title="View Inventory"
+                                  >
+                                    <.icon name="hero-cube" class="w-5 h-5" />
+                                  </.link>
                                 </div>
                               </div>
 
