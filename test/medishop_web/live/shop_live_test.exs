@@ -64,13 +64,28 @@ defmodule MedishopWeb.ShopLiveTest do
       product2: product2,
       product3: product3
     } do
-      # Add products to cart with small delays to ensure different created_at timestamps
+      # Add products to cart with manually set created_at timestamps
       {:ok, cart} = Shop.get_or_create_cart_for_location(location.id)
+
+      base_time = DateTime.utc_now()
+
       {:ok, item1} = Shop.add_or_update_cart_item(cart.id, product1.id, 1)
-      Process.sleep(10)
+      # Manually set created_at for first item
+      Ash.Changeset.for_update(item1, :update, %{})
+      |> Ash.Changeset.force_change_attribute(:created_at, DateTime.add(base_time, -2, :second))
+      |> Ash.update!(authorize?: false)
+
       {:ok, item2} = Shop.add_or_update_cart_item(cart.id, product2.id, 1)
-      Process.sleep(10)
+      # Manually set created_at for second item
+      Ash.Changeset.for_update(item2, :update, %{})
+      |> Ash.Changeset.force_change_attribute(:created_at, DateTime.add(base_time, -1, :second))
+      |> Ash.update!(authorize?: false)
+
       {:ok, item3} = Shop.add_or_update_cart_item(cart.id, product3.id, 1)
+      # Manually set created_at for third item (most recent)
+      Ash.Changeset.for_update(item3, :update, %{})
+      |> Ash.Changeset.force_change_attribute(:created_at, base_time)
+      |> Ash.update!(authorize?: false)
 
       # Mount the ShopLive page
       {:ok, view, html} = live(conn, ~p"/location/#{location.id}/shop")
@@ -125,11 +140,22 @@ defmodule MedishopWeb.ShopLiveTest do
       product2: product2,
       product3: product3
     } do
-      # Add first two products to cart with delays
+      # Add first two products to cart with manually set created_at timestamps
       {:ok, cart} = Shop.get_or_create_cart_for_location(location.id)
+
+      base_time = DateTime.utc_now()
+
       {:ok, item1} = Shop.add_or_update_cart_item(cart.id, product1.id, 1)
-      Process.sleep(10)
+
+      Ash.Changeset.for_update(item1, :update, %{})
+      |> Ash.Changeset.force_change_attribute(:created_at, DateTime.add(base_time, -1, :second))
+      |> Ash.update!(authorize?: false)
+
       {:ok, item2} = Shop.add_or_update_cart_item(cart.id, product2.id, 1)
+
+      Ash.Changeset.for_update(item2, :update, %{})
+      |> Ash.Changeset.force_change_attribute(:created_at, base_time)
+      |> Ash.update!(authorize?: false)
 
       # Mount the ShopLive page
       {:ok, view, html} = live(conn, ~p"/location/#{location.id}/shop")
@@ -139,9 +165,7 @@ defmodule MedishopWeb.ShopLiveTest do
       assert length(initial_order) == 2
       assert initial_order == [item1.id, item2.id]
 
-      # Add third product via the UI
-      Process.sleep(10)
-
+      # Add third product via the UI (will get current timestamp, making it newest)
       view
       |> element("button[phx-click='add_to_cart'][phx-value-product_id='#{product3.id}']")
       |> render_click()
@@ -176,13 +200,28 @@ defmodule MedishopWeb.ShopLiveTest do
       product2: product2,
       product3: product3
     } do
-      # Add products to cart with delays to ensure distinct created_at timestamps
+      # Add products to cart with manually set created_at timestamps
       {:ok, cart} = Shop.get_or_create_cart_for_location(location.id)
-      {:ok, _item1} = Shop.add_or_update_cart_item(cart.id, product1.id, 1)
-      Process.sleep(10)
-      {:ok, _item2} = Shop.add_or_update_cart_item(cart.id, product2.id, 1)
-      Process.sleep(10)
-      {:ok, _item3} = Shop.add_or_update_cart_item(cart.id, product3.id, 1)
+
+      base_time = DateTime.utc_now()
+
+      {:ok, item1} = Shop.add_or_update_cart_item(cart.id, product1.id, 1)
+
+      Ash.Changeset.for_update(item1, :update, %{})
+      |> Ash.Changeset.force_change_attribute(:created_at, DateTime.add(base_time, -2, :second))
+      |> Ash.update!(authorize?: false)
+
+      {:ok, item2} = Shop.add_or_update_cart_item(cart.id, product2.id, 1)
+
+      Ash.Changeset.for_update(item2, :update, %{})
+      |> Ash.Changeset.force_change_attribute(:created_at, DateTime.add(base_time, -1, :second))
+      |> Ash.update!(authorize?: false)
+
+      {:ok, item3} = Shop.add_or_update_cart_item(cart.id, product3.id, 1)
+
+      Ash.Changeset.for_update(item3, :update, %{})
+      |> Ash.Changeset.force_change_attribute(:created_at, base_time)
+      |> Ash.update!(authorize?: false)
 
       # Mount the ShopLive page
       {:ok, _view, _html} = live(conn, ~p"/location/#{location.id}/shop")
@@ -212,13 +251,28 @@ defmodule MedishopWeb.ShopLiveTest do
       product2: product2,
       product3: product3
     } do
-      # Add products to cart
+      # Add products to cart with manually set created_at timestamps
       {:ok, cart} = Shop.get_or_create_cart_for_location(location.id)
+
+      base_time = DateTime.utc_now()
+
       {:ok, item1} = Shop.add_or_update_cart_item(cart.id, product1.id, 1)
-      Process.sleep(10)
+
+      Ash.Changeset.for_update(item1, :update, %{})
+      |> Ash.Changeset.force_change_attribute(:created_at, DateTime.add(base_time, -2, :second))
+      |> Ash.update!(authorize?: false)
+
       {:ok, item2} = Shop.add_or_update_cart_item(cart.id, product2.id, 1)
-      Process.sleep(10)
+
+      Ash.Changeset.for_update(item2, :update, %{})
+      |> Ash.Changeset.force_change_attribute(:created_at, DateTime.add(base_time, -1, :second))
+      |> Ash.update!(authorize?: false)
+
       {:ok, item3} = Shop.add_or_update_cart_item(cart.id, product3.id, 1)
+
+      Ash.Changeset.for_update(item3, :update, %{})
+      |> Ash.Changeset.force_change_attribute(:created_at, base_time)
+      |> Ash.update!(authorize?: false)
 
       # Mount the ShopLive page
       {:ok, view, html} = live(conn, ~p"/location/#{location.id}/shop")
@@ -239,9 +293,7 @@ defmodule MedishopWeb.ShopLiveTest do
       product_ids_after_remove = get_product_ids_from_cart_items(order_after_remove)
       assert product_ids_after_remove == [product1.id, product3.id]
 
-      # Re-add product2 via the UI
-      Process.sleep(10)
-
+      # Re-add product2 via the UI (will get current timestamp, placing it at the end)
       view
       |> element("button[phx-click='add_to_cart'][phx-value-product_id='#{product2.id}']")
       |> render_click()

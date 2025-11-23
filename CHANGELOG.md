@@ -24,6 +24,7 @@ All notable changes to this project will be documented in this file.
   - Verifies cart items sorted by `created_at` timestamp
   - Verifies removed and re-added products appear at end
   - Tests use helper functions to extract DOM order and verify against database
+  - Tests manually set `created_at` timestamps for speed (no `Process.sleep/1`)
   - These tests catch bugs like using incorrect field names (e.g., `inserted_at` vs `created_at`)
 
 - **Order Filtering and Search**: Enhanced OrdersLive with filtering and search capabilities
