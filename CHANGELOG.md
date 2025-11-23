@@ -15,6 +15,16 @@ All notable changes to this project will be documented in this file.
   - Route: `/location/:location_id/shop`
   - Dashboard updated with "Shop" button
   - No navigation needed between cart and products
+  - Cart items maintain consistent order based on creation time (oldest first)
+
+- **Test Coverage for Cart Item Ordering**: Added comprehensive test suite for cart item order consistency
+  - Test file: `test/medishop_web/live/shop_live_test.exs`
+  - Verifies cart items maintain order when updating quantities
+  - Verifies cart items maintain order when adding new products
+  - Verifies cart items sorted by `created_at` timestamp
+  - Verifies removed and re-added products appear at end
+  - Tests use helper functions to extract DOM order and verify against database
+  - These tests catch bugs like using incorrect field names (e.g., `inserted_at` vs `created_at`)
 
 - **Order Filtering and Search**: Enhanced OrdersLive with filtering and search capabilities
   - Status filter buttons: All, Pending, Confirmed, Shipped, Delivered, Cancelled
@@ -64,12 +74,20 @@ All notable changes to this project will be documented in this file.
   - Inline data URI (no external requests)
 
 ### Fixed
+- **Cart Item Ordering Bug**: Fixed cart items reordering when updating quantities
+  - Changed `sort_cart_items/1` to use correct field: `created_at` instead of `inserted_at`
+  - Cart items now maintain consistent order based on creation timestamp
+  - Items stay in the same position when quantities are updated
+  - New items always appear at the end of the cart
+  - Applied sorting in all cart operations: mount, add_to_cart, update_quantity, remove_item
+  - See `lib/medishop_web/live/shop_live.ex:227`
+
 - **Code Quality and Test Suite**: Comprehensive cleanup and quality improvements
   - Fixed 5 failing tests (PageControllerTest and Organizations membership queries)
   - Removed all compilation warnings (unused variables, unused imports)
   - Formatted entire codebase with `mix format`
   - Verified clean compilation with `--warnings-as-errors`
-  - All 209 tests passing with zero warnings ✅
+  - All 213 tests passing with zero warnings ✅
   - Phase 6 of LiveView Admin UI plan complete
 
 - **Test Fixes**: Corrected test expectations and function signatures

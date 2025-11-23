@@ -218,15 +218,24 @@ This phase implements the shopping cart functionality, allowing users to browse 
 - [x] Test download PDF link for each order
 - [x] Test only shows orders for current location (not others)
 
-**Quality Gate:** All cart and shopping tests passing ✅ (51 + 10 = 61 tests total)
+**Test File 4:** `test/medishop_web/live/shop_live_test.exs` ✅ COMPLETE (4/4 tests)
+
+**Required Tests:**
+- [x] Test cart items maintain order when updating quantities
+- [x] Test cart items maintain order when adding new products
+- [x] Test cart items are sorted by created_at timestamp
+- [x] Test removing and re-adding a product places it at the end
+
+**Quality Gate:** All cart and shopping tests passing ✅ (51 + 10 + 4 = 65 tests total)
 
 ## Phase 6: Finalization and Quality Assurance ✅ COMPLETE
 
 This final phase is for ensuring the quality and integrity of the new code before considering the work complete.
 
 - [x] **Run All Tests:** Execute the full test suite with `mix test` to confirm that no regressions have been introduced in other parts of the application.
-  - All 209 tests passing ✅
+  - All 213 tests passing ✅
   - Fixed 5 failing tests (PageControllerTest, Organizations queries)
+  - Added 4 cart ordering tests to prevent regression
 
 - [x] **Run Code Formatter:** Ensure all new code adheres to the project's style guide by running `mix format`.
   - Formatted 9 files successfully

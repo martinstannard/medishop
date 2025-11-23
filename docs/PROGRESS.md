@@ -6,6 +6,30 @@ This file tracks the high-level progress of work on the Medishop project. Update
 
 ## 2025-11-22
 
+### Cart Item Ordering Tests ✅ COMPLETE
+
+**What was accomplished:**
+- **Comprehensive Test Suite**: Added tests to verify cart item ordering consistency
+  - Test file: `test/medishop_web/live/shop_live_test.exs`
+  - 4 tests covering all cart ordering scenarios
+  - Tests verify items maintain order when updating quantities
+  - Tests verify items maintain order when adding new products
+  - Tests verify cart items sorted by `created_at` timestamp
+  - Tests verify removed and re-added products appear at end
+- **Bug Prevention**: Tests catch field name errors (e.g., `inserted_at` vs `created_at`)
+- **Helper Functions**: Created reusable test helpers
+  - `extract_cart_item_order/1` - Extracts DOM order from HTML
+  - `get_product_ids_from_cart_items/1` - Maps item IDs to product IDs
+- **Test Quality**: All 213 tests passing ✅
+
+**Files Created:**
+- `test/medishop_web/live/shop_live_test.exs` - 4 comprehensive cart ordering tests
+
+**Files Modified:**
+- `CHANGELOG.md` - Documented bug fix and new test coverage
+
+---
+
 ### Unified Shopping Experience (ShopLive) ✅ COMPLETE
 
 **What was accomplished:**
@@ -19,6 +43,10 @@ This file tracks the high-level progress of work on the Medishop project. Update
   - Quantity controls (+/- buttons) in cart panel
   - Remove items and clear cart buttons
   - Place order button always accessible
+- **Cart Item Ordering**: Items maintain consistent order based on creation time
+  - Sorted by `created_at` timestamp (oldest first)
+  - Order maintained across all cart operations
+  - Fixed bug using correct field name (`created_at` not `inserted_at`)
 - **Enhanced Product Browsing**: All products visible with instant cart access
   - Product cards with images/gradient thumbnails
   - Quick "Add to Cart" buttons on each product
@@ -28,7 +56,7 @@ This file tracks the high-level progress of work on the Medishop project. Update
   - Replaces separate "Cart" button
   - Links to new unified shopping experience
 - **Backwards Compatibility**: Old CartLive and ProductsLive routes still work
-- **Testing**: All 209 tests passing ✅
+- **Testing**: All 213 tests passing ✅
 
 **Files Created:**
 - `lib/medishop_web/live/shop_live.ex` - New unified shopping page (430 lines)
@@ -495,7 +523,9 @@ The distinction between `accept` and `argument` in Ash actions:
 - Organizations: 37/37 tests ✅
 - Products: 17/17 tests ✅
 - Inventory: 13/13 tests ✅
-- **Total: 67/67 tests passing** (100% pass rate)
+- Shop: 63/63 tests ✅
+- LiveView: 83/83 tests ✅ (Dashboard: 18, Cart: 24, Products: 16, OrderConfirmation: 11, Orders: 10, Shop: 4)
+- **Total: 213/213 tests passing** (100% pass rate)
 
 ### Medication Purchasing Progress
 - ✅ Phase 1: Products Domain (Steps 1-4) - Complete
