@@ -62,6 +62,13 @@ defmodule MedishopWeb.InventoryDetailLive do
                 |> assign(:sort_by, :occurred_at)
                 |> assign(:sort_order, :desc)
                 |> assign(:page_title, "#{product.title} - Inventory")
+                |> assign(:show_form, false)
+                |> assign(:form_event_type, nil)
+                |> assign(:form_quantity, nil)
+                |> assign(:form_batch_number, nil)
+                |> assign(:form_expiration_date, nil)
+                |> assign(:form_reason, nil)
+                |> assign(:form_errors, %{})
 
               {:ok, socket}
 
@@ -124,6 +131,105 @@ defmodule MedishopWeb.InventoryDetailLive do
     {:noreply, socket}
   end
 
+  def handle_event("toggle_form", _params, socket) do
+    {:noreply, assign(socket, :show_form, !socket.assigns.show_form)}
+  end
+
+  def handle_event("update_form", params, socket) do
+    # Extract form data from params
+    event_type =
+      case params["event_type"] do
+        "" -> nil
+        nil -> nil
+        value -> String.to_existing_atom(value)
+      end
+
+    quantity = parse_integer(params["quantity"])
+    batch_number = params["batch_number"]
+    expiration_date = parse_date(params["expiration_date"])
+    reason = params["reason"]
+
+    socket =
+      socket
+      |> assign(:form_event_type, event_type)
+      |> assign(:form_quantity, quantity)
+      |> assign(:form_batch_number, batch_number)
+      |> assign(:form_expiration_date, expiration_date)
+      |> assign(:form_reason, reason)
+
+    {:noreply, socket}
+  end
+
+  def handle_event("submit_event", _params, socket) do
+    user = socket.assigns.current_user
+    location = socket.assigns.location
+    product = socket.assigns.product
+    inventory = socket.assigns.inventory
+
+    # Validate form
+    case validate_event_form(socket.assigns) do
+      {:ok, params} ->
+        # Create inventory event
+        case Inventory.create_inventory_event(params, actor: user) do
+          {:ok, _event} ->
+            # Reload inventory and events
+            {:ok, inventory} = Ash.load(inventory, :current_quantity, reuse_values?: false)
+
+            {:ok, events} =
+              Inventory.get_events_by_location_and_product(%{
+                location_id: location.id,
+                product_id: product.id
+              })
+
+            socket =
+              socket
+              |> assign(:inventory, inventory)
+              |> assign(:all_events, events)
+              |> assign(:show_form, false)
+              |> assign(:form_event_type, nil)
+              |> assign(:form_quantity, nil)
+              |> assign(:form_batch_number, nil)
+              |> assign(:form_expiration_date, nil)
+              |> assign(:form_reason, nil)
+              |> assign(:form_errors, %{})
+              |> put_flash(:info, "Inventory event recorded successfully")
+
+            {:noreply, socket}
+
+          {:error, changeset} ->
+            errors = extract_errors(changeset)
+
+            socket =
+              socket
+              |> assign(:form_errors, errors)
+              |> put_flash(:error, "Failed to record inventory event: #{inspect(errors)}")
+
+            {:noreply, socket}
+        end
+
+      {:error, errors} ->
+        socket =
+          socket
+          |> assign(:form_errors, errors)
+
+        {:noreply, socket}
+    end
+  end
+
+  def handle_event("cancel_form", _params, socket) do
+    socket =
+      socket
+      |> assign(:show_form, false)
+      |> assign(:form_event_type, nil)
+      |> assign(:form_quantity, nil)
+      |> assign(:form_batch_number, nil)
+      |> assign(:form_expiration_date, nil)
+      |> assign(:form_reason, nil)
+      |> assign(:form_errors, %{})
+
+    {:noreply, socket}
+  end
+
   @impl true
   def render(assigns) do
     assigns = assign(assigns, :filtered_events, filter_and_sort_events(assigns))
@@ -160,11 +266,149 @@ defmodule MedishopWeb.InventoryDetailLive do
               {@inventory.current_quantity}
             </p>
           </div>
-          <div>
+          <div class="flex items-center gap-4">
             <%= stock_status_badge(@inventory.current_quantity) %>
+            <button
+              id="record-event-button"
+              phx-click="toggle_form"
+              class="inline-flex items-center px-4 py-2 text-sm font-semibold text-white bg-blue-600 dark:bg-blue-500 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
+            >
+              <%= if @show_form do %>
+                Cancel
+              <% else %>
+                + Record Event
+              <% end %>
+            </button>
           </div>
         </div>
       </div>
+      <%!-- Record Event Form --%>
+      <%= if @show_form do %>
+        <div id="event-form" class="mb-6 bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            Record Inventory Event
+          </h3>
+          <form phx-change="update_form" phx-submit="submit_event" class="space-y-4">
+            <%!-- Event Type --%>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Event Type <span class="text-red-500">*</span>
+              </label>
+              <select
+                id="form-event-type"
+                name="event_type"
+                value={@form_event_type}
+                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+              >
+                <option value="">Select event type...</option>
+                <option value="administered">Administered - Medication given to patient</option>
+                <option value="expired">Expired - Medication past expiration date</option>
+                <option value="disposed">Disposed - Damaged, recalled, or contaminated</option>
+                <option value="adjustment">Adjustment - Manual correction</option>
+              </select>
+              <%= if Map.has_key?(@form_errors, :event_type) do %>
+                <p class="mt-1 text-sm text-red-600 dark:text-red-400">
+                  {@form_errors.event_type}
+                </p>
+              <% end %>
+            </div>
+            <%!-- Quantity --%>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Quantity <span class="text-red-500">*</span>
+                <span class="text-xs text-gray-500 dark:text-gray-400">
+                  (Enter positive numbers; will be converted automatically for removals)
+                </span>
+              </label>
+              <input
+                id="form-quantity"
+                type="number"
+                name="quantity"
+                value={@form_quantity}
+                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+                placeholder="Enter quantity..."
+              />
+              <%= if Map.has_key?(@form_errors, :quantity) do %>
+                <p class="mt-1 text-sm text-red-600 dark:text-red-400">
+                  {@form_errors.quantity}
+                </p>
+              <% end %>
+            </div>
+            <%!-- Batch Number (Optional) --%>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Batch Number (Optional)
+              </label>
+              <input
+                id="form-batch-number"
+                type="text"
+                name="batch_number"
+                value={@form_batch_number}
+                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+                placeholder="Enter batch/lot number..."
+              />
+            </div>
+            <%!-- Expiration Date (Optional, Required for Expired) --%>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Expiration Date <%= if @form_event_type == :expired do %>
+                  <span class="text-red-500">*</span>
+                <% end %>
+              </label>
+              <input
+                id="form-expiration-date"
+                type="date"
+                name="expiration_date"
+                value={@form_expiration_date}
+                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+              />
+              <%= if Map.has_key?(@form_errors, :expiration_date) do %>
+                <p class="mt-1 text-sm text-red-600 dark:text-red-400">
+                  {@form_errors.expiration_date}
+                </p>
+              <% end %>
+            </div>
+            <%!-- Reason (Required for Disposed and Adjustment) --%>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Reason <%= if @form_event_type in [:disposed, :adjustment] do %>
+                  <span class="text-red-500">*</span>
+                <% end %>
+              </label>
+              <textarea
+                id="form-reason"
+                name="reason"
+                rows="3"
+                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+                placeholder="Enter reason for this event..."
+              >{@form_reason}</textarea>
+              <%= if Map.has_key?(@form_errors, :reason) do %>
+                <p class="mt-1 text-sm text-red-600 dark:text-red-400">
+                  {@form_errors.reason}
+                </p>
+              <% end %>
+            </div>
+            <%!-- Form Actions --%>
+            <div class="flex gap-3 pt-4">
+              <button
+                id="submit-event-button"
+                type="submit"
+                class="flex-1 px-4 py-2 text-sm font-semibold text-white bg-blue-600 dark:bg-blue-500 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
+              >
+                Record Event
+              </button>
+              <button
+                id="cancel-event-button"
+                type="button"
+                phx-click="cancel_form"
+                class="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      <% end %>
       <%!-- Event Type Filter --%>
       <div class="mb-6">
         <div class="flex gap-2 flex-wrap">
@@ -397,14 +641,17 @@ defmodule MedishopWeb.InventoryDetailLive do
         events
       end
 
-    # Sort events
+    # Sort events (DateTime requires special handling for desc)
     events =
-      case assigns.sort_by do
-        :occurred_at ->
-          Enum.sort_by(events, & &1.occurred_at, assigns.sort_order)
+      case {assigns.sort_by, assigns.sort_order} do
+        {:occurred_at, :desc} ->
+          Enum.sort_by(events, & &1.occurred_at, {:desc, DateTime})
 
-        :quantity_change ->
-          Enum.sort_by(events, & &1.quantity_change, assigns.sort_order)
+        {:occurred_at, :asc} ->
+          Enum.sort_by(events, & &1.occurred_at, {:asc, DateTime})
+
+        {:quantity_change, order} ->
+          Enum.sort_by(events, & &1.quantity_change, order)
       end
 
     events
@@ -488,5 +735,162 @@ defmodule MedishopWeb.InventoryDetailLive do
       Adjustment
     </span>
     """
+  end
+
+  # Form validation and helper functions
+
+  defp validate_event_form(assigns) do
+    errors = %{}
+
+    # Validate event type
+    errors =
+      if is_nil(assigns.form_event_type) do
+        Map.put(errors, :event_type, "Please select an event type")
+      else
+        errors
+      end
+
+    # Validate quantity and normalize for removal events
+    {errors, normalized_quantity} =
+      cond do
+        is_nil(assigns.form_quantity) ->
+          {Map.put(errors, :quantity, "Quantity is required"), nil}
+
+        assigns.form_quantity == 0 ->
+          {Map.put(errors, :quantity, "Quantity must be greater than 0"), nil}
+
+        # Auto-convert to negative for removal events
+        assigns.form_quantity > 0 and assigns.form_event_type in [:administered, :expired, :disposed] ->
+          quantity_to_remove = assigns.form_quantity
+
+          if quantity_to_remove > assigns.inventory.current_quantity do
+            {Map.put(
+              errors,
+              :quantity,
+              "Cannot remove #{quantity_to_remove} units. Only #{assigns.inventory.current_quantity} available."
+            ), nil}
+          else
+            {errors, -assigns.form_quantity}
+          end
+
+        assigns.form_quantity < 0 and assigns.form_event_type == :adjustment ->
+          # Allow negative for adjustments (downward adjustment)
+          {errors, assigns.form_quantity}
+
+        assigns.form_quantity < 0 ->
+          # Check if we have enough quantity to remove
+          quantity_to_remove = abs(assigns.form_quantity)
+
+          if quantity_to_remove > assigns.inventory.current_quantity do
+            {Map.put(
+              errors,
+              :quantity,
+              "Cannot remove #{quantity_to_remove} units. Only #{assigns.inventory.current_quantity} available."
+            ), nil}
+          else
+            {errors, assigns.form_quantity}
+          end
+
+        true ->
+          {errors, assigns.form_quantity}
+      end
+
+    # Validate reason for disposal and adjustment
+    errors =
+      if assigns.form_event_type in [:disposed, :adjustment] and
+           (is_nil(assigns.form_reason) or String.trim(assigns.form_reason) == "") do
+        Map.put(errors, :reason, "Reason is required for #{assigns.form_event_type} events")
+      else
+        errors
+      end
+
+    # Validate expiration date for expired events
+    errors =
+      if assigns.form_event_type == :expired and is_nil(assigns.form_expiration_date) do
+        Map.put(errors, :expiration_date, "Expiration date is required for expired events")
+      else
+        errors
+      end
+
+    # If no errors, build params
+    if map_size(errors) == 0 do
+      params = %{
+        location_id: assigns.location.id,
+        product_id: assigns.product.id,
+        event_type: assigns.form_event_type,
+        quantity_change: normalized_quantity,
+        occurred_at: DateTime.utc_now()
+      }
+
+      params =
+        if assigns.form_batch_number && String.trim(assigns.form_batch_number) != "" do
+          Map.put(params, :batch_number, assigns.form_batch_number)
+        else
+          params
+        end
+
+      params =
+        if assigns.form_expiration_date do
+          Map.put(params, :expiration_date, assigns.form_expiration_date)
+        else
+          params
+        end
+
+      params =
+        if assigns.form_reason && String.trim(assigns.form_reason) != "" do
+          Map.put(params, :reason, assigns.form_reason)
+        else
+          params
+        end
+
+      {:ok, params}
+    else
+      {:error, errors}
+    end
+  end
+
+  defp parse_integer(nil), do: nil
+  defp parse_integer(""), do: nil
+
+  defp parse_integer(value) when is_binary(value) do
+    case Integer.parse(value) do
+      {int, _} -> int
+      :error -> nil
+    end
+  end
+
+  defp parse_integer(value) when is_integer(value), do: value
+
+  defp parse_date(nil), do: nil
+  defp parse_date(""), do: nil
+
+  defp parse_date(value) when is_binary(value) do
+    case Date.from_iso8601(value) do
+      {:ok, date} -> date
+      {:error, _} -> nil
+    end
+  end
+
+  defp parse_date(value), do: value
+
+  defp extract_errors(changeset) do
+    case changeset do
+      %Ash.Changeset{errors: errors} ->
+        Enum.reduce(errors, %{}, fn error, acc ->
+          field = Map.get(error, :field, :base)
+          message = Exception.message(error)
+          Map.put(acc, field, message)
+        end)
+
+      %{errors: errors} when is_list(errors) ->
+        Enum.reduce(errors, %{}, fn error, acc ->
+          field = error.field || :base
+          message = Exception.message(error)
+          Map.put(acc, field, message)
+        end)
+
+      _ ->
+        %{base: "An error occurred"}
+    end
   end
 end

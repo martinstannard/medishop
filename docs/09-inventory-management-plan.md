@@ -297,21 +297,27 @@ end
 
 **Tests**: `test/medishop_web/live/inventory_detail_live_test.exs` (30 tests, all passing)
 
-#### 3.3 Record Inventory Event Modal/Form
+#### 3.3 Record Inventory Event Form ✅ **COMPLETED**
 
 **Accessible from inventory detail page**
 
-**Form fields**:
-- Event type (dropdown: Administered, Expired, Disposed, Adjustment)
-- Quantity (integer, validates > 0 for removals)
-- Batch number (optional, text)
-- Expiration date (optional, date picker)
-- Reason (textarea, required for disposal/adjustment)
+**Features** (✅ All Implemented):
+- ✅ Toggle form with "Record Event" button
+- ✅ Event type dropdown: Administered, Expired, Disposed, Adjustment
+- ✅ Quantity input with contextual validation
+- ✅ Batch number input (optional)
+- ✅ Expiration date input (required for expired events)
+- ✅ Reason textarea (required for disposed/adjustment events)
+- ✅ Real-time inline validation errors
+- ✅ Cannot remove more than current quantity
+- ✅ Proper quantity sign validation (negative for removals)
+- ✅ Success flash messages and data reload
+- ✅ Form reset on submit/cancel
+- ✅ 6 comprehensive tests covering all form interactions
 
-**Validation**:
-- Cannot remove more than current quantity
-- Expiration date must be in the past for :expired events
-- Reason required for :disposed and :adjustment events
+**Implementation**: Added to `lib/medishop_web/live/inventory_detail_live.ex` (888 lines total, ~300 lines for form)
+
+**Tests**: `test/medishop_web/live/inventory_detail_live_test.exs` (36 tests, all passing)
 
 #### 3.4 Dashboard Inventory Widget
 
@@ -559,12 +565,12 @@ end
 - ✅ Idempotent event creation (prevents duplicates)
 
 ### Phase 3 (IN PROGRESS)
-- ⏳ Users can mark items as administered/expired/disposed (via UI)
-- ⏳ Complete audit trail visible in UI
+- ✅ Users can mark items as administered/expired/disposed (via UI form)
+- ✅ Complete audit trail visible in UI (inventory detail page)
 - ⏳ Inventory list view with current quantities
-- ⏳ Event log view per product
-- ⏳ UI is intuitive for daily inventory management
-- ✅ All tests passing with good coverage
+- ✅ Event log view per product (with sorting and filtering)
+- ✅ UI is intuitive for daily inventory management (form with inline validation)
+- ✅ All tests passing with good coverage (36 tests for inventory detail)
 
 ## Implementation Progress
 
@@ -579,10 +585,10 @@ end
 
 ### Phase 3: Inventory Management UI (IN PROGRESS)
 1. ⏳ Build inventory list UI (current stock levels report)
-2. ⏳ Build inventory detail/event log UI
-3. ⏳ Build event recording form/modal
+2. ✅ Build inventory detail/event log UI (DONE - 30 tests)
+3. ✅ Build event recording form (DONE - 6 tests)
 4. ⏳ Add dashboard widget for low stock alerts
-5. ⏳ Write comprehensive LiveView tests
+5. ✅ Write comprehensive LiveView tests (36 tests for inventory detail)
 6. ⏳ Deploy and train users
 
 ## Dependencies

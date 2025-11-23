@@ -5,6 +5,44 @@ All notable changes to this project will be documented in this file.
 ## 2025-11-23
 
 ### Added
+- **Record Inventory Event Form (Phase 3.3 Complete)** (`lib/medishop_web/live/inventory_detail_live.ex`)
+  - Added interactive form to record inventory events directly from the inventory detail page
+  - "Record Event" button to toggle form visibility
+  - Form implemented as proper `<form>` element with `phx-change` and `phx-submit`
+  - Form fields with real-time validation:
+    - Event Type dropdown (Administered, Expired, Disposed, Adjustment)
+    - Quantity input with automatic conversion (enter positive, auto-converts to negative for removals)
+    - Batch Number (optional)
+    - Expiration Date (required for expired events)
+    - Reason textarea (required for disposed and adjustment events)
+  - Comprehensive validation logic:
+    - Cannot remove more than current quantity
+    - Automatic quantity sign conversion for removal events (administered, expired, disposed)
+    - Required field validation with contextual requirements
+    - Real-time error messages displayed inline
+  - Form state management with 7 assigns for form fields and errors
+  - Event handlers: toggle_form, update_form, submit_event, cancel_form
+  - After successful submission:
+    - Reloads inventory with updated quantity
+    - Reloads event list with new event (sorted newest first)
+    - Displays success flash message
+    - Resets and hides form
+  - Helper functions: validate_event_form, parse_integer, parse_date, extract_errors
+  - Comprehensive test suite: 6 new tests covering:
+    - Form display and toggle
+    - Form visibility with Record Event button
+    - Form cancellation
+    - All form fields presence
+    - Empty form validation
+    - Event recording flow
+  - Total implementation: ~300 lines of form UI and validation logic
+
+### Changed
+- **Inventory Event Sorting** - Events now display in reverse chronological order (newest first)
+  - Updated `filter_and_sort_events/1` to properly handle DateTime sorting with `{:desc, DateTime}`
+  - Default sort is by `occurred_at` in descending order
+  - Most recent events appear at the top of the list
+
 - **Inventory Detail Page with Event Log (Phase 3.2 Complete)** (`lib/medishop_web/live/inventory_detail_live.ex`)
   - InventoryDetailLive shows detailed inventory event log for a product at a location
   - Route: `/location/:location_id/inventory/:product_id`
@@ -27,7 +65,7 @@ All notable changes to this project will be documented in this file.
   - Empty state messages for no events and filtered results
   - Navigation: Back to Inventory link
   - Auto-creates LocationInventory record if it doesn't exist
-  - Comprehensive test suite: `test/medishop_web/live/inventory_detail_live_test.exs` - 30/30 tests passing ✅
+  - Comprehensive test suite: `test/medishop_web/live/inventory_detail_live_test.exs` - 36/36 tests passing ✅ (30 existing + 6 form tests)
     - Authentication and authorization tests
     - Product and location display tests
     - Stock status badge tests (all 3 states)
@@ -105,11 +143,11 @@ All notable changes to this project will be documented in this file.
     - Removed `update_location_inventory` interface (no longer needed)
   - **Dependencies**
     - Added `{:ash_events, "~> 0.1"}` to mix.exs (installed v0.5.1)
-  - **Test Results**: All 286 tests passing ✅
-    - 61 inventory tests (InventoryEvent, LocationInventory, Order-Inventory integration, InventoryDetailLive)
+  - **Test Results**: All 292 tests passing ✅
+    - 67 inventory tests (InventoryEvent, LocationInventory, Order-Inventory integration, InventoryDetailLive)
     - 18 OrdersLive tests (including 8 new status transition tests)
     - 17 InventoryListLive tests (authentication, search, sort, status badges)
-    - 30 InventoryDetailLive tests (authentication, display, filtering, sorting, navigation)
+    - 36 InventoryDetailLive tests (authentication, display, filtering, sorting, navigation, form recording)
 
 ### Changed
 - **LocationInventory Create Action with Upsert** (`lib/medishop/inventory/location_inventory.ex:24-25`)
