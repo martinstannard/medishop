@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 ## 2025-11-23
 
+### Changed - Dashboard UI
+- **Dashboard Redesign**: Updated dashboard layout for cleaner, more modern look
+  - Removed "Dashboard" page header and "Welcome back" text
+  - Redesigned organization cards to be full-width for better readability
+  - Replaced nested location cards with clean, divided list layout
+  - Updated typography: location names use `h4`, address details use `p`
+  - Improved visual hierarchy with consistent icons and spacing
+  - Maintained responsive design (stacking on mobile, row layout on desktop)
+  - Updated test suite to match new HTML structure
+
 ### Refactored - Test Infrastructure
 - **Generator-Based Testing**: Migrated entire test suite (312 tests) to use `Ash.Generator` instead of custom fixtures
   - Updated `Medishop.Generator` with factories for all resources:
@@ -254,7 +264,7 @@ All notable changes to this project will be documented in this file.
   - Verifies cart items maintain order when updating quantities
   - Verifies cart items maintain order when adding new products
   - Verifies cart items sorted by `created_at` timestamp
-  - Verifies removed and re-added products appear at the end
+  - Verifies removed and re-added products appear at end
   - Tests use helper functions to extract DOM order and verify against database
   - Tests manually set `created_at` timestamps for speed (no `Process.sleep/1`)
   - These tests catch bugs like using incorrect field names (e.g., `inserted_at` vs `created_at`)
