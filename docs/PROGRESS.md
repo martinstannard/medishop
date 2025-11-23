@@ -6,6 +6,31 @@ This file tracks the high-level progress of work on the Medishop project. Update
 
 ## 2025-11-23
 
+### Dashboard Improvements - Design & Usability ✅ COMPLETE
+
+**What was accomplished:**
+- **Button Styling**: Replaced DaisyUI buttons with custom Tailwind classes to fix dark mode visibility issues.
+  - Used explicit `bg-white` and `text-gray-900` for secondary actions to ensure readability in both modes.
+  - Removed hardcoded gray text from icons to allow them to inherit appropriate colors.
+  - Unified styling for "Orders" and "Inventory" buttons.
+- **Consistent "Shop" Button**: Updated the "Shop" button to match the secondary button style (white/gray) instead of primary blue.
+  - Maintains visual harmony and prevents "rainbow effect" of too many primary colors.
+  - Keeps the icon to distinguish the action.
+- **Refined Typography**:
+  - Changed section heading from "My Organizations" to "Organizations".
+  - Increased font weight and darkened text color for location addresses and contact info for better readability.
+  - Used `font-medium` and `text-gray-600/gray-300` for key information.
+- **Test Suite Updates**:
+  - Updated dashboard tests to match new heading text "Organizations".
+  - Removed assertions for deleted elements (active badges) that were part of the previous design.
+  - Ensured all 18 dashboard tests (and 312 total tests) pass with the new changes.
+
+**Files Modified:**
+- `lib/medishop_web/live/dashboard_live.ex` - Updated button classes and typography
+- `test/medishop_web/live/dashboard_live_test.exs` - Updated test assertions
+
+---
+
 ### Dashboard Redesign ✅ COMPLETE
 
 **What was accomplished:**
@@ -148,7 +173,7 @@ This file tracks the high-level progress of work on the Medishop project. Update
 - **Split-Pane Layout**: Created new unified shopping page combining cart and products
   - Products grid on left (responsive, 1-3 columns)
   - Cart sidebar on right (384px, always visible)
-  - Full-height scrollable panes
+  - Full-height scrollable panes for comfortable browsing
   - No navigation required between views
 - **Real-Time Cart Management**: Cart updates immediately as products are added
   - Item count and total visible at all times

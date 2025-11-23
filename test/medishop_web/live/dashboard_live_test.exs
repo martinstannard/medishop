@@ -73,7 +73,7 @@ defmodule MedishopWeb.DashboardLiveTest do
     } do
       {:ok, view, _html} = live(conn, ~p"/dashboard")
 
-      assert has_element?(view, "h2", "My Organizations")
+      assert has_element?(view, "h2", "Organizations")
       assert has_element?(view, "h3", org1.name)
       assert has_element?(view, "h3", org2.name)
     end

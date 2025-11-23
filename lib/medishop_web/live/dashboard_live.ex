@@ -19,7 +19,7 @@ defmodule MedishopWeb.DashboardLive do
       <div class="space-y-10">
         <section>
           <div class="flex items-center justify-between mb-6">
-            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">My Organizations</h2>
+            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Organizations</h2>
           </div>
 
           <%= if Enum.empty?(@memberships) do %>
@@ -99,7 +99,7 @@ defmodule MedishopWeb.DashboardLive do
                                       </span>
                                     <% end %>
                                   </div>
-                                  <div class="text-sm text-gray-500 dark:text-gray-400 space-y-0.5">
+                                  <div class="text-sm font-medium text-gray-600 dark:text-gray-300 space-y-0.5">
                                     <p>
                                       {loc_membership.location.address["street"]}, {loc_membership.location.address[
                                         "city"
@@ -107,7 +107,7 @@ defmodule MedishopWeb.DashboardLive do
                                         "zip"
                                       ]}
                                     </p>
-                                    <p class="text-gray-400 dark:text-gray-500 text-xs mt-1">
+                                    <p class="text-gray-500 dark:text-gray-400 text-xs mt-1">
                                       {loc_membership.location.contact_number}
                                     </p>
                                   </div>
@@ -119,10 +119,10 @@ defmodule MedishopWeb.DashboardLive do
                                 <%= if :org_buyer in membership.org_roles and loc_membership.location.store do %>
                                   <.link
                                     navigate={~p"/location/#{loc_membership.location.id}/shop"}
-                                    class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:bg-blue-500 dark:hover:bg-blue-400 transition-colors"
+                                    class="inline-flex items-center gap-2 rounded-md bg-white px-3 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-700 transition-colors"
                                     data-testid={"shop-button-#{loc_membership.location.id}"}
                                   >
-                                    <.icon name="hero-shopping-bag" class="w-4 h-4" /> Shop
+                                    <.icon name="hero-shopping-bag" class="w-4 h-4 text-gray-400 dark:text-gray-400" /> Shop
                                   </.link>
                                 <% end %>
                                 <.link
