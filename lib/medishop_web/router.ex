@@ -32,6 +32,7 @@ defmodule MedishopWeb.Router do
       layout: {MedishopWeb.Layouts, :app} do
       live "/", HomeLive, :index
       live "/dashboard", DashboardLive
+      live "/location/:location_id/shop", ShopLive
       live "/location/:location_id/cart", CartLive
       live "/location/:location_id/products", ProductsLive
       live "/location/:location_id/orders", OrdersLive

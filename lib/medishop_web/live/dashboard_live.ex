@@ -102,12 +102,13 @@ defmodule MedishopWeb.DashboardLive do
                                 <div class="flex gap-2">
                                   <%= if :org_buyer in membership.org_roles and loc_membership.location.store do %>
                                     <.link
-                                      navigate={~p"/location/#{loc_membership.location.id}/cart"}
+                                      navigate={~p"/location/#{loc_membership.location.id}/shop"}
                                       class="btn btn-sm btn-primary flex-shrink-0"
-                                      data-testid={"cart-button-#{loc_membership.location.id}"}
-                                      title="Shopping Cart"
+                                      data-testid={"shop-button-#{loc_membership.location.id}"}
+                                      title="Shop"
                                     >
                                       <.icon name="hero-shopping-cart" class="w-5 h-5" />
+                                      Shop
                                     </.link>
                                   <% end %>
                                   <.link
