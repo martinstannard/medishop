@@ -2,8 +2,7 @@ defmodule MedishopWeb.OrderConfirmationLiveTest do
   use MedishopWeb.ConnCase
 
   import Phoenix.LiveViewTest
-  import Medishop.OrganizationsFixtures
-  import Medishop.ProductsFixtures
+  import Medishop.Generator
   import MedishopWeb.LiveViewTestHelpers
 
   alias Medishop.Shop
@@ -20,7 +19,7 @@ defmodule MedishopWeb.OrderConfirmationLiveTest do
 
   describe "OrderConfirmationLive - order not found" do
     setup %{conn: conn} do
-      user = user_fixture()
+      user = user() |> Ash.Generator.generate()
       conn = log_in_user(conn, user)
 
       %{conn: conn, user: user}
@@ -38,15 +37,15 @@ defmodule MedishopWeb.OrderConfirmationLiveTest do
   describe "OrderConfirmationLive - unauthorized access" do
     setup %{conn: conn} do
       # Create two users
-      user1 = user_fixture()
-      user2 = user_fixture()
+      user1 = user() |> Ash.Generator.generate()
+      user2 = user() |> Ash.Generator.generate()
 
       # Create organization and location
-      org = organization_fixture()
-      location = location_fixture(org.id)
+      org = organization() |> Ash.Generator.generate()
+      location = location(organization_id: org.id) |> Ash.Generator.generate()
 
       # Create product and order for user1
-      product = product_fixture(%{title: "Test Product", price: Decimal.new("50.00")})
+      product = product(title: "Test Product", price: Decimal.new("50.00")) |> Ash.Generator.generate()
       {:ok, cart} = Shop.get_or_create_cart_for_location(location.id)
       {:ok, _item} = Shop.add_or_update_cart_item(cart.id, product.id, 2)
       {:ok, order} = Shop.create_order_from_cart(cart.id, user1.id)
@@ -68,24 +67,24 @@ defmodule MedishopWeb.OrderConfirmationLiveTest do
 
   describe "OrderConfirmationLive - successful order display" do
     setup %{conn: conn} do
-      user = user_fixture()
-      org = organization_fixture()
-      location = location_fixture(org.id, %{name: "Main Pharmacy"})
+      user = user() |> Ash.Generator.generate()
+      org = organization() |> Ash.Generator.generate()
+      location = location(organization_id: org.id, name: "Main Pharmacy") |> Ash.Generator.generate()
 
       # Create products
       product1 =
-        product_fixture(%{
+        product(
           title: "Aspirin 100mg",
           sku: "ASP-100",
           price: Decimal.new("10.00")
-        })
+        ) |> Ash.Generator.generate()
 
       product2 =
-        product_fixture(%{
+        product(
           title: "Ibuprofen 200mg",
           sku: "IBU-200",
           price: Decimal.new("25.00")
-        })
+        ) |> Ash.Generator.generate()
 
       # Create cart and add items
       {:ok, cart} = Shop.get_or_create_cart_for_location(location.id)
@@ -217,11 +216,11 @@ defmodule MedishopWeb.OrderConfirmationLiveTest do
 
   describe "OrderConfirmationLive - order with notes" do
     setup %{conn: conn} do
-      user = user_fixture()
-      org = organization_fixture()
-      location = location_fixture(org.id)
+      user = user() |> Ash.Generator.generate()
+      org = organization() |> Ash.Generator.generate()
+      location = location(organization_id: org.id) |> Ash.Generator.generate()
 
-      product = product_fixture(%{price: Decimal.new("15.00")})
+      product = product(price: Decimal.new("15.00")) |> Ash.Generator.generate()
       {:ok, cart} = Shop.get_or_create_cart_for_location(location.id)
       {:ok, _item} = Shop.add_or_update_cart_item(cart.id, product.id, 1)
 
@@ -243,11 +242,11 @@ defmodule MedishopWeb.OrderConfirmationLiveTest do
 
   describe "OrderConfirmationLive - different order statuses" do
     setup %{conn: conn} do
-      user = user_fixture()
-      org = organization_fixture()
-      location = location_fixture(org.id)
+      user = user() |> Ash.Generator.generate()
+      org = organization() |> Ash.Generator.generate()
+      location = location(organization_id: org.id) |> Ash.Generator.generate()
 
-      product = product_fixture(%{price: Decimal.new("10.00")})
+      product = product(price: Decimal.new("10.00")) |> Ash.Generator.generate()
       {:ok, cart} = Shop.get_or_create_cart_for_location(location.id)
       {:ok, _item} = Shop.add_or_update_cart_item(cart.id, product.id, 1)
       {:ok, order} = Shop.create_order_from_cart(cart.id, user.id)

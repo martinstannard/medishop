@@ -3,7 +3,23 @@ defmodule Medishop.Shop.OrderItemTest do
 
   alias Medishop.Shop
 
-  import Medishop.ShopFixtures
+  import Medishop.Generator
+
+  defp setup_shop_scenario(attrs \\ %{}) do
+    org = organization() |> Ash.Generator.generate()
+    location = location(organization_id: org.id) |> Ash.Generator.generate()
+    user = user() |> Ash.Generator.generate()
+    
+    product_attrs = Map.get(attrs, :product_attrs, [])
+    product = product(product_attrs) |> Ash.Generator.generate()
+
+    %{ 
+      organization: org,
+      location: location,
+      user: user,
+      product: product
+    }
+  end
 
   describe "create_order_item/1 (from cart)" do
     test "order item created from cart item" do
@@ -11,10 +27,7 @@ defmodule Medishop.Shop.OrderItemTest do
       {:ok, cart} = Shop.create_cart(%{location_id: scenario.location.id})
 
       _item =
-        cart_item_fixture(cart.id, scenario.product.id, %{
-          quantity: 2,
-          price_at_addition: Decimal.new("15.00")
-        })
+        cart_item(cart_id: cart.id, product_id: scenario.product.id, quantity: 2, price_at_addition: Decimal.new("15.00")) |> Ash.Generator.generate()
 
       {:ok, order} = Shop.create_order_from_cart(cart.id, scenario.user.id)
 
@@ -30,7 +43,7 @@ defmodule Medishop.Shop.OrderItemTest do
       scenario = setup_shop_scenario()
       {:ok, cart} = Shop.create_cart(%{location_id: scenario.location.id})
 
-      _item = cart_item_fixture(cart.id, scenario.product.id, %{quantity: 5})
+      _item = cart_item(cart_id: cart.id, product_id: scenario.product.id, quantity: 5) |> Ash.Generator.generate()
 
       {:ok, order} = Shop.create_order_from_cart(cart.id, scenario.user.id)
 
@@ -41,10 +54,10 @@ defmodule Medishop.Shop.OrderItemTest do
     end
 
     test "order_item has correct unit_price" do
-      scenario = setup_shop_scenario(%{product_attrs: %{price: Decimal.new("22.50")}})
+      scenario = setup_shop_scenario(%{product_attrs: [price: Decimal.new("22.50")]})
       {:ok, cart} = Shop.create_cart(%{location_id: scenario.location.id})
 
-      _item = cart_item_fixture(cart.id, scenario.product.id, %{quantity: 1})
+      _item = cart_item(cart_id: cart.id, product_id: scenario.product.id, quantity: 1, price_at_addition: scenario.product.price) |> Ash.Generator.generate()
 
       {:ok, order} = Shop.create_order_from_cart(cart.id, scenario.user.id)
 
@@ -55,10 +68,10 @@ defmodule Medishop.Shop.OrderItemTest do
     end
 
     test "order_item has correct line_total" do
-      scenario = setup_shop_scenario(%{product_attrs: %{price: Decimal.new("12.00")}})
+      scenario = setup_shop_scenario(%{product_attrs: [price: Decimal.new("12.00")]})
       {:ok, cart} = Shop.create_cart(%{location_id: scenario.location.id})
 
-      _item = cart_item_fixture(cart.id, scenario.product.id, %{quantity: 4})
+      _item = cart_item(cart_id: cart.id, product_id: scenario.product.id, quantity: 4, price_at_addition: scenario.product.price) |> Ash.Generator.generate()
 
       {:ok, order} = Shop.create_order_from_cart(cart.id, scenario.user.id)
 
@@ -71,10 +84,10 @@ defmodule Medishop.Shop.OrderItemTest do
     end
 
     test "line_total calculation (quantity * unit_price)" do
-      scenario = setup_shop_scenario(%{product_attrs: %{price: Decimal.new("7.50")}})
+      scenario = setup_shop_scenario(%{product_attrs: [price: Decimal.new("7.50")]})
       {:ok, cart} = Shop.create_cart(%{location_id: scenario.location.id})
 
-      _item = cart_item_fixture(cart.id, scenario.product.id, %{quantity: 3})
+      _item = cart_item(cart_id: cart.id, product_id: scenario.product.id, quantity: 3, price_at_addition: scenario.product.price) |> Ash.Generator.generate()
 
       {:ok, order} = Shop.create_order_from_cart(cart.id, scenario.user.id)
 
@@ -90,10 +103,10 @@ defmodule Medishop.Shop.OrderItemTest do
   describe "order_item immutability" do
     test "order_item update should fail (immutable)" do
       scenario = setup_shop_scenario()
-      order = order_fixture(scenario.location.id, scenario.user.id)
+      order = order(location_id: scenario.location.id, user_id: scenario.user.id) |> Ash.Generator.generate()
 
       order_item =
-        order_item_fixture(order.id, scenario.product.id, %{quantity: 2})
+        order_item(order_id: order.id, product_id: scenario.product.id, quantity: 2) |> Ash.Generator.generate()
 
       # Attempt to update - Ash doesn't define an update action, so this should raise
       # The :update action doesn't exist on OrderItem
@@ -110,7 +123,7 @@ defmodule Medishop.Shop.OrderItemTest do
       scenario = setup_shop_scenario()
       {:ok, cart} = Shop.create_cart(%{location_id: scenario.location.id})
 
-      _item = cart_item_fixture(cart.id, scenario.product.id, %{quantity: 1})
+      _item = cart_item(cart_id: cart.id, product_id: scenario.product.id, quantity: 1, price_at_addition: scenario.product.price) |> Ash.Generator.generate()
 
       {:ok, order} = Shop.create_order_from_cart(cart.id, scenario.user.id)
 
@@ -127,7 +140,7 @@ defmodule Medishop.Shop.OrderItemTest do
       scenario = setup_shop_scenario()
       {:ok, cart} = Shop.create_cart(%{location_id: scenario.location.id})
 
-      _item = cart_item_fixture(cart.id, scenario.product.id, %{quantity: 1})
+      _item = cart_item(cart_id: cart.id, product_id: scenario.product.id, quantity: 1, price_at_addition: scenario.product.price) |> Ash.Generator.generate()
 
       {:ok, order} = Shop.create_order_from_cart(cart.id, scenario.user.id)
 
@@ -143,10 +156,10 @@ defmodule Medishop.Shop.OrderItemTest do
 
     test "loading order_item with order preloaded" do
       scenario = setup_shop_scenario()
-      order = order_fixture(scenario.location.id, scenario.user.id)
+      order = order(location_id: scenario.location.id, user_id: scenario.user.id) |> Ash.Generator.generate()
 
       order_item =
-        order_item_fixture(order.id, scenario.product.id, %{quantity: 1})
+        order_item(order_id: order.id, product_id: scenario.product.id, quantity: 1, unit_price: scenario.product.price) |> Ash.Generator.generate()
 
       {:ok, loaded_item} = Shop.get_order_item(order_item.id, load: [:order])
 
@@ -156,10 +169,10 @@ defmodule Medishop.Shop.OrderItemTest do
 
     test "loading order_item with product preloaded" do
       scenario = setup_shop_scenario()
-      order = order_fixture(scenario.location.id, scenario.user.id)
+      order = order(location_id: scenario.location.id, user_id: scenario.user.id) |> Ash.Generator.generate()
 
       order_item =
-        order_item_fixture(order.id, scenario.product.id, %{quantity: 1})
+        order_item(order_id: order.id, product_id: scenario.product.id, quantity: 1, unit_price: scenario.product.price) |> Ash.Generator.generate()
 
       {:ok, loaded_item} = Shop.get_order_item(order_item.id, load: [:product])
 

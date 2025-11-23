@@ -2,31 +2,25 @@ defmodule MedishopWeb.ShopLiveTest do
   use MedishopWeb.ConnCase
 
   import Phoenix.LiveViewTest
-  import Medishop.OrganizationsFixtures
-  import Medishop.ProductsFixtures
+  import Medishop.Generator
   import MedishopWeb.LiveViewTestHelpers
 
   alias Medishop.Shop
 
   describe "ShopLive - cart item ordering" do
     setup %{conn: conn} do
-      user = user_fixture()
-      org = organization_fixture()
-      location = location_fixture(org.id)
+      user = user() |> Ash.Generator.generate()
+      org = organization() |> Ash.Generator.generate()
+      location = location(organization_id: org.id) |> Ash.Generator.generate()
 
       # Create membership with org_buyer role and make location a store
-      membership = organization_membership_fixture(user.id, org.id, %{org_roles: [:org_buyer]})
-      organization_location_membership_fixture(membership.id, location.id)
+      membership = organization_membership(user_id: user.id, organization_id: org.id, org_roles: [:org_buyer]) |> Ash.Generator.generate()
+      organization_location_membership(organization_membership_id: membership.id, location_id: location.id) |> Ash.Generator.generate()
 
       # Create products
-      product1 =
-        product_fixture(%{title: "Aspirin", sku: "ASP-100", price: Decimal.new("10.00")})
-
-      product2 =
-        product_fixture(%{title: "Ibuprofen", sku: "IBU-200", price: Decimal.new("15.50")})
-
-      product3 =
-        product_fixture(%{title: "Acetaminophen", sku: "ACE-300", price: Decimal.new("12.00")})
+      product1 = product(title: "Aspirin", sku: "ASP-100", price: Decimal.new("10.00")) |> Ash.Generator.generate()
+      product2 = product(title: "Ibuprofen", sku: "IBU-200", price: Decimal.new("15.50")) |> Ash.Generator.generate()
+      product3 = product(title: "Acetaminophen", sku: "ACE-300", price: Decimal.new("12.00")) |> Ash.Generator.generate()
 
       # Log in the user
       conn = log_in_user(conn, user)
@@ -65,7 +59,8 @@ defmodule MedishopWeb.ShopLiveTest do
       product3: product3
     } do
       # Add products to cart with manually set created_at timestamps
-      {:ok, cart} = Shop.get_or_create_cart_for_location(location.id)
+      # Use generator for cart
+      cart = cart(location_id: location.id) |> Ash.Generator.generate()
 
       base_time = DateTime.utc_now()
 
@@ -141,7 +136,7 @@ defmodule MedishopWeb.ShopLiveTest do
       product3: product3
     } do
       # Add first two products to cart with manually set created_at timestamps
-      {:ok, cart} = Shop.get_or_create_cart_for_location(location.id)
+      cart = cart(location_id: location.id) |> Ash.Generator.generate()
 
       base_time = DateTime.utc_now()
 
@@ -201,7 +196,7 @@ defmodule MedishopWeb.ShopLiveTest do
       product3: product3
     } do
       # Add products to cart with manually set created_at timestamps
-      {:ok, cart} = Shop.get_or_create_cart_for_location(location.id)
+      cart = cart(location_id: location.id) |> Ash.Generator.generate()
 
       base_time = DateTime.utc_now()
 
@@ -252,7 +247,7 @@ defmodule MedishopWeb.ShopLiveTest do
       product3: product3
     } do
       # Add products to cart with manually set created_at timestamps
-      {:ok, cart} = Shop.get_or_create_cart_for_location(location.id)
+      cart = cart(location_id: location.id) |> Ash.Generator.generate()
 
       base_time = DateTime.utc_now()
 

@@ -26,6 +26,32 @@ defmodule Medishop.Generator do
     )
   end
 
+  def location(overrides \\ []) do
+    organization_id =
+      overrides[:organization_id] ||
+        organization() |> Ash.Generator.generate() |> Map.get(:id)
+
+    Ash.Generator.changeset_generator(
+      Medishop.Organizations.Location,
+      :create,
+      defaults: [
+        name: sequence(:name, &"Test Location #{&1}"),
+        store: true,
+        address: %{
+          street: "123 Test St",
+          city: "Test City",
+          state: "TC",
+          zip: "12345",
+          country: "USA"
+        },
+        contact_number: "+1-555-555-5555",
+        organization_id: organization_id
+      ],
+      overrides: overrides,
+      authorize?: false
+    )
+  end
+
   def organization_membership(overrides \\ []) do
     user_id =
       overrides[:user_id] ||
@@ -44,6 +70,213 @@ defmodule Medishop.Generator do
         organization_id: organization_id,
         user_id: user_id,
         org_roles: [:org_member]
+      ],
+      overrides: overrides,
+      authorize?: false
+    )
+  end
+
+  def organization_location_membership(overrides \\ []) do
+    # This one is tricky because it needs an organization_membership_id
+    # which implies a user and an organization.
+    # And a location_id which must belong to that organization (ideally).
+    # For simplicity, if IDs aren't provided, we generate them, but linking them correctly
+    # might require the caller to be careful or us to be smarter.
+    
+    # If no membership provided, create one.
+    membership_id = overrides[:organization_membership_id]
+    
+    {membership_id, org_id} =
+      if membership_id do
+         {membership_id, nil} # We don't easily know the org_id, hopefully caller handles location
+      else
+         org = organization() |> Ash.Generator.generate()
+         user = user() |> Ash.Generator.generate()
+         mem = organization_membership(organization_id: org.id, user_id: user.id) |> Ash.Generator.generate()
+         {mem.id, org.id}
+      end
+
+    location_id =
+      overrides[:location_id] ||
+        (
+           # If we created the org, use it. If not, create a new org/location (might be inconsistent if membership was provided but location wasn't)
+           # Best effort: if we have org_id, use it.
+           org_id_to_use = org_id || organization() |> Ash.Generator.generate() |> Map.get(:id)
+           location(organization_id: org_id_to_use) |> Ash.Generator.generate() |> Map.get(:id)
+        )
+
+    Ash.Generator.changeset_generator(
+      Medishop.Organizations.OrganizationLocationMembership,
+      :create,
+      defaults: [
+        organization_membership_id: membership_id,
+        location_id: location_id
+      ],
+      overrides: overrides,
+      authorize?: false
+    )
+  end
+
+  def product(overrides \\ []) do
+    Ash.Generator.changeset_generator(
+      Medishop.Products.Product,
+      :create,
+      defaults: [
+        sku: sequence(:sku, &"SKU-#{&1}"),
+        title: sequence(:title, &"Test Product #{&1}"),
+        images: [],
+        price: Decimal.new("10.00"),
+        active: true
+      ],
+      overrides: overrides,
+      authorize?: false
+    )
+  end
+
+  def location_inventory(overrides \\ []) do
+    # Assuming manual creation via create_location_inventory is allowed/standard for tests
+    location_id =
+      overrides[:location_id] ||
+        location() |> Ash.Generator.generate() |> Map.get(:id)
+
+    product_id =
+      overrides[:product_id] ||
+        product() |> Ash.Generator.generate() |> Map.get(:id)
+
+    Ash.Generator.changeset_generator(
+      Medishop.Inventory.LocationInventory,
+      :create, # Assuming the action name is :create, checked fixture calling create_location_inventory
+      defaults: [
+        location_id: location_id,
+        product_id: product_id
+      ],
+      overrides: overrides,
+      authorize?: false
+    )
+  end
+
+  def inventory_event(overrides \\ []) do
+    location_id =
+      overrides[:location_id] ||
+        location() |> Ash.Generator.generate() |> Map.get(:id)
+
+    product_id =
+      overrides[:product_id] ||
+        product() |> Ash.Generator.generate() |> Map.get(:id)
+
+    Ash.Generator.changeset_generator(
+      Medishop.Inventory.InventoryEvent,
+      :create,
+      defaults: [
+        location_id: location_id,
+        product_id: product_id,
+        event_type: :purchase_received,
+        quantity_change: 10,
+        occurred_at: DateTime.utc_now()
+      ],
+      overrides: overrides,
+      authorize?: false
+    )
+  end
+
+  def cart(overrides \\ []) do
+    location_id =
+      overrides[:location_id] ||
+        location() |> Ash.Generator.generate() |> Map.get(:id)
+
+    Ash.Generator.changeset_generator(
+      Medishop.Shop.Cart,
+      :create,
+      defaults: [
+        location_id: location_id
+      ],
+      overrides: overrides,
+      authorize?: false
+    )
+  end
+
+  def cart_item(overrides \\ []) do
+     cart_id =
+      overrides[:cart_id] ||
+        cart() |> Ash.Generator.generate() |> Map.get(:id)
+
+     product_id =
+      overrides[:product_id] ||
+        product() |> Ash.Generator.generate() |> Map.get(:id)
+
+     # Price logic: fixture fetched product to get price.
+     # Here we can default to something or try to be smart.
+     # Ideally caller provides price or we just use a default.
+     # If product_id is generated here, we can't easily get its price without fetching.
+     # Let's default to 10.00 if not provided, assuming default product price.
+     price = overrides[:price_at_addition] || Decimal.new("10.00")
+
+    Ash.Generator.changeset_generator(
+      Medishop.Shop.CartItem,
+      :create,
+      defaults: [
+        cart_id: cart_id,
+        product_id: product_id,
+        quantity: 1,
+        price_at_addition: price
+      ],
+      overrides: overrides,
+      authorize?: false
+    )
+  end
+
+  def order(overrides \\ []) do
+    # Create directly
+    location_id =
+      overrides[:location_id] ||
+        location() |> Ash.Generator.generate() |> Map.get(:id)
+    
+    user_id =
+       overrides[:user_id] ||
+         user() |> Ash.Generator.generate() |> Map.get(:id)
+
+    Ash.Generator.changeset_generator(
+      Medishop.Shop.Order,
+      :create,
+      defaults: [
+        location_id: location_id,
+        user_id: user_id,
+        status: :pending,
+        subtotal: Decimal.new("100.00"),
+        total: Decimal.new("100.00")
+      ],
+      overrides: overrides,
+      authorize?: false
+    )
+  end
+
+  # Helper for creating order from cart? 
+  # Generators usually focus on the resource itself. 
+  # creating from cart is a specific action on Order that takes a cart.
+  # We can add it if needed, but let's stick to resource generators first.
+
+  def order_item(overrides \\ []) do
+    order_id =
+      overrides[:order_id] ||
+        order() |> Ash.Generator.generate() |> Map.get(:id)
+
+    product_id =
+      overrides[:product_id] ||
+        product() |> Ash.Generator.generate() |> Map.get(:id)
+    
+    unit_price = overrides[:unit_price] || Decimal.new("10.00")
+    quantity = overrides[:quantity] || 1
+    line_total = overrides[:line_total] || Decimal.mult(unit_price, Decimal.new(quantity))
+
+    Ash.Generator.changeset_generator(
+      Medishop.Shop.OrderItem,
+      :create,
+      defaults: [
+        order_id: order_id,
+        product_id: product_id,
+        quantity: quantity,
+        unit_price: unit_price,
+        line_total: line_total
       ],
       overrides: overrides,
       authorize?: false

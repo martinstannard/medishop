@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 
 ## 2025-11-23
 
+### Refactored - Test Infrastructure
+- **Generator-Based Testing**: Migrated entire test suite (312 tests) to use `Ash.Generator` instead of custom fixtures
+  - Updated `Medishop.Generator` with factories for all resources:
+    - `user`, `organization`, `location`, `organization_membership`, `organization_location_membership`
+    - `product` (with default images: []), `location_inventory`, `inventory_event`
+    - `cart`, `cart_item`, `order`, `order_item`
+  - Removed legacy fixture files:
+    - `test/support/inventory_fixtures.ex`
+    - `test/support/organizations_fixtures.ex`
+    - `test/support/shop_fixtures.ex`
+    - `test/support/products_fixtures.ex`
+  - Updated all test files to use `Ash.Generator.generate()` and new generator functions
+  - **Benefits**:
+    - More consistent test data creation
+    - Better support for complex relationships and overrides
+    - Reduced boilerplate code in tests
+    - Improved maintainability by centralizing factory logic in `Medishop.Generator`
+
 ### Added - Test Coverage Improvements
 - **Critical Business Logic Tests** (20 new tests, 312 total)
   - **Inventory Events on Order Delivery** (`test/medishop/shop/order_test.exs`):
@@ -38,8 +56,6 @@ All notable changes to this project will be documented in this file.
       - Test returning all cart items
       - Test empty list behavior
     - Verifies basic CRUD coverage for resource retrieval
-
-## 2025-11-23
 
 ### Added
 - **Dashboard Low Stock Alerts Widget (Phase 3.4 Complete)** (`lib/medishop_web/live/dashboard_live.ex`)
@@ -238,7 +254,7 @@ All notable changes to this project will be documented in this file.
   - Verifies cart items maintain order when updating quantities
   - Verifies cart items maintain order when adding new products
   - Verifies cart items sorted by `created_at` timestamp
-  - Verifies removed and re-added products appear at end
+  - Verifies removed and re-added products appear at the end
   - Tests use helper functions to extract DOM order and verify against database
   - Tests manually set `created_at` timestamps for speed (no `Process.sleep/1`)
   - These tests catch bugs like using incorrect field names (e.g., `inserted_at` vs `created_at`)

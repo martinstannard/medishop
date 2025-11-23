@@ -3,9 +3,23 @@ defmodule Medishop.Shop.OrderTest do
 
   alias Medishop.Shop
 
-  import Medishop.OrganizationsFixtures
-  import Medishop.ProductsFixtures
-  import Medishop.ShopFixtures
+  import Medishop.Generator
+
+  defp setup_shop_scenario(attrs \\ %{}) do
+    org = organization() |> Ash.Generator.generate()
+    location = location(organization_id: org.id) |> Ash.Generator.generate()
+    user = user() |> Ash.Generator.generate()
+    
+    product_attrs = Map.get(attrs, :product_attrs, [])
+    product = product(product_attrs) |> Ash.Generator.generate()
+
+    %{ 
+      organization: org,
+      location: location,
+      user: user,
+      product: product
+    }
+  end
 
   describe "create_order/1" do
     test "creates an order" do
@@ -46,8 +60,8 @@ defmodule Medishop.Shop.OrderTest do
     test "order_number is unique" do
       scenario = setup_shop_scenario()
 
-      order1 = order_fixture(scenario.location.id, scenario.user.id)
-      order2 = order_fixture(scenario.location.id, scenario.user.id)
+      order1 = order(location_id: scenario.location.id, user_id: scenario.user.id) |> Ash.Generator.generate()
+      order2 = order(location_id: scenario.location.id, user_id: scenario.user.id) |> Ash.Generator.generate()
 
       assert order1.order_number != order2.order_number
     end
@@ -55,7 +69,7 @@ defmodule Medishop.Shop.OrderTest do
     test "order_number format is consistent" do
       scenario = setup_shop_scenario()
 
-      order = order_fixture(scenario.location.id, scenario.user.id)
+      order = order(location_id: scenario.location.id, user_id: scenario.user.id) |> Ash.Generator.generate()
 
       # Format: ORD-YYYYMMDD-XXXXXX
       assert String.match?(order.order_number, ~r/^ORD-\d{8}-[A-F0-9]{6}$/)
@@ -78,7 +92,7 @@ defmodule Medishop.Shop.OrderTest do
     test "placed_at timestamp is set on creation" do
       scenario = setup_shop_scenario()
 
-      order = order_fixture(scenario.location.id, scenario.user.id)
+      order = order(location_id: scenario.location.id, user_id: scenario.user.id) |> Ash.Generator.generate()
 
       assert order.placed_at != nil
       # Should be recent (within last minute)
@@ -108,7 +122,7 @@ defmodule Medishop.Shop.OrderTest do
       {:ok, cart} = Shop.create_cart(%{location_id: scenario.location.id})
 
       # Add items to cart
-      _item = cart_item_fixture(cart.id, scenario.product.id, %{quantity: 2})
+      _item = cart_item(cart_id: cart.id, product_id: scenario.product.id, quantity: 2, price_at_addition: scenario.product.price) |> Ash.Generator.generate()
 
       {:ok, order} = Shop.create_order_from_cart(cart.id, scenario.user.id)
 
@@ -121,10 +135,10 @@ defmodule Medishop.Shop.OrderTest do
       scenario = setup_shop_scenario()
       {:ok, cart} = Shop.create_cart(%{location_id: scenario.location.id})
 
-      product2 = product_fixture(%{sku: "PROD-002", price: Decimal.new("20.00")})
+      product2 = product(sku: "PROD-002", price: Decimal.new("20.00")) |> Ash.Generator.generate()
 
-      _item1 = cart_item_fixture(cart.id, scenario.product.id, %{quantity: 2})
-      _item2 = cart_item_fixture(cart.id, product2.id, %{quantity: 3})
+      _item1 = cart_item(cart_id: cart.id, product_id: scenario.product.id, quantity: 2, price_at_addition: scenario.product.price) |> Ash.Generator.generate()
+      _item2 = cart_item(cart_id: cart.id, product_id: product2.id, quantity: 3, price_at_addition: product2.price) |> Ash.Generator.generate()
 
       {:ok, order} = Shop.create_order_from_cart(cart.id, scenario.user.id)
 
@@ -135,15 +149,15 @@ defmodule Medishop.Shop.OrderTest do
     end
 
     test "create_from_cart calculates subtotal correctly" do
-      scenario = setup_shop_scenario(%{product_attrs: %{price: Decimal.new("15.00")}})
+      scenario = setup_shop_scenario(%{product_attrs: [price: Decimal.new("15.00")]})
       {:ok, cart} = Shop.create_cart(%{location_id: scenario.location.id})
 
-      product2 = product_fixture(%{sku: "PROD-002", price: Decimal.new("25.00")})
+      product2 = product(sku: "PROD-002", price: Decimal.new("25.00")) |> Ash.Generator.generate()
 
       # 2 * 15.00 = 30.00
-      _item1 = cart_item_fixture(cart.id, scenario.product.id, %{quantity: 2})
+      _item1 = cart_item(cart_id: cart.id, product_id: scenario.product.id, quantity: 2, price_at_addition: scenario.product.price) |> Ash.Generator.generate()
       # 3 * 25.00 = 75.00
-      _item2 = cart_item_fixture(cart.id, product2.id, %{quantity: 3})
+      _item2 = cart_item(cart_id: cart.id, product_id: product2.id, quantity: 3, price_at_addition: product2.price) |> Ash.Generator.generate()
 
       {:ok, order} = Shop.create_order_from_cart(cart.id, scenario.user.id)
 
@@ -153,10 +167,10 @@ defmodule Medishop.Shop.OrderTest do
     end
 
     test "create_from_cart calculates total correctly" do
-      scenario = setup_shop_scenario(%{product_attrs: %{price: Decimal.new("10.00")}})
+      scenario = setup_shop_scenario(%{product_attrs: [price: Decimal.new("10.00")]})
       {:ok, cart} = Shop.create_cart(%{location_id: scenario.location.id})
 
-      _item = cart_item_fixture(cart.id, scenario.product.id, %{quantity: 5})
+      _item = cart_item(cart_id: cart.id, product_id: scenario.product.id, quantity: 5, price_at_addition: scenario.product.price) |> Ash.Generator.generate()
 
       {:ok, order} = Shop.create_order_from_cart(cart.id, scenario.user.id)
 
@@ -170,7 +184,7 @@ defmodule Medishop.Shop.OrderTest do
       scenario = setup_shop_scenario()
       {:ok, cart} = Shop.create_cart(%{location_id: scenario.location.id})
 
-      _item = cart_item_fixture(cart.id, scenario.product.id, %{quantity: 2})
+      _item = cart_item(cart_id: cart.id, product_id: scenario.product.id, quantity: 2) |> Ash.Generator.generate()
 
       {:ok, _order} = Shop.create_order_from_cart(cart.id, scenario.user.id)
 
@@ -183,7 +197,7 @@ defmodule Medishop.Shop.OrderTest do
   describe "update_order_status/2" do
     test "status transition: pending → confirmed" do
       scenario = setup_shop_scenario()
-      order = order_fixture(scenario.location.id, scenario.user.id, %{status: :pending})
+      order = order(location_id: scenario.location.id, user_id: scenario.user.id, status: :pending) |> Ash.Generator.generate()
 
       assert {:ok, updated_order} = Shop.update_order_status(order, :confirmed)
 
@@ -194,7 +208,7 @@ defmodule Medishop.Shop.OrderTest do
       scenario = setup_shop_scenario()
 
       order =
-        order_fixture(scenario.location.id, scenario.user.id, %{status: :confirmed})
+        order(location_id: scenario.location.id, user_id: scenario.user.id, status: :confirmed) |> Ash.Generator.generate()
 
       assert {:ok, updated_order} = Shop.update_order_status(order, :shipped)
 
@@ -203,7 +217,7 @@ defmodule Medishop.Shop.OrderTest do
 
     test "status transition: shipped → delivered" do
       scenario = setup_shop_scenario()
-      order = order_fixture(scenario.location.id, scenario.user.id, %{status: :shipped})
+      order = order(location_id: scenario.location.id, user_id: scenario.user.id, status: :shipped) |> Ash.Generator.generate()
 
       assert {:ok, updated_order} = Shop.update_order_status(order, :delivered)
 
@@ -212,7 +226,7 @@ defmodule Medishop.Shop.OrderTest do
 
     test "status transition: pending → cancelled" do
       scenario = setup_shop_scenario()
-      order = order_fixture(scenario.location.id, scenario.user.id, %{status: :pending})
+      order = order(location_id: scenario.location.id, user_id: scenario.user.id, status: :pending) |> Ash.Generator.generate()
 
       assert {:ok, updated_order} = Shop.update_order_status(order, :cancelled)
 
@@ -223,7 +237,7 @@ defmodule Medishop.Shop.OrderTest do
       scenario = setup_shop_scenario()
 
       order =
-        order_fixture(scenario.location.id, scenario.user.id, %{status: :delivered})
+        order(location_id: scenario.location.id, user_id: scenario.user.id, status: :delivered) |> Ash.Generator.generate()
 
       assert {:error, _error} = Shop.update_order_status(order, :pending)
     end
@@ -232,14 +246,14 @@ defmodule Medishop.Shop.OrderTest do
       scenario = setup_shop_scenario()
 
       order =
-        order_fixture(scenario.location.id, scenario.user.id, %{status: :cancelled})
+        order(location_id: scenario.location.id, user_id: scenario.user.id, status: :cancelled) |> Ash.Generator.generate()
 
       assert {:error, _error} = Shop.update_order_status(order, :confirmed)
     end
 
     test "confirmed_at timestamp set on status update to :confirmed" do
       scenario = setup_shop_scenario()
-      order = order_fixture(scenario.location.id, scenario.user.id, %{status: :pending})
+      order = order(location_id: scenario.location.id, user_id: scenario.user.id, status: :pending) |> Ash.Generator.generate()
 
       {:ok, updated_order} = Shop.update_order_status(order, :confirmed)
 
@@ -251,7 +265,7 @@ defmodule Medishop.Shop.OrderTest do
       scenario = setup_shop_scenario()
 
       order =
-        order_fixture(scenario.location.id, scenario.user.id, %{status: :confirmed})
+        order(location_id: scenario.location.id, user_id: scenario.user.id, status: :confirmed) |> Ash.Generator.generate()
 
       {:ok, updated_order} = Shop.update_order_status(order, :shipped)
 
@@ -261,7 +275,7 @@ defmodule Medishop.Shop.OrderTest do
 
     test "delivered_at timestamp set on status update to :delivered" do
       scenario = setup_shop_scenario()
-      order = order_fixture(scenario.location.id, scenario.user.id, %{status: :shipped})
+      order = order(location_id: scenario.location.id, user_id: scenario.user.id, status: :shipped) |> Ash.Generator.generate()
 
       {:ok, updated_order} = Shop.update_order_status(order, :delivered)
 
@@ -271,7 +285,7 @@ defmodule Medishop.Shop.OrderTest do
 
     test "cancelled_at timestamp set on status update to :cancelled" do
       scenario = setup_shop_scenario()
-      order = order_fixture(scenario.location.id, scenario.user.id, %{status: :pending})
+      order = order(location_id: scenario.location.id, user_id: scenario.user.id, status: :pending) |> Ash.Generator.generate()
 
       {:ok, updated_order} = Shop.update_order_status(order, :cancelled)
 
@@ -283,7 +297,7 @@ defmodule Medishop.Shop.OrderTest do
   describe "order relationships" do
     test "order belongs_to :location relationship" do
       scenario = setup_shop_scenario()
-      order = order_fixture(scenario.location.id, scenario.user.id)
+      order = order(location_id: scenario.location.id, user_id: scenario.user.id) |> Ash.Generator.generate()
 
       {:ok, order_with_location} = Shop.get_order(order.id, load: [:location])
 
@@ -293,7 +307,7 @@ defmodule Medishop.Shop.OrderTest do
 
     test "order belongs_to :user relationship" do
       scenario = setup_shop_scenario()
-      order = order_fixture(scenario.location.id, scenario.user.id)
+      order = order(location_id: scenario.location.id, user_id: scenario.user.id) |> Ash.Generator.generate()
 
       {:ok, order_with_user} = Shop.get_order(order.id, load: [:user])
 
@@ -304,10 +318,10 @@ defmodule Medishop.Shop.OrderTest do
       scenario = setup_shop_scenario()
       {:ok, cart} = Shop.create_cart(%{location_id: scenario.location.id})
 
-      product2 = product_fixture(%{sku: "PROD-002"})
+      product2 = product(sku: "PROD-002") |> Ash.Generator.generate()
 
-      _item1 = cart_item_fixture(cart.id, scenario.product.id, %{quantity: 1})
-      _item2 = cart_item_fixture(cart.id, product2.id, %{quantity: 2})
+      _item1 = cart_item(cart_id: cart.id, product_id: scenario.product.id, quantity: 1, price_at_addition: scenario.product.price) |> Ash.Generator.generate()
+      _item2 = cart_item(cart_id: cart.id, product_id: product2.id, quantity: 2, price_at_addition: product2.price) |> Ash.Generator.generate()
 
       {:ok, order} = Shop.create_order_from_cart(cart.id, scenario.user.id)
 
@@ -322,11 +336,11 @@ defmodule Medishop.Shop.OrderTest do
       scenario = setup_shop_scenario()
 
       # Create another location
-      location2 = location_fixture(scenario.organization.id, %{name: "Location 2"})
+      location2 = location(organization_id: scenario.organization.id, name: "Location 2") |> Ash.Generator.generate()
 
       # Create orders for different locations
-      order1 = order_fixture(scenario.location.id, scenario.user.id)
-      _order2 = order_fixture(location2.id, scenario.user.id)
+      order1 = order(location_id: scenario.location.id, user_id: scenario.user.id) |> Ash.Generator.generate()
+      _order2 = order(location_id: location2.id, user_id: scenario.user.id) |> Ash.Generator.generate()
 
       {:ok, orders} = Shop.get_orders_for_location(scenario.location.id)
 
@@ -338,11 +352,11 @@ defmodule Medishop.Shop.OrderTest do
   describe "get_orders_for_user/1" do
     test "filters correctly by user" do
       scenario = setup_shop_scenario()
-      user2 = user_fixture(%{email: "user2@example.com"})
+      user2 = user(email: "user2@example.com") |> Ash.Generator.generate()
 
       # Create orders for different users
-      order1 = order_fixture(scenario.location.id, scenario.user.id)
-      _order2 = order_fixture(scenario.location.id, user2.id)
+      order1 = order(location_id: scenario.location.id, user_id: scenario.user.id) |> Ash.Generator.generate()
+      _order2 = order(location_id: scenario.location.id, user_id: user2.id) |> Ash.Generator.generate()
 
       {:ok, orders} = Shop.get_orders_for_user(scenario.user.id)
 
@@ -354,7 +368,7 @@ defmodule Medishop.Shop.OrderTest do
   describe "destroy_order/1" do
     test "deletes an order" do
       scenario = setup_shop_scenario()
-      order = order_fixture(scenario.location.id, scenario.user.id)
+      order = order(location_id: scenario.location.id, user_id: scenario.user.id) |> Ash.Generator.generate()
 
       assert :ok = Shop.destroy_order(order)
 
@@ -369,7 +383,7 @@ defmodule Medishop.Shop.OrderTest do
       scenario = setup_shop_scenario()
       {:ok, cart} = Shop.create_cart(%{location_id: scenario.location.id})
 
-      _item = cart_item_fixture(cart.id, scenario.product.id, %{quantity: 2})
+      _item = cart_item(cart_id: cart.id, product_id: scenario.product.id, quantity: 2, price_at_addition: scenario.product.price) |> Ash.Generator.generate()
 
       {:ok, order} = Shop.create_order_from_cart(cart.id, scenario.user.id)
 
@@ -388,9 +402,9 @@ defmodule Medishop.Shop.OrderTest do
       {:ok, cart} = Shop.create_cart(%{location_id: scenario.location.id})
 
       # Add multiple products to cart
-      product2 = product_fixture(%{sku: "PROD-002"})
-      _item1 = cart_item_fixture(cart.id, scenario.product.id, %{quantity: 3})
-      _item2 = cart_item_fixture(cart.id, product2.id, %{quantity: 5})
+      product2 = product(sku: "PROD-002") |> Ash.Generator.generate()
+      _item1 = cart_item(cart_id: cart.id, product_id: scenario.product.id, quantity: 3, price_at_addition: scenario.product.price) |> Ash.Generator.generate()
+      _item2 = cart_item(cart_id: cart.id, product_id: product2.id, quantity: 5, price_at_addition: product2.price) |> Ash.Generator.generate()
 
       # Create order from cart
       {:ok, order} = Shop.create_order_from_cart(cart.id, scenario.user.id)
@@ -431,7 +445,7 @@ defmodule Medishop.Shop.OrderTest do
       scenario = setup_shop_scenario()
       {:ok, cart} = Shop.create_cart(%{location_id: scenario.location.id})
 
-      _item = cart_item_fixture(cart.id, scenario.product.id, %{quantity: 2})
+      _item = cart_item(cart_id: cart.id, product_id: scenario.product.id, quantity: 2, price_at_addition: scenario.product.price) |> Ash.Generator.generate()
 
       {:ok, order} = Shop.create_order_from_cart(cart.id, scenario.user.id)
 
@@ -456,7 +470,7 @@ defmodule Medishop.Shop.OrderTest do
       scenario = setup_shop_scenario()
       {:ok, cart} = Shop.create_cart(%{location_id: scenario.location.id})
 
-      _item = cart_item_fixture(cart.id, scenario.product.id, %{quantity: 2})
+      _item = cart_item(cart_id: cart.id, product_id: scenario.product.id, quantity: 2, price_at_addition: scenario.product.price) |> Ash.Generator.generate()
 
       {:ok, order} = Shop.create_order_from_cart(cart.id, scenario.user.id)
 
@@ -473,7 +487,7 @@ defmodule Medishop.Shop.OrderTest do
       scenario = setup_shop_scenario()
       {:ok, cart} = Shop.create_cart(%{location_id: scenario.location.id})
 
-      _item = cart_item_fixture(cart.id, scenario.product.id, %{quantity: 10})
+      _item = cart_item(cart_id: cart.id, product_id: scenario.product.id, quantity: 10, price_at_addition: scenario.product.price) |> Ash.Generator.generate()
 
       {:ok, order} = Shop.create_order_from_cart(cart.id, scenario.user.id)
 

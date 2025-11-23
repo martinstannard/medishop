@@ -3,13 +3,12 @@ defmodule Medishop.Inventory.InventoryEventTest do
 
   alias Medishop.Inventory
 
-  import Medishop.OrganizationsFixtures
-  import Medishop.ProductsFixtures
+  import Medishop.Generator
 
   defp setup_location_and_product(_context) do
-    organization = organization_fixture()
-    location = location_fixture(organization.id)
-    product = product_fixture()
+    organization = organization() |> Ash.Generator.generate()
+    location = location(organization_id: organization.id) |> Ash.Generator.generate()
+    product = product() |> Ash.Generator.generate()
     %{location: location, product: product}
   end
 
@@ -190,7 +189,7 @@ defmodule Medishop.Inventory.InventoryEventTest do
     end
 
     test "requires location_id" do
-      product = product_fixture()
+      product = product() |> Ash.Generator.generate()
 
       assert {:error, error} =
                Inventory.create_inventory_event(%{
@@ -205,8 +204,8 @@ defmodule Medishop.Inventory.InventoryEventTest do
     end
 
     test "requires product_id" do
-      organization = organization_fixture()
-      location = location_fixture(organization.id)
+      organization = organization() |> Ash.Generator.generate()
+      location = location(organization_id: organization.id) |> Ash.Generator.generate()
 
       assert {:error, error} =
                Inventory.create_inventory_event(%{
@@ -250,12 +249,12 @@ defmodule Medishop.Inventory.InventoryEventTest do
 
   describe "get_events_by_location_and_product/2" do
     test "returns events filtered by location and product" do
-      org1 = organization_fixture()
-      location1 = location_fixture(org1.id)
-      org2 = organization_fixture()
-      location2 = location_fixture(org2.id)
-      product1 = product_fixture()
-      product2 = product_fixture()
+      org1 = organization() |> Ash.Generator.generate()
+      location1 = location(organization_id: org1.id) |> Ash.Generator.generate()
+      org2 = organization() |> Ash.Generator.generate()
+      location2 = location(organization_id: org2.id) |> Ash.Generator.generate()
+      product1 = product() |> Ash.Generator.generate()
+      product2 = product() |> Ash.Generator.generate()
 
       {:ok, event1} =
         Inventory.create_inventory_event(%{
@@ -297,11 +296,11 @@ defmodule Medishop.Inventory.InventoryEventTest do
 
   describe "get_events_by_location/1" do
     test "returns events filtered by location" do
-      org1 = organization_fixture()
-      location1 = location_fixture(org1.id)
-      org2 = organization_fixture()
-      location2 = location_fixture(org2.id)
-      product = product_fixture()
+      org1 = organization() |> Ash.Generator.generate()
+      location1 = location(organization_id: org1.id) |> Ash.Generator.generate()
+      org2 = organization() |> Ash.Generator.generate()
+      location2 = location(organization_id: org2.id) |> Ash.Generator.generate()
+      product = product() |> Ash.Generator.generate()
 
       {:ok, event1} =
         Inventory.create_inventory_event(%{
@@ -343,8 +342,8 @@ defmodule Medishop.Inventory.InventoryEventTest do
     setup :setup_location_and_product
 
     test "returns events filtered by product", %{location: location} do
-      product1 = product_fixture()
-      product2 = product_fixture()
+      product1 = product() |> Ash.Generator.generate()
+      product2 = product() |> Ash.Generator.generate()
 
       {:ok, event1} =
         Inventory.create_inventory_event(%{
@@ -468,8 +467,8 @@ defmodule Medishop.Inventory.InventoryEventTest do
     test "creates LocationInventory for each unique location-product combination", %{
       location: location
     } do
-      product1 = product_fixture(%{sku: "PROD-001"})
-      product2 = product_fixture(%{sku: "PROD-002"})
+      product1 = product(sku: "PROD-001") |> Ash.Generator.generate()
+      product2 = product(sku: "PROD-002") |> Ash.Generator.generate()
 
       # Create events for two different products at the same location
       {:ok, _event1} =
@@ -500,11 +499,11 @@ defmodule Medishop.Inventory.InventoryEventTest do
     end
 
     test "creates LocationInventory at different locations for same product" do
-      org1 = organization_fixture()
-      location1 = location_fixture(org1.id, %{name: "Location 1"})
-      org2 = organization_fixture()
-      location2 = location_fixture(org2.id, %{name: "Location 2"})
-      product = product_fixture()
+      org1 = organization() |> Ash.Generator.generate()
+      location1 = location(organization_id: org1.id, name: "Location 1") |> Ash.Generator.generate()
+      org2 = organization() |> Ash.Generator.generate()
+      location2 = location(organization_id: org2.id, name: "Location 2") |> Ash.Generator.generate()
+      product = product() |> Ash.Generator.generate()
 
       # Create events at two different locations for the same product
       {:ok, _event1} =

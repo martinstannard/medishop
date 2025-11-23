@@ -2,14 +2,13 @@ defmodule MedishopWeb.ProductsLiveTest do
   use MedishopWeb.ConnCase
 
   import Phoenix.LiveViewTest
-  import Medishop.OrganizationsFixtures
-  import Medishop.ProductsFixtures
+  import Medishop.Generator
   import MedishopWeb.LiveViewTestHelpers
 
   describe "ProductsLive - unauthenticated access" do
     test "redirects unauthenticated user to sign-in page", %{conn: conn} do
-      org = organization_fixture()
-      location = location_fixture(org.id)
+      org = organization() |> Ash.Generator.generate()
+      location = location(organization_id: org.id) |> Ash.Generator.generate()
 
       {:error, {:redirect, %{to: path}}} = live(conn, ~p"/location/#{location.id}/products")
       assert path == ~p"/sign-in"
@@ -18,9 +17,9 @@ defmodule MedishopWeb.ProductsLiveTest do
 
   describe "ProductsLive - unauthorized access" do
     setup %{conn: conn} do
-      user = user_fixture()
-      org = organization_fixture()
-      location = location_fixture(org.id)
+      user = user() |> Ash.Generator.generate()
+      org = organization() |> Ash.Generator.generate()
+      location = location(organization_id: org.id) |> Ash.Generator.generate()
 
       # User has no membership to this organization
       conn = log_in_user(conn, user)
@@ -39,13 +38,13 @@ defmodule MedishopWeb.ProductsLiveTest do
 
   describe "ProductsLive - authorized user with no products" do
     setup %{conn: conn} do
-      user = user_fixture()
-      org = organization_fixture()
-      location = location_fixture(org.id)
+      user = user() |> Ash.Generator.generate()
+      org = organization() |> Ash.Generator.generate()
+      location = location(organization_id: org.id) |> Ash.Generator.generate()
 
       # Create membership with org_buyer role
-      membership = organization_membership_fixture(user.id, org.id, %{org_roles: [:org_buyer]})
-      organization_location_membership_fixture(membership.id, location.id)
+      membership = organization_membership(user_id: user.id, organization_id: org.id, org_roles: [:org_buyer]) |> Ash.Generator.generate()
+      organization_location_membership(organization_membership_id: membership.id, location_id: location.id) |> Ash.Generator.generate()
 
       # Log in the user
       conn = log_in_user(conn, user)
@@ -76,41 +75,41 @@ defmodule MedishopWeb.ProductsLiveTest do
 
   describe "ProductsLive - authorized user with active products" do
     setup %{conn: conn} do
-      user = user_fixture()
-      org = organization_fixture()
-      location = location_fixture(org.id)
+      user = user() |> Ash.Generator.generate()
+      org = organization() |> Ash.Generator.generate()
+      location = location(organization_id: org.id) |> Ash.Generator.generate()
 
       # Create membership with org_buyer role
-      membership = organization_membership_fixture(user.id, org.id, %{org_roles: [:org_buyer]})
-      organization_location_membership_fixture(membership.id, location.id)
+      membership = organization_membership(user_id: user.id, organization_id: org.id, org_roles: [:org_buyer]) |> Ash.Generator.generate()
+      organization_location_membership(organization_membership_id: membership.id, location_id: location.id) |> Ash.Generator.generate()
 
       # Create active products
       product1 =
-        product_fixture(%{
+        product(
           title: "Aspirin 100mg",
           sku: "ASP-100",
           description: "Pain relief medication",
           price: Decimal.new("10.99"),
           active: true
-        })
+        ) |> Ash.Generator.generate()
 
       product2 =
-        product_fixture(%{
+        product(
           title: "Ibuprofen 200mg",
           sku: "IBU-200",
           description: "Anti-inflammatory medication",
           price: Decimal.new("15.50"),
           active: true
-        })
+        ) |> Ash.Generator.generate()
 
       # Create inactive product (should not be displayed)
       _inactive_product =
-        product_fixture(%{
+        product(
           title: "Discontinued Product",
           sku: "DIS-001",
           price: Decimal.new("5.00"),
           active: false
-        })
+        ) |> Ash.Generator.generate()
 
       # Log in the user
       conn = log_in_user(conn, user)
@@ -186,35 +185,35 @@ defmodule MedishopWeb.ProductsLiveTest do
 
   describe "ProductsLive - search functionality" do
     setup %{conn: conn} do
-      user = user_fixture()
-      org = organization_fixture()
-      location = location_fixture(org.id)
+      user = user() |> Ash.Generator.generate()
+      org = organization() |> Ash.Generator.generate()
+      location = location(organization_id: org.id) |> Ash.Generator.generate()
 
       # Create membership with org_buyer role
-      membership = organization_membership_fixture(user.id, org.id, %{org_roles: [:org_buyer]})
-      organization_location_membership_fixture(membership.id, location.id)
+      membership = organization_membership(user_id: user.id, organization_id: org.id, org_roles: [:org_buyer]) |> Ash.Generator.generate()
+      organization_location_membership(organization_membership_id: membership.id, location_id: location.id) |> Ash.Generator.generate()
 
       # Create diverse products for search testing
       aspirin =
-        product_fixture(%{
+        product(
           title: "Aspirin 100mg Tablets",
           sku: "ASP-100",
           price: Decimal.new("10.00")
-        })
+        ) |> Ash.Generator.generate()
 
       ibuprofen =
-        product_fixture(%{
+        product(
           title: "Ibuprofen 200mg Capsules",
           sku: "IBU-200",
           price: Decimal.new("15.00")
-        })
+        ) |> Ash.Generator.generate()
 
       acetaminophen =
-        product_fixture(%{
+        product(
           title: "Acetaminophen 500mg",
           sku: "ACE-500",
           price: Decimal.new("12.00")
-        })
+        ) |> Ash.Generator.generate()
 
       # Log in the user
       conn = log_in_user(conn, user)
@@ -308,21 +307,21 @@ defmodule MedishopWeb.ProductsLiveTest do
 
   describe "ProductsLive - add to cart functionality" do
     setup %{conn: conn} do
-      user = user_fixture()
-      org = organization_fixture()
-      location = location_fixture(org.id)
+      user = user() |> Ash.Generator.generate()
+      org = organization() |> Ash.Generator.generate()
+      location = location(organization_id: org.id) |> Ash.Generator.generate()
 
       # Create membership with org_buyer role
-      membership = organization_membership_fixture(user.id, org.id, %{org_roles: [:org_buyer]})
-      organization_location_membership_fixture(membership.id, location.id)
+      membership = organization_membership(user_id: user.id, organization_id: org.id, org_roles: [:org_buyer]) |> Ash.Generator.generate()
+      organization_location_membership(organization_membership_id: membership.id, location_id: location.id) |> Ash.Generator.generate()
 
       # Create product
       product =
-        product_fixture(%{
+        product(
           title: "Test Product",
           sku: "TEST-001",
           price: Decimal.new("20.00")
-        })
+        ) |> Ash.Generator.generate()
 
       # Log in the user
       conn = log_in_user(conn, user)

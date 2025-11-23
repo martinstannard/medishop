@@ -2,17 +2,16 @@ defmodule MedishopWeb.InventoryDetailLiveTest do
   use MedishopWeb.ConnCase
 
   import Phoenix.LiveViewTest
-  import Medishop.OrganizationsFixtures
-  import Medishop.ProductsFixtures
+  import Medishop.Generator
   import MedishopWeb.LiveViewTestHelpers
 
   alias Medishop.Inventory
 
   setup do
-    user = user_fixture()
-    organization = organization_fixture()
-    location = location_fixture(organization.id)
-    product = product_fixture()
+    user = user() |> Ash.Generator.generate()
+    organization = organization() |> Ash.Generator.generate()
+    location = location(organization_id: organization.id) |> Ash.Generator.generate()
+    product = product() |> Ash.Generator.generate()
 
     %{user: user, organization: organization, location: location, product: product}
   end
@@ -84,14 +83,13 @@ defmodule MedishopWeb.InventoryDetailLiveTest do
       product: product
     } do
       # Create inventory with an event
-      {:ok, _event} =
-        Inventory.create_inventory_event(%{
-          location_id: location.id,
-          product_id: product.id,
-          event_type: :purchase_received,
-          quantity_change: 100,
-          occurred_at: DateTime.utc_now()
-        })
+      _event = inventory_event(
+        location_id: location.id,
+        product_id: product.id,
+        event_type: :purchase_received,
+        quantity_change: 100,
+        occurred_at: DateTime.utc_now()
+      ) |> Ash.Generator.generate()
 
       conn = log_in_user(conn, user)
       {:ok, view, _html} = live(conn, ~p"/location/#{location.id}/inventory/#{product.id}")
@@ -131,14 +129,13 @@ defmodule MedishopWeb.InventoryDetailLiveTest do
       location: location,
       product: product
     } do
-      {:ok, _event} =
-        Inventory.create_inventory_event(%{
-          location_id: location.id,
-          product_id: product.id,
-          event_type: :purchase_received,
-          quantity_change: 5,
-          occurred_at: DateTime.utc_now()
-        })
+      _event = inventory_event(
+        location_id: location.id,
+        product_id: product.id,
+        event_type: :purchase_received,
+        quantity_change: 5,
+        occurred_at: DateTime.utc_now()
+      ) |> Ash.Generator.generate()
 
       conn = log_in_user(conn, user)
       {:ok, view, _html} = live(conn, ~p"/location/#{location.id}/inventory/#{product.id}")
@@ -152,14 +149,13 @@ defmodule MedishopWeb.InventoryDetailLiveTest do
       location: location,
       product: product
     } do
-      {:ok, _event} =
-        Inventory.create_inventory_event(%{
-          location_id: location.id,
-          product_id: product.id,
-          event_type: :purchase_received,
-          quantity_change: 50,
-          occurred_at: DateTime.utc_now()
-        })
+      _event = inventory_event(
+        location_id: location.id,
+        product_id: product.id,
+        event_type: :purchase_received,
+        quantity_change: 50,
+        occurred_at: DateTime.utc_now()
+      ) |> Ash.Generator.generate()
 
       conn = log_in_user(conn, user)
       {:ok, view, _html} = live(conn, ~p"/location/#{location.id}/inventory/#{product.id}")
@@ -175,14 +171,13 @@ defmodule MedishopWeb.InventoryDetailLiveTest do
       location: location,
       product: product
     } do
-      {:ok, event} =
-        Inventory.create_inventory_event(%{
-          location_id: location.id,
-          product_id: product.id,
-          event_type: :purchase_received,
-          quantity_change: 100,
-          occurred_at: DateTime.utc_now()
-        })
+      event = inventory_event(
+        location_id: location.id,
+        product_id: product.id,
+        event_type: :purchase_received,
+        quantity_change: 100,
+        occurred_at: DateTime.utc_now()
+      ) |> Ash.Generator.generate()
 
       conn = log_in_user(conn, user)
       {:ok, view, _html} = live(conn, ~p"/location/#{location.id}/inventory/#{product.id}")
@@ -204,23 +199,21 @@ defmodule MedishopWeb.InventoryDetailLiveTest do
     end
 
     test "displays event type badges", %{conn: conn, user: user, location: location, product: product} do
-      {:ok, event1} =
-        Inventory.create_inventory_event(%{
-          location_id: location.id,
-          product_id: product.id,
-          event_type: :purchase_received,
-          quantity_change: 100,
-          occurred_at: DateTime.utc_now()
-        })
+      event1 = inventory_event(
+        location_id: location.id,
+        product_id: product.id,
+        event_type: :purchase_received,
+        quantity_change: 100,
+        occurred_at: DateTime.utc_now()
+      ) |> Ash.Generator.generate()
 
-      {:ok, event2} =
-        Inventory.create_inventory_event(%{
-          location_id: location.id,
-          product_id: product.id,
-          event_type: :administered,
-          quantity_change: -10,
-          occurred_at: DateTime.utc_now()
-        })
+      event2 = inventory_event(
+        location_id: location.id,
+        product_id: product.id,
+        event_type: :administered,
+        quantity_change: -10,
+        occurred_at: DateTime.utc_now()
+      ) |> Ash.Generator.generate()
 
       conn = log_in_user(conn, user)
       {:ok, view, _html} = live(conn, ~p"/location/#{location.id}/inventory/#{product.id}")
@@ -235,23 +228,21 @@ defmodule MedishopWeb.InventoryDetailLiveTest do
       location: location,
       product: product
     } do
-      {:ok, _event1} =
-        Inventory.create_inventory_event(%{
-          location_id: location.id,
-          product_id: product.id,
-          event_type: :purchase_received,
-          quantity_change: 100,
-          occurred_at: DateTime.utc_now()
-        })
+      _event1 = inventory_event(
+        location_id: location.id,
+        product_id: product.id,
+        event_type: :purchase_received,
+        quantity_change: 100,
+        occurred_at: DateTime.utc_now()
+      ) |> Ash.Generator.generate()
 
-      {:ok, _event2} =
-        Inventory.create_inventory_event(%{
-          location_id: location.id,
-          product_id: product.id,
-          event_type: :administered,
-          quantity_change: -10,
-          occurred_at: DateTime.utc_now()
-        })
+      _event2 = inventory_event(
+        location_id: location.id,
+        product_id: product.id,
+        event_type: :administered,
+        quantity_change: -10,
+        occurred_at: DateTime.utc_now()
+      ) |> Ash.Generator.generate()
 
       conn = log_in_user(conn, user)
       {:ok, _view, html} = live(conn, ~p"/location/#{location.id}/inventory/#{product.id}")
@@ -267,15 +258,14 @@ defmodule MedishopWeb.InventoryDetailLiveTest do
       location: location,
       product: product
     } do
-      {:ok, event} =
-        Inventory.create_inventory_event(%{
-          location_id: location.id,
-          product_id: product.id,
-          event_type: :disposed,
-          quantity_change: -5,
-          reason: "Damaged packaging",
-          occurred_at: DateTime.utc_now()
-        })
+      event = inventory_event(
+        location_id: location.id,
+        product_id: product.id,
+        event_type: :disposed,
+        quantity_change: -5,
+        reason: "Damaged packaging",
+        occurred_at: DateTime.utc_now()
+      ) |> Ash.Generator.generate()
 
       conn = log_in_user(conn, user)
       {:ok, view, _html} = live(conn, ~p"/location/#{location.id}/inventory/#{product.id}")
@@ -289,15 +279,14 @@ defmodule MedishopWeb.InventoryDetailLiveTest do
       location: location,
       product: product
     } do
-      {:ok, event} =
-        Inventory.create_inventory_event(%{
-          location_id: location.id,
-          product_id: product.id,
-          event_type: :adjustment,
-          quantity_change: 10,
-          reason: "Physical count discrepancy",
-          occurred_at: DateTime.utc_now()
-        })
+      event = inventory_event(
+        location_id: location.id,
+        product_id: product.id,
+        event_type: :adjustment,
+        quantity_change: 10,
+        reason: "Physical count discrepancy",
+        occurred_at: DateTime.utc_now()
+      ) |> Ash.Generator.generate()
 
       conn = log_in_user(conn, user)
       {:ok, view, _html} = live(conn, ~p"/location/#{location.id}/inventory/#{product.id}")
@@ -309,52 +298,47 @@ defmodule MedishopWeb.InventoryDetailLiveTest do
   describe "InventoryDetailLive - event type filtering" do
     setup %{location: location, product: product} do
       # Create events of different types
-      {:ok, purchase_event} =
-        Inventory.create_inventory_event(%{
-          location_id: location.id,
-          product_id: product.id,
-          event_type: :purchase_received,
-          quantity_change: 100,
-          occurred_at: DateTime.utc_now()
-        })
+      purchase_event = inventory_event(
+        location_id: location.id,
+        product_id: product.id,
+        event_type: :purchase_received,
+        quantity_change: 100,
+        occurred_at: DateTime.utc_now()
+      ) |> Ash.Generator.generate()
 
-      {:ok, administered_event} =
-        Inventory.create_inventory_event(%{
-          location_id: location.id,
-          product_id: product.id,
-          event_type: :administered,
-          quantity_change: -10,
-          occurred_at: DateTime.utc_now()
-        })
+      administered_event = inventory_event(
+        location_id: location.id,
+        product_id: product.id,
+        event_type: :administered,
+        quantity_change: -10,
+        occurred_at: DateTime.utc_now()
+      ) |> Ash.Generator.generate()
 
-      {:ok, expired_event} =
-        Inventory.create_inventory_event(%{
-          location_id: location.id,
-          product_id: product.id,
-          event_type: :expired,
-          quantity_change: -5,
-          occurred_at: DateTime.utc_now()
-        })
+      expired_event = inventory_event(
+        location_id: location.id,
+        product_id: product.id,
+        event_type: :expired,
+        quantity_change: -5,
+        occurred_at: DateTime.utc_now()
+      ) |> Ash.Generator.generate()
 
-      {:ok, disposed_event} =
-        Inventory.create_inventory_event(%{
-          location_id: location.id,
-          product_id: product.id,
-          event_type: :disposed,
-          quantity_change: -3,
-          reason: "Damaged",
-          occurred_at: DateTime.utc_now()
-        })
+      disposed_event = inventory_event(
+        location_id: location.id,
+        product_id: product.id,
+        event_type: :disposed,
+        quantity_change: -3,
+        reason: "Damaged",
+        occurred_at: DateTime.utc_now()
+      ) |> Ash.Generator.generate()
 
-      {:ok, adjustment_event} =
-        Inventory.create_inventory_event(%{
-          location_id: location.id,
-          product_id: product.id,
-          event_type: :adjustment,
-          quantity_change: 2,
-          reason: "Count correction",
-          occurred_at: DateTime.utc_now()
-        })
+      adjustment_event = inventory_event(
+        location_id: location.id,
+        product_id: product.id,
+        event_type: :adjustment,
+        quantity_change: 2,
+        reason: "Count correction",
+        occurred_at: DateTime.utc_now()
+      ) |> Ash.Generator.generate()
 
       %{
         purchase_event: purchase_event,
@@ -515,14 +499,13 @@ defmodule MedishopWeb.InventoryDetailLiveTest do
       product: product
     } do
       # Only create one purchase event
-      {:ok, purchase_event} =
-        Inventory.create_inventory_event(%{
-          location_id: location.id,
-          product_id: product.id,
-          event_type: :purchase_received,
-          quantity_change: 100,
-          occurred_at: DateTime.utc_now()
-        })
+      purchase_event = inventory_event(
+        location_id: location.id,
+        product_id: product.id,
+        event_type: :purchase_received,
+        quantity_change: 100,
+        occurred_at: DateTime.utc_now()
+      ) |> Ash.Generator.generate()
 
       conn = log_in_user(conn, user)
       {:ok, view, _html} = live(conn, ~p"/location/#{location.id}/inventory/#{product.id}")
@@ -548,32 +531,29 @@ defmodule MedishopWeb.InventoryDetailLiveTest do
       # Create events with different timestamps and quantities
       now = DateTime.utc_now()
 
-      {:ok, event1} =
-        Inventory.create_inventory_event(%{
-          location_id: location.id,
-          product_id: product.id,
-          event_type: :purchase_received,
-          quantity_change: 50,
-          occurred_at: DateTime.add(now, -3600, :second)
-        })
+      event1 = inventory_event(
+        location_id: location.id,
+        product_id: product.id,
+        event_type: :purchase_received,
+        quantity_change: 50,
+        occurred_at: DateTime.add(now, -3600, :second)
+      ) |> Ash.Generator.generate()
 
-      {:ok, event2} =
-        Inventory.create_inventory_event(%{
-          location_id: location.id,
-          product_id: product.id,
-          event_type: :administered,
-          quantity_change: -10,
-          occurred_at: DateTime.add(now, -1800, :second)
-        })
+      event2 = inventory_event(
+        location_id: location.id,
+        product_id: product.id,
+        event_type: :administered,
+        quantity_change: -10,
+        occurred_at: DateTime.add(now, -1800, :second)
+      ) |> Ash.Generator.generate()
 
-      {:ok, event3} =
-        Inventory.create_inventory_event(%{
-          location_id: location.id,
-          product_id: product.id,
-          event_type: :purchase_received,
-          quantity_change: 100,
-          occurred_at: now
-        })
+      event3 = inventory_event(
+        location_id: location.id,
+        product_id: product.id,
+        event_type: :purchase_received,
+        quantity_change: 100,
+        occurred_at: now
+      ) |> Ash.Generator.generate()
 
       %{event1: event1, event2: event2, event3: event3}
     end
@@ -701,14 +681,13 @@ defmodule MedishopWeb.InventoryDetailLiveTest do
       product: product
     } do
       # Create initial inventory
-      {:ok, _event} =
-        Inventory.create_inventory_event(%{
-          location_id: location.id,
-          product_id: product.id,
-          event_type: :purchase_received,
-          quantity_change: 100,
-          occurred_at: DateTime.utc_now()
-        })
+      _event = inventory_event(
+        location_id: location.id,
+        product_id: product.id,
+        event_type: :purchase_received,
+        quantity_change: 100,
+        occurred_at: DateTime.utc_now()
+      ) |> Ash.Generator.generate()
 
       conn = log_in_user(conn, user)
       {:ok, view, _html} = live(conn, ~p"/location/#{location.id}/inventory/#{product.id}")

@@ -2,14 +2,13 @@ defmodule MedishopWeb.OrdersLiveTest do
   use MedishopWeb.ConnCase
 
   import Phoenix.LiveViewTest
-  import Medishop.OrganizationsFixtures
-  import Medishop.ShopFixtures
+  import Medishop.Generator
   import MedishopWeb.LiveViewTestHelpers
 
   describe "OrdersLive - unauthenticated access" do
     test "redirects unauthenticated user to sign-in page", %{conn: conn} do
-      org = organization_fixture()
-      location = location_fixture(org.id)
+      org = organization() |> Ash.Generator.generate()
+      location = location(organization_id: org.id) |> Ash.Generator.generate()
 
       {:error, {:redirect, %{to: path}}} = live(conn, ~p"/location/#{location.id}/orders")
       assert path == ~p"/sign-in"
@@ -18,9 +17,9 @@ defmodule MedishopWeb.OrdersLiveTest do
 
   describe "OrdersLive - unauthorized access" do
     setup %{conn: conn} do
-      user = user_fixture()
-      org = organization_fixture()
-      location = location_fixture(org.id)
+      user = user() |> Ash.Generator.generate()
+      org = organization() |> Ash.Generator.generate()
+      location = location(organization_id: org.id) |> Ash.Generator.generate()
 
       # User has no membership to this organization
       conn = log_in_user(conn, user)
@@ -39,13 +38,13 @@ defmodule MedishopWeb.OrdersLiveTest do
 
   describe "OrdersLive - authorized user with no orders" do
     setup %{conn: conn} do
-      user = user_fixture()
-      org = organization_fixture()
-      location = location_fixture(org.id)
+      user = user() |> Ash.Generator.generate()
+      org = organization() |> Ash.Generator.generate()
+      location = location(organization_id: org.id) |> Ash.Generator.generate()
 
       # Create membership with location access
-      membership = organization_membership_fixture(user.id, org.id)
-      organization_location_membership_fixture(membership.id, location.id)
+      membership = organization_membership(user_id: user.id, organization_id: org.id) |> Ash.Generator.generate()
+      organization_location_membership(organization_membership_id: membership.id, location_id: location.id) |> Ash.Generator.generate()
 
       # Log in the user
       conn = log_in_user(conn, user)
@@ -70,17 +69,17 @@ defmodule MedishopWeb.OrdersLiveTest do
 
   describe "OrdersLive - authorized user with orders" do
     setup %{conn: conn} do
-      user = user_fixture()
-      org = organization_fixture()
-      location = location_fixture(org.id)
+      user = user() |> Ash.Generator.generate()
+      org = organization() |> Ash.Generator.generate()
+      location = location(organization_id: org.id) |> Ash.Generator.generate()
 
       # Create membership with location access
-      membership = organization_membership_fixture(user.id, org.id)
-      organization_location_membership_fixture(membership.id, location.id)
+      membership = organization_membership(user_id: user.id, organization_id: org.id) |> Ash.Generator.generate()
+      organization_location_membership(organization_membership_id: membership.id, location_id: location.id) |> Ash.Generator.generate()
 
       # Create orders for this location
-      order1 = order_fixture(location.id, user.id)
-      order2 = order_fixture(location.id, user.id)
+      order1 = order(location_id: location.id, user_id: user.id) |> Ash.Generator.generate()
+      order2 = order(location_id: location.id, user_id: user.id) |> Ash.Generator.generate()
 
       # Log in the user
       conn = log_in_user(conn, user)
@@ -136,17 +135,17 @@ defmodule MedishopWeb.OrdersLiveTest do
 
   describe "OrdersLive - does not show orders from other locations" do
     setup %{conn: conn} do
-      user = user_fixture()
-      org = organization_fixture()
-      location1 = location_fixture(org.id, %{name: "Location 1"})
-      location2 = location_fixture(org.id, %{name: "Location 2"})
+      user = user() |> Ash.Generator.generate()
+      org = organization() |> Ash.Generator.generate()
+      location1 = location(organization_id: org.id, name: "Location 1") |> Ash.Generator.generate()
+      location2 = location(organization_id: org.id, name: "Location 2") |> Ash.Generator.generate()
 
       # Create membership with access to location1 only
-      membership = organization_membership_fixture(user.id, org.id)
-      organization_location_membership_fixture(membership.id, location1.id)
+      membership = organization_membership(user_id: user.id, organization_id: org.id) |> Ash.Generator.generate()
+      organization_location_membership(organization_membership_id: membership.id, location_id: location1.id) |> Ash.Generator.generate()
 
       # Create order for location2 (user shouldn't see this)
-      _order_location2 = order_fixture(location2.id, user.id)
+      _order_location2 = order(location_id: location2.id, user_id: user.id) |> Ash.Generator.generate()
 
       # Log in the user
       conn = log_in_user(conn, user)
@@ -167,16 +166,16 @@ defmodule MedishopWeb.OrdersLiveTest do
 
   describe "OrdersLive - order status transitions" do
     setup %{conn: conn} do
-      user = user_fixture()
-      org = organization_fixture()
-      location = location_fixture(org.id)
+      user = user() |> Ash.Generator.generate()
+      org = organization() |> Ash.Generator.generate()
+      location = location(organization_id: org.id) |> Ash.Generator.generate()
 
       # Create membership with location access
-      membership = organization_membership_fixture(user.id, org.id)
-      organization_location_membership_fixture(membership.id, location.id)
+      membership = organization_membership(user_id: user.id, organization_id: org.id) |> Ash.Generator.generate()
+      organization_location_membership(organization_membership_id: membership.id, location_id: location.id) |> Ash.Generator.generate()
 
       # Create a pending order
-      order = order_fixture(location.id, user.id)
+      order = order(location_id: location.id, user_id: user.id) |> Ash.Generator.generate()
 
       # Log in the user
       conn = log_in_user(conn, user)

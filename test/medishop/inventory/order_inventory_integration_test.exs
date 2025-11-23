@@ -4,29 +4,19 @@ defmodule Medishop.Inventory.OrderInventoryIntegrationTest do
   alias Medishop.Inventory
   alias Medishop.Shop
 
-  import Medishop.OrganizationsFixtures
-  import Medishop.ProductsFixtures
+  import Medishop.Generator
 
   describe "order delivery creates inventory events" do
     setup do
-      organization = organization_fixture()
-      location = location_fixture(organization.id)
-      user = user_fixture()
-      product1 = product_fixture()
-      product2 = product_fixture()
+      organization = organization() |> Ash.Generator.generate()
+      location = location(organization_id: organization.id) |> Ash.Generator.generate()
+      user = user() |> Ash.Generator.generate()
+      product1 = product() |> Ash.Generator.generate()
+      product2 = product() |> Ash.Generator.generate()
 
       # Create location inventory records (required for tracking)
-      {:ok, _inv1} =
-        Inventory.create_location_inventory(%{
-          location_id: location.id,
-          product_id: product1.id
-        })
-
-      {:ok, _inv2} =
-        Inventory.create_location_inventory(%{
-          location_id: location.id,
-          product_id: product2.id
-        })
+      _inv1 = location_inventory(location_id: location.id, product_id: product1.id) |> Ash.Generator.generate()
+      _inv2 = location_inventory(location_id: location.id, product_id: product2.id) |> Ash.Generator.generate()
 
       %{
         location: location,
@@ -43,33 +33,30 @@ defmodule Medishop.Inventory.OrderInventoryIntegrationTest do
       product2: product2
     } do
       # Create an order
-      {:ok, order} =
-        Shop.create_order(%{
-          location_id: location.id,
-          user_id: user.id,
-          status: :pending,
-          subtotal: Decimal.new("150.00"),
-          total: Decimal.new("150.00")
-        })
+      order = order(
+        location_id: location.id,
+        user_id: user.id,
+        status: :pending,
+        subtotal: Decimal.new("150.00"),
+        total: Decimal.new("150.00")
+      ) |> Ash.Generator.generate()
 
       # Add order items
-      {:ok, _item1} =
-        Shop.create_order_item(%{
-          order_id: order.id,
-          product_id: product1.id,
-          quantity: 100,
-          unit_price: Decimal.new("1.00"),
-          line_total: Decimal.new("100.00")
-        })
+      _item1 = order_item(
+        order_id: order.id,
+        product_id: product1.id,
+        quantity: 100,
+        unit_price: Decimal.new("1.00"),
+        line_total: Decimal.new("100.00")
+      ) |> Ash.Generator.generate()
 
-      {:ok, _item2} =
-        Shop.create_order_item(%{
-          order_id: order.id,
-          product_id: product2.id,
-          quantity: 50,
-          unit_price: Decimal.new("1.00"),
-          line_total: Decimal.new("50.00")
-        })
+      _item2 = order_item(
+        order_id: order.id,
+        product_id: product2.id,
+        quantity: 50,
+        unit_price: Decimal.new("1.00"),
+        line_total: Decimal.new("50.00")
+      ) |> Ash.Generator.generate()
 
       # Initially, no inventory events should exist for these products at this location
       {:ok, events_before} = Inventory.list_inventory_events()
@@ -107,32 +94,29 @@ defmodule Medishop.Inventory.OrderInventoryIntegrationTest do
       product2: product2
     } do
       # Create an order with items
-      {:ok, order} =
-        Shop.create_order(%{
-          location_id: location.id,
-          user_id: user.id,
-          status: :pending,
-          subtotal: Decimal.new("150.00"),
-          total: Decimal.new("150.00")
-        })
+      order = order(
+        location_id: location.id,
+        user_id: user.id,
+        status: :pending,
+        subtotal: Decimal.new("150.00"),
+        total: Decimal.new("150.00")
+      ) |> Ash.Generator.generate()
 
-      {:ok, _item1} =
-        Shop.create_order_item(%{
-          order_id: order.id,
-          product_id: product1.id,
-          quantity: 100,
-          unit_price: Decimal.new("1.00"),
-          line_total: Decimal.new("100.00")
-        })
+      _item1 = order_item(
+        order_id: order.id,
+        product_id: product1.id,
+        quantity: 100,
+        unit_price: Decimal.new("1.00"),
+        line_total: Decimal.new("100.00")
+      ) |> Ash.Generator.generate()
 
-      {:ok, _item2} =
-        Shop.create_order_item(%{
-          order_id: order.id,
-          product_id: product2.id,
-          quantity: 50,
-          unit_price: Decimal.new("1.00"),
-          line_total: Decimal.new("50.00")
-        })
+      _item2 = order_item(
+        order_id: order.id,
+        product_id: product2.id,
+        quantity: 50,
+        unit_price: Decimal.new("1.00"),
+        line_total: Decimal.new("50.00")
+      ) |> Ash.Generator.generate()
 
       # Check initial inventory (should be 0)
       {:ok, inv1_before} =
@@ -169,23 +153,21 @@ defmodule Medishop.Inventory.OrderInventoryIntegrationTest do
       product1: product1
     } do
       # Create an order
-      {:ok, order} =
-        Shop.create_order(%{
-          location_id: location.id,
-          user_id: user.id,
-          status: :pending,
-          subtotal: Decimal.new("100.00"),
-          total: Decimal.new("100.00")
-        })
+      order = order(
+        location_id: location.id,
+        user_id: user.id,
+        status: :pending,
+        subtotal: Decimal.new("100.00"),
+        total: Decimal.new("100.00")
+      ) |> Ash.Generator.generate()
 
-      {:ok, _item} =
-        Shop.create_order_item(%{
-          order_id: order.id,
-          product_id: product1.id,
-          quantity: 100,
-          unit_price: Decimal.new("1.00"),
-          line_total: Decimal.new("100.00")
-        })
+      _item = order_item(
+        order_id: order.id,
+        product_id: product1.id,
+        quantity: 100,
+        unit_price: Decimal.new("1.00"),
+        line_total: Decimal.new("100.00")
+      ) |> Ash.Generator.generate()
 
       # Cancel the order (before delivery)
       {:ok, cancelled_order} = Shop.update_order_status(order, :cancelled)

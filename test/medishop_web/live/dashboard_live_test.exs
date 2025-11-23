@@ -2,7 +2,7 @@ defmodule MedishopWeb.DashboardLiveTest do
   use MedishopWeb.ConnCase
 
   import Phoenix.LiveViewTest
-  import Medishop.OrganizationsFixtures
+  import Medishop.Generator
   import MedishopWeb.LiveViewTestHelpers
 
   describe "Dashboard - unauthenticated access" do
@@ -14,7 +14,7 @@ defmodule MedishopWeb.DashboardLiveTest do
 
   describe "Dashboard - authenticated user with no organizations" do
     setup %{conn: conn} do
-      user = user_fixture()
+      user = user() |> Ash.Generator.generate()
       conn = log_in_user(conn, user)
 
       %{conn: conn, user: user}
@@ -28,7 +28,7 @@ defmodule MedishopWeb.DashboardLiveTest do
       assert has_element?(view, "span", to_string(user.email))
     end
 
-    test "shows message when user is not a member of any organization", %{conn: conn} do
+    test "shows message when user is not a member of any organizations", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/dashboard")
 
       assert has_element?(view, "p", "You are not a member of any organizations yet.")
@@ -43,15 +43,15 @@ defmodule MedishopWeb.DashboardLiveTest do
 
   describe "Dashboard - authenticated user with organizations (Phase 2)" do
     setup %{conn: conn} do
-      user = user_fixture()
-      org1 = organization_fixture(%{name: "Acme Medical"})
-      org2 = organization_fixture(%{name: "Smith Pharmacy"})
+      user = user() |> Ash.Generator.generate()
+      org1 = organization(name: "Acme Medical") |> Ash.Generator.generate()
+      org2 = organization(name: "Smith Pharmacy") |> Ash.Generator.generate()
 
       # Create memberships with different roles
       membership1 =
-        organization_membership_fixture(user.id, org1.id, %{org_roles: [:org_admin, :org_buyer]})
+        organization_membership(user_id: user.id, organization_id: org1.id, org_roles: [:org_admin, :org_buyer]) |> Ash.Generator.generate()
 
-      membership2 = organization_membership_fixture(user.id, org2.id, %{org_roles: [:org_member]})
+      membership2 = organization_membership(user_id: user.id, organization_id: org2.id, org_roles: [:org_member]) |> Ash.Generator.generate()
 
       # Log in the user
       conn = log_in_user(conn, user)
@@ -79,7 +79,7 @@ defmodule MedishopWeb.DashboardLiveTest do
     end
 
     test "does not display organizations user is not a member of", %{conn: conn} do
-      other_org = organization_fixture(%{name: "Other Org"})
+      other_org = organization(name: "Other Org") |> Ash.Generator.generate()
 
       {:ok, _view, html} = live(conn, ~p"/dashboard")
 
@@ -102,8 +102,10 @@ defmodule MedishopWeb.DashboardLiveTest do
     end
 
     test "shows test badge for test organizations", %{conn: conn, user: user} do
-      test_org = organization_fixture(%{name: "Test Org", is_test_organization: true})
-      organization_membership_fixture(user.id, test_org.id)
+      # Note: organization generator does not have is_test_organization in defaults, but can override
+      # assuming resource has the attribute
+      test_org = organization(name: "Test Org", is_test_organization: true) |> Ash.Generator.generate()
+      organization_membership(user_id: user.id, organization_id: test_org.id) |> Ash.Generator.generate()
 
       {:ok, _view, html} = live(conn, ~p"/dashboard")
 
@@ -116,12 +118,13 @@ defmodule MedishopWeb.DashboardLiveTest do
 
   describe "Dashboard - authenticated user with locations (Phase 3)" do
     setup %{conn: conn} do
-      user = user_fixture()
-      org = organization_fixture(%{name: "Acme Medical"})
+      user = user() |> Ash.Generator.generate()
+      org = organization(name: "Acme Medical") |> Ash.Generator.generate()
 
       # Create locations for the organization
       location1 =
-        location_fixture(org.id, %{
+        location(
+          organization_id: org.id,
           name: "Main Branch",
           store: true,
           address: %{
@@ -132,10 +135,11 @@ defmodule MedishopWeb.DashboardLiveTest do
             country: "USA"
           },
           contact_number: "+1-217-555-0100"
-        })
+        ) |> Ash.Generator.generate()
 
       location2 =
-        location_fixture(org.id, %{
+        location(
+          organization_id: org.id,
           name: "North Branch",
           store: false,
           address: %{
@@ -146,12 +150,12 @@ defmodule MedishopWeb.DashboardLiveTest do
             country: "USA"
           },
           contact_number: "+1-217-555-0200"
-        })
+        ) |> Ash.Generator.generate()
 
       # Create membership and location access
-      membership = organization_membership_fixture(user.id, org.id)
-      organization_location_membership_fixture(membership.id, location1.id)
-      organization_location_membership_fixture(membership.id, location2.id)
+      membership = organization_membership(user_id: user.id, organization_id: org.id) |> Ash.Generator.generate()
+      organization_location_membership(organization_membership_id: membership.id, location_id: location1.id) |> Ash.Generator.generate()
+      organization_location_membership(organization_membership_id: membership.id, location_id: location2.id) |> Ash.Generator.generate()
 
       # Log in the user
       conn = log_in_user(conn, user)
@@ -179,7 +183,7 @@ defmodule MedishopWeb.DashboardLiveTest do
     end
 
     test "does not display locations user does not have access to", %{conn: conn, org: org} do
-      other_location = location_fixture(org.id, %{name: "Restricted Branch"})
+      other_location = location(organization_id: org.id, name: "Restricted Branch") |> Ash.Generator.generate()
 
       {:ok, _view, html} = live(conn, ~p"/dashboard")
 
@@ -218,8 +222,8 @@ defmodule MedishopWeb.DashboardLiveTest do
       user: user
     } do
       # Create org without location access for this user
-      org_no_locations = organization_fixture(%{name: "No Locations Org"})
-      organization_membership_fixture(user.id, org_no_locations.id)
+      org_no_locations = organization(name: "No Locations Org") |> Ash.Generator.generate()
+      organization_membership(user_id: user.id, organization_id: org_no_locations.id) |> Ash.Generator.generate()
 
       {:ok, view, _html} = live(conn, ~p"/dashboard")
 
@@ -229,12 +233,12 @@ defmodule MedishopWeb.DashboardLiveTest do
 
   describe "Dashboard - preloading and relationships" do
     setup %{conn: conn} do
-      user = user_fixture()
-      org = organization_fixture()
-      location = location_fixture(org.id)
+      user = user() |> Ash.Generator.generate()
+      org = organization() |> Ash.Generator.generate()
+      location = location(organization_id: org.id) |> Ash.Generator.generate()
 
-      membership = organization_membership_fixture(user.id, org.id)
-      organization_location_membership_fixture(membership.id, location.id)
+      membership = organization_membership(user_id: user.id, organization_id: org.id) |> Ash.Generator.generate()
+      organization_location_membership(organization_membership_id: membership.id, location_id: location.id) |> Ash.Generator.generate()
 
       conn = log_in_user(conn, user)
 
@@ -258,17 +262,17 @@ defmodule MedishopWeb.DashboardLiveTest do
 
     test "correctly associates locations with organizations", %{conn: conn, user: user} do
       # Create two orgs with different locations
-      org1 = organization_fixture(%{name: "Org One"})
-      org2 = organization_fixture(%{name: "Org Two"})
+      org1 = organization(name: "Org One") |> Ash.Generator.generate()
+      org2 = organization(name: "Org Two") |> Ash.Generator.generate()
 
-      loc1 = location_fixture(org1.id, %{name: "Org One Location"})
-      loc2 = location_fixture(org2.id, %{name: "Org Two Location"})
+      loc1 = location(organization_id: org1.id, name: "Org One Location") |> Ash.Generator.generate()
+      loc2 = location(organization_id: org2.id, name: "Org Two Location") |> Ash.Generator.generate()
 
-      mem1 = organization_membership_fixture(user.id, org1.id)
-      mem2 = organization_membership_fixture(user.id, org2.id)
+      mem1 = organization_membership(user_id: user.id, organization_id: org1.id) |> Ash.Generator.generate()
+      mem2 = organization_membership(user_id: user.id, organization_id: org2.id) |> Ash.Generator.generate()
 
-      organization_location_membership_fixture(mem1.id, loc1.id)
-      organization_location_membership_fixture(mem2.id, loc2.id)
+      organization_location_membership(organization_membership_id: mem1.id, location_id: loc1.id) |> Ash.Generator.generate()
+      organization_location_membership(organization_membership_id: mem2.id, location_id: loc2.id) |> Ash.Generator.generate()
 
       {:ok, _view, html} = live(conn, ~p"/dashboard")
 

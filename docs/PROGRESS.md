@@ -6,6 +6,31 @@ This file tracks the high-level progress of work on the Medishop project. Update
 
 ## 2025-11-23
 
+### Test Suite Refactoring - Generator Migration ✅ COMPLETE
+
+**What was accomplished:**
+- **Migration to Ash.Generator**: Replaced all custom fixture modules with `Ash.Generator`
+  - Updated `Medishop.Generator` with factories for all resources in all domains
+  - Removed legacy fixture files (`test/support/*_fixtures.ex`)
+  - Refactored all 312 tests to use the new generator pattern
+- **Test Coverage Improvements**:
+  - Added 20 new tests covering critical business logic
+  - Inventory events on order delivery
+  - LocationInventory auto-creation
+  - Relationship loading for Product and LocationInventory
+  - List actions for Cart and CartItem
+- **Code Quality**:
+  - Standardized test data creation across the entire suite
+  - Improved maintainability by centralizing factory logic
+  - All 312 tests passing with 100% pass rate ✅
+
+**Files Modified:**
+- `test/support/generator.ex` - Expanded with all resource generators
+- All test files in `test/medishop/` and `test/medishop_web/`
+- Deleted 4 fixture files
+
+---
+
 ### Event-Sourced Inventory Management - Phase 1 ✅ COMPLETE
 
 **What was accomplished:**
@@ -590,7 +615,7 @@ The distinction between `accept` and `argument` in Ash actions:
 - Inventory: 44/44 tests ✅ (LocationInventory: 10, InventoryEvent: 18, Integration: 3, Legacy: 13)
 - Shop: 63/63 tests ✅
 - LiveView: 83/83 tests ✅ (Dashboard: 18, Cart: 24, Products: 16, OrderConfirmation: 11, Orders: 10, Shop: 4)
-- **Total: 231/231 tests passing** (100% pass rate)
+- **Total: 312/312 tests passing** (100% pass rate)
 
 ### Inventory Management Progress
 - ✅ Phase 1: Event-Sourced Inventory Foundation - Complete

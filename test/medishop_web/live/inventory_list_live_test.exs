@@ -2,17 +2,15 @@ defmodule MedishopWeb.InventoryListLiveTest do
   use MedishopWeb.ConnCase
 
   import Phoenix.LiveViewTest
-  import Medishop.OrganizationsFixtures
-  import Medishop.ProductsFixtures
-  import Medishop.InventoryFixtures
+  import Medishop.Generator
   import MedishopWeb.LiveViewTestHelpers
 
   alias Medishop.Inventory
 
   describe "InventoryListLive - unauthenticated access" do
     test "redirects unauthenticated user to sign-in page", %{conn: conn} do
-      org = organization_fixture()
-      location = location_fixture(org.id)
+      org = organization() |> Ash.Generator.generate()
+      location = location(organization_id: org.id) |> Ash.Generator.generate()
 
       result = live(conn, ~p"/location/#{location.id}/inventory")
 
@@ -28,13 +26,13 @@ defmodule MedishopWeb.InventoryListLiveTest do
 
   describe "InventoryListLive - authorized user with no inventory" do
     setup %{conn: conn} do
-      user = user_fixture()
-      org = organization_fixture()
-      location = location_fixture(org.id)
+      user = user() |> Ash.Generator.generate()
+      org = organization() |> Ash.Generator.generate()
+      location = location(organization_id: org.id) |> Ash.Generator.generate()
 
       # Create membership with location access
-      membership = organization_membership_fixture(user.id, org.id)
-      organization_location_membership_fixture(membership.id, location.id)
+      membership = organization_membership(user_id: user.id, organization_id: org.id) |> Ash.Generator.generate()
+      organization_location_membership(organization_membership_id: membership.id, location_id: location.id) |> Ash.Generator.generate()
 
       # Log in the user
       conn = log_in_user(conn, user)
@@ -70,23 +68,23 @@ defmodule MedishopWeb.InventoryListLiveTest do
 
   describe "InventoryListLive - authorized user with inventory" do
     setup %{conn: conn} do
-      user = user_fixture()
-      org = organization_fixture()
-      location = location_fixture(org.id)
+      user = user() |> Ash.Generator.generate()
+      org = organization() |> Ash.Generator.generate()
+      location = location(organization_id: org.id) |> Ash.Generator.generate()
 
       # Create membership with location access
-      membership = organization_membership_fixture(user.id, org.id)
-      organization_location_membership_fixture(membership.id, location.id)
+      membership = organization_membership(user_id: user.id, organization_id: org.id) |> Ash.Generator.generate()
+      organization_location_membership(organization_membership_id: membership.id, location_id: location.id) |> Ash.Generator.generate()
 
       # Create products
-      product1 = product_fixture(%{title: "Aspirin 100mg", sku: "ASP-100"})
-      product2 = product_fixture(%{title: "Ibuprofen 200mg", sku: "IBU-200"})
-      product3 = product_fixture(%{title: "Acetaminophen 500mg", sku: "ACE-500"})
+      product1 = product(title: "Aspirin 100mg", sku: "ASP-100") |> Ash.Generator.generate()
+      product2 = product(title: "Ibuprofen 200mg", sku: "IBU-200") |> Ash.Generator.generate()
+      product3 = product(title: "Acetaminophen 500mg", sku: "ACE-500") |> Ash.Generator.generate()
 
       # Create inventory
-      inv1 = location_inventory_fixture(location.id, product1.id)
-      inv2 = location_inventory_fixture(location.id, product2.id)
-      inv3 = location_inventory_fixture(location.id, product3.id)
+      inv1 = location_inventory(location_id: location.id, product_id: product1.id) |> Ash.Generator.generate()
+      inv2 = location_inventory(location_id: location.id, product_id: product2.id) |> Ash.Generator.generate()
+      inv3 = location_inventory(location_id: location.id, product_id: product3.id) |> Ash.Generator.generate()
 
       # Create some inventory events to set quantities
       {:ok, _} =

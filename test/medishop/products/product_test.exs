@@ -3,7 +3,7 @@ defmodule Medishop.Products.ProductTest do
 
   alias Medishop.Products
 
-  import Medishop.ProductsFixtures
+  import Medishop.Generator
 
   describe "create_product/1" do
     test "creates a product with all attributes" do
@@ -106,7 +106,7 @@ defmodule Medishop.Products.ProductTest do
 
   describe "update_product/2" do
     test "updates product attributes" do
-      product = product_fixture()
+      product = product() |> Ash.Generator.generate()
 
       assert {:ok, updated_product} =
                Products.update_product(product, %{
@@ -127,7 +127,7 @@ defmodule Medishop.Products.ProductTest do
 
   describe "destroy_product/1" do
     test "deletes a product" do
-      product = product_fixture()
+      product = product() |> Ash.Generator.generate()
 
       assert :ok = Products.destroy_product(product)
 
@@ -138,8 +138,8 @@ defmodule Medishop.Products.ProductTest do
 
   describe "list_products/0" do
     test "returns all products" do
-      product1 = product_fixture()
-      product2 = product_fixture()
+      product1 = product() |> Ash.Generator.generate()
+      product2 = product() |> Ash.Generator.generate()
 
       assert {:ok, products} = Products.list_products()
 
@@ -246,15 +246,12 @@ defmodule Medishop.Products.ProductTest do
 
   describe "relationship loading" do
     test "loads location_inventories relationship" do
-      import Medishop.OrganizationsFixtures
-      import Medishop.InventoryFixtures
-
-      product = product_fixture()
-      organization = organization_fixture()
-      location = location_fixture(organization.id)
+      product = product() |> Ash.Generator.generate()
+      organization = organization() |> Ash.Generator.generate()
+      location = location(organization_id: organization.id) |> Ash.Generator.generate()
 
       # Create inventory for this product at the location
-      _inventory = location_inventory_fixture(location.id, product.id)
+      _inventory = location_inventory(location_id: location.id, product_id: product.id) |> Ash.Generator.generate()
 
       # Load product with location_inventories
       {:ok, product_with_inventories} = Products.get_product(product.id, load: [:location_inventories])
@@ -265,16 +262,13 @@ defmodule Medishop.Products.ProductTest do
     end
 
     test "loads cart_items relationship" do
-      import Medishop.OrganizationsFixtures
-      import Medishop.ShopFixtures
-
-      product = product_fixture()
-      organization = organization_fixture()
-      location = location_fixture(organization.id)
+      product = product() |> Ash.Generator.generate()
+      organization = organization() |> Ash.Generator.generate()
+      location = location(organization_id: organization.id) |> Ash.Generator.generate()
 
       # Create cart and cart item
-      {:ok, cart} = Medishop.Shop.create_cart(%{location_id: location.id})
-      _cart_item = cart_item_fixture(cart.id, product.id, %{quantity: 5})
+      cart = cart(location_id: location.id) |> Ash.Generator.generate()
+      _cart_item = cart_item(cart_id: cart.id, product_id: product.id, quantity: 5) |> Ash.Generator.generate()
 
       # Load product with cart_items
       {:ok, product_with_cart_items} = Products.get_product(product.id, load: [:cart_items])
@@ -286,23 +280,20 @@ defmodule Medishop.Products.ProductTest do
     end
 
     test "loads order_items relationship" do
-      import Medishop.OrganizationsFixtures
-      import Medishop.ShopFixtures
-
-      product = product_fixture()
-      user = user_fixture()
-      organization = organization_fixture()
-      location = location_fixture(organization.id)
+      product = product() |> Ash.Generator.generate()
+      user = user() |> Ash.Generator.generate()
+      organization = organization() |> Ash.Generator.generate()
+      location = location(organization_id: organization.id) |> Ash.Generator.generate()
 
       # Create order with order item
-      order = order_fixture(location.id, user.id)
-      {:ok, _order_item} = Medishop.Shop.create_order_item(%{
+      order = order(location_id: location.id, user_id: user.id) |> Ash.Generator.generate()
+      _order_item = order_item(
         order_id: order.id,
         product_id: product.id,
         quantity: 3,
         unit_price: product.price,
         line_total: Decimal.mult(product.price, Decimal.new(3))
-      })
+      ) |> Ash.Generator.generate()
 
       # Load product with order_items
       {:ok, product_with_order_items} = Products.get_product(product.id, load: [:order_items])
@@ -314,29 +305,25 @@ defmodule Medishop.Products.ProductTest do
     end
 
     test "loads multiple relationships at once" do
-      import Medishop.OrganizationsFixtures
-      import Medishop.InventoryFixtures
-      import Medishop.ShopFixtures
-
-      product = product_fixture()
-      user = user_fixture()
-      organization = organization_fixture()
-      location = location_fixture(organization.id)
+      product = product() |> Ash.Generator.generate()
+      user = user() |> Ash.Generator.generate()
+      organization = organization() |> Ash.Generator.generate()
+      location = location(organization_id: organization.id) |> Ash.Generator.generate()
 
       # Create inventory, cart item, and order item
-      _inventory = location_inventory_fixture(location.id, product.id)
+      _inventory = location_inventory(location_id: location.id, product_id: product.id) |> Ash.Generator.generate()
 
-      {:ok, cart} = Medishop.Shop.create_cart(%{location_id: location.id})
-      _cart_item = cart_item_fixture(cart.id, product.id, %{quantity: 2})
+      cart = cart(location_id: location.id) |> Ash.Generator.generate()
+      _cart_item = cart_item(cart_id: cart.id, product_id: product.id, quantity: 2) |> Ash.Generator.generate()
 
-      order = order_fixture(location.id, user.id)
-      {:ok, _order_item} = Medishop.Shop.create_order_item(%{
+      order = order(location_id: location.id, user_id: user.id) |> Ash.Generator.generate()
+      _order_item = order_item(
         order_id: order.id,
         product_id: product.id,
         quantity: 1,
         unit_price: product.price,
         line_total: product.price
-      })
+      ) |> Ash.Generator.generate()
 
       # Load all relationships
       {:ok, product_fully_loaded} = Products.get_product(product.id, load: [:location_inventories, :cart_items, :order_items])

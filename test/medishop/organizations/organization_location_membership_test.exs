@@ -3,21 +3,19 @@ defmodule Medishop.Organizations.OrganizationLocationMembershipTest do
 
   alias Medishop.Organizations
 
-  import Medishop.OrganizationsFixtures
+  import Medishop.Generator
 
   setup do
     # Create user, organization, location, and membership for testing
-    user = user_fixture()
-    organization = organization_fixture()
-    location = location_fixture(organization.id)
+    user = user() |> Ash.Generator.generate()
+    organization = organization() |> Ash.Generator.generate()
+    location = location(organization_id: organization.id) |> Ash.Generator.generate()
 
-    {:ok, org_membership} =
-      Organizations.create_membership(
-        user.id,
-        organization.id,
-        [:org_buyer],
-        authorize?: false
-      )
+    org_membership = organization_membership(
+      user_id: user.id,
+      organization_id: organization.id,
+      org_roles: [:org_buyer]
+    ) |> Ash.Generator.generate()
 
     %{
       user: user,
@@ -70,15 +68,13 @@ defmodule Medishop.Organizations.OrganizationLocationMembershipTest do
       location: location
     } do
       # Create another user and their memberships
-      other_user = user_fixture()
+      other_user = user() |> Ash.Generator.generate()
 
-      {:ok, other_org_membership} =
-        Organizations.create_membership(
-          other_user.id,
-          organization.id,
-          [:org_buyer],
-          authorize?: false
-        )
+      other_org_membership = organization_membership(
+          user_id: other_user.id,
+          organization_id: organization.id,
+          org_roles: [:org_buyer]
+        ) |> Ash.Generator.generate()
 
       # Create location memberships for both users
       {:ok, location_membership1} =
@@ -110,7 +106,7 @@ defmodule Medishop.Organizations.OrganizationLocationMembershipTest do
       location: location
     } do
       # Create another location
-      other_location = location_fixture(organization.id)
+      other_location = location(organization_id: organization.id) |> Ash.Generator.generate()
 
       # Create location memberships for both locations
       {:ok, location_membership1} =
@@ -141,8 +137,8 @@ defmodule Medishop.Organizations.OrganizationLocationMembershipTest do
       org_membership: org_membership
     } do
       # Create two locations
-      location1 = location_fixture(organization.id)
-      location2 = location_fixture(organization.id)
+      location1 = location(organization_id: organization.id) |> Ash.Generator.generate()
+      location2 = location(organization_id: organization.id) |> Ash.Generator.generate()
 
       # Assign user to both locations
       {:ok, _loc_membership1} =

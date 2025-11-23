@@ -3,14 +3,12 @@ defmodule Medishop.Shop.CartTest do
 
   alias Medishop.Shop
 
-  import Medishop.OrganizationsFixtures
-  import Medishop.ProductsFixtures
-  import Medishop.ShopFixtures
+  import Medishop.Generator
 
   describe "create_cart/1" do
     test "creates a cart for a location" do
-      org = organization_fixture()
-      location = location_fixture(org.id)
+      org = organization() |> Ash.Generator.generate()
+      location = location(organization_id: org.id) |> Ash.Generator.generate()
 
       assert {:ok, cart} = Shop.create_cart(%{location_id: location.id})
 
@@ -19,8 +17,8 @@ defmodule Medishop.Shop.CartTest do
     end
 
     test "enforces unique cart per location constraint" do
-      org = organization_fixture()
-      location = location_fixture(org.id)
+      org = organization() |> Ash.Generator.generate()
+      location = location(organization_id: org.id) |> Ash.Generator.generate()
 
       {:ok, _cart1} = Shop.create_cart(%{location_id: location.id})
 
@@ -31,8 +29,8 @@ defmodule Medishop.Shop.CartTest do
 
   describe "get_or_create_cart_for_location/1" do
     test "creates new cart when none exists" do
-      org = organization_fixture()
-      location = location_fixture(org.id)
+      org = organization() |> Ash.Generator.generate()
+      location = location(organization_id: org.id) |> Ash.Generator.generate()
 
       assert {:ok, cart} = Shop.get_or_create_cart_for_location(location.id)
 
@@ -41,8 +39,8 @@ defmodule Medishop.Shop.CartTest do
     end
 
     test "returns existing cart when one exists" do
-      org = organization_fixture()
-      location = location_fixture(org.id)
+      org = organization() |> Ash.Generator.generate()
+      location = location(organization_id: org.id) |> Ash.Generator.generate()
 
       {:ok, cart1} = Shop.get_or_create_cart_for_location(location.id)
 
@@ -55,8 +53,8 @@ defmodule Medishop.Shop.CartTest do
 
   describe "get_cart_by_location/1" do
     test "retrieves cart by location_id" do
-      org = organization_fixture()
-      location = location_fixture(org.id)
+      org = organization() |> Ash.Generator.generate()
+      location = location(organization_id: org.id) |> Ash.Generator.generate()
 
       {:ok, cart} = Shop.create_cart(%{location_id: location.id})
 
@@ -65,8 +63,8 @@ defmodule Medishop.Shop.CartTest do
     end
 
     test "returns not found error when cart doesn't exist" do
-      org = organization_fixture()
-      location = location_fixture(org.id)
+      org = organization() |> Ash.Generator.generate()
+      location = location(organization_id: org.id) |> Ash.Generator.generate()
 
       assert {:error, %Ash.Error.Invalid{errors: [%Ash.Error.Query.NotFound{} | _]}} =
                Shop.get_cart_by_location(location.id)
@@ -75,8 +73,8 @@ defmodule Medishop.Shop.CartTest do
 
   describe "cart relationships" do
     test "cart belongs_to :location relationship" do
-      org = organization_fixture()
-      location = location_fixture(org.id)
+      org = organization() |> Ash.Generator.generate()
+      location = location(organization_id: org.id) |> Ash.Generator.generate()
 
       {:ok, cart} = Shop.create_cart(%{location_id: location.id})
 
@@ -88,14 +86,18 @@ defmodule Medishop.Shop.CartTest do
     end
 
     test "cart has_many :cart_items relationship" do
-      scenario = setup_shop_scenario()
-      {:ok, cart} = Shop.create_cart(%{location_id: scenario.location.id})
+      # Setup scenario
+      org = organization() |> Ash.Generator.generate()
+      location = location(organization_id: org.id) |> Ash.Generator.generate()
+      product = product() |> Ash.Generator.generate()
+      
+      {:ok, cart} = Shop.create_cart(%{location_id: location.id})
 
       # Add some items to the cart
-      _item1 = cart_item_fixture(cart.id, scenario.product.id, %{quantity: 2})
+      _item1 = cart_item(cart_id: cart.id, product_id: product.id, quantity: 2) |> Ash.Generator.generate()
 
-      product2 = product_fixture(%{sku: "PROD-002"})
-      _item2 = cart_item_fixture(cart.id, product2.id, %{quantity: 1})
+      product2 = product(sku: "PROD-002") |> Ash.Generator.generate()
+      _item2 = cart_item(cart_id: cart.id, product_id: product2.id, quantity: 1) |> Ash.Generator.generate()
 
       # Load cart with items
       {:ok, cart_with_items} = Shop.get_cart(cart.id, load: [:cart_items])
@@ -106,14 +108,18 @@ defmodule Medishop.Shop.CartTest do
 
   describe "clear_cart/1" do
     test "clears all items from cart" do
-      scenario = setup_shop_scenario()
-      {:ok, cart} = Shop.create_cart(%{location_id: scenario.location.id})
+      # Setup scenario
+      org = organization() |> Ash.Generator.generate()
+      location = location(organization_id: org.id) |> Ash.Generator.generate()
+      product = product() |> Ash.Generator.generate()
+      
+      {:ok, cart} = Shop.create_cart(%{location_id: location.id})
 
       # Add items
-      _item1 = cart_item_fixture(cart.id, scenario.product.id, %{quantity: 2})
+      _item1 = cart_item(cart_id: cart.id, product_id: product.id, quantity: 2) |> Ash.Generator.generate()
 
-      product2 = product_fixture(%{sku: "PROD-002"})
-      _item2 = cart_item_fixture(cart.id, product2.id, %{quantity: 1})
+      product2 = product(sku: "PROD-002") |> Ash.Generator.generate()
+      _item2 = cart_item(cart_id: cart.id, product_id: product2.id, quantity: 1) |> Ash.Generator.generate()
 
       # Clear cart
       {:ok, cleared_cart} = Shop.clear_cart(cart)
@@ -126,8 +132,8 @@ defmodule Medishop.Shop.CartTest do
 
   describe "destroy_cart/1" do
     test "deletes a cart" do
-      org = organization_fixture()
-      location = location_fixture(org.id)
+      org = organization() |> Ash.Generator.generate()
+      location = location(organization_id: org.id) |> Ash.Generator.generate()
 
       {:ok, cart} = Shop.create_cart(%{location_id: location.id})
 
@@ -141,10 +147,10 @@ defmodule Medishop.Shop.CartTest do
 
   describe "list_carts/0" do
     test "returns all carts" do
-      org1 = organization_fixture()
-      location1 = location_fixture(org1.id, %{name: "Location 1"})
-      org2 = organization_fixture()
-      location2 = location_fixture(org2.id, %{name: "Location 2"})
+      org1 = organization() |> Ash.Generator.generate()
+      location1 = location(organization_id: org1.id, name: "Location 1") |> Ash.Generator.generate()
+      org2 = organization() |> Ash.Generator.generate()
+      location2 = location(organization_id: org2.id, name: "Location 2") |> Ash.Generator.generate()
 
       {:ok, cart1} = Shop.create_cart(%{location_id: location1.id})
       {:ok, cart2} = Shop.create_cart(%{location_id: location2.id})

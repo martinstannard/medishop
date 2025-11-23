@@ -3,14 +3,13 @@ defmodule Medishop.Inventory.LocationInventoryTest do
 
   alias Medishop.Inventory
 
-  import Medishop.OrganizationsFixtures
-  import Medishop.ProductsFixtures
+  import Medishop.Generator
 
   describe "create_location_inventory/1" do
     test "creates inventory for location+product combination" do
-      organization = organization_fixture()
-      location = location_fixture(organization.id)
-      product = product_fixture()
+      organization = organization() |> Ash.Generator.generate()
+      location = location(organization_id: organization.id) |> Ash.Generator.generate()
+      product = product() |> Ash.Generator.generate()
 
       assert {:ok, inventory} =
                Inventory.create_location_inventory(%{
@@ -23,9 +22,9 @@ defmodule Medishop.Inventory.LocationInventoryTest do
     end
 
     test "current_quantity defaults to 0 when no events exist" do
-      organization = organization_fixture()
-      location = location_fixture(organization.id)
-      product = product_fixture()
+      organization = organization() |> Ash.Generator.generate()
+      location = location(organization_id: organization.id) |> Ash.Generator.generate()
+      product = product() |> Ash.Generator.generate()
 
       {:ok, inventory} =
         Inventory.create_location_inventory(%{
@@ -39,9 +38,9 @@ defmodule Medishop.Inventory.LocationInventoryTest do
     end
 
     test "upserts when location+product combination already exists" do
-      organization = organization_fixture()
-      location = location_fixture(organization.id)
-      product = product_fixture()
+      organization = organization() |> Ash.Generator.generate()
+      location = location(organization_id: organization.id) |> Ash.Generator.generate()
+      product = product() |> Ash.Generator.generate()
 
       {:ok, inventory1} =
         Inventory.create_location_inventory(%{
@@ -63,9 +62,9 @@ defmodule Medishop.Inventory.LocationInventoryTest do
 
   describe "current_quantity calculation from events" do
     test "calculates quantity from single purchase event" do
-      organization = organization_fixture()
-      location = location_fixture(organization.id)
-      product = product_fixture()
+      organization = organization() |> Ash.Generator.generate()
+      location = location(organization_id: organization.id) |> Ash.Generator.generate()
+      product = product() |> Ash.Generator.generate()
 
       {:ok, inventory} =
         Inventory.create_location_inventory(%{
@@ -89,9 +88,9 @@ defmodule Medishop.Inventory.LocationInventoryTest do
     end
 
     test "calculates quantity from multiple events (additions and removals)" do
-      organization = organization_fixture()
-      location = location_fixture(organization.id)
-      product = product_fixture()
+      organization = organization() |> Ash.Generator.generate()
+      location = location(organization_id: organization.id) |> Ash.Generator.generate()
+      product = product() |> Ash.Generator.generate()
 
       {:ok, inventory} =
         Inventory.create_location_inventory(%{
@@ -146,12 +145,12 @@ defmodule Medishop.Inventory.LocationInventoryTest do
     end
 
     test "only includes events for the specific location and product" do
-      org1 = organization_fixture()
-      location1 = location_fixture(org1.id)
-      org2 = organization_fixture()
-      location2 = location_fixture(org2.id)
-      product1 = product_fixture()
-      product2 = product_fixture()
+      org1 = organization() |> Ash.Generator.generate()
+      location1 = location(organization_id: org1.id) |> Ash.Generator.generate()
+      org2 = organization() |> Ash.Generator.generate()
+      location2 = location(organization_id: org2.id) |> Ash.Generator.generate()
+      product1 = product() |> Ash.Generator.generate()
+      product2 = product() |> Ash.Generator.generate()
 
       # Create inventory for location1 + product1
       {:ok, inventory1} =
@@ -215,9 +214,9 @@ defmodule Medishop.Inventory.LocationInventoryTest do
     end
 
     test "handles adjustments (both positive and negative)" do
-      organization = organization_fixture()
-      location = location_fixture(organization.id)
-      product = product_fixture()
+      organization = organization() |> Ash.Generator.generate()
+      location = location(organization_id: organization.id) |> Ash.Generator.generate()
+      product = product() |> Ash.Generator.generate()
 
       {:ok, inventory} =
         Inventory.create_location_inventory(%{
@@ -265,11 +264,11 @@ defmodule Medishop.Inventory.LocationInventoryTest do
 
   describe "get_inventory_by_location/1" do
     test "returns inventories filtered by location" do
-      org1 = organization_fixture()
-      location1 = location_fixture(org1.id)
-      org2 = organization_fixture()
-      location2 = location_fixture(org2.id)
-      product = product_fixture()
+      org1 = organization() |> Ash.Generator.generate()
+      location1 = location(organization_id: org1.id) |> Ash.Generator.generate()
+      org2 = organization() |> Ash.Generator.generate()
+      location2 = location(organization_id: org2.id) |> Ash.Generator.generate()
+      product = product() |> Ash.Generator.generate()
 
       {:ok, inv1} =
         Inventory.create_location_inventory(%{
@@ -292,10 +291,10 @@ defmodule Medishop.Inventory.LocationInventoryTest do
 
   describe "get_inventory_by_product/1" do
     test "returns inventories filtered by product" do
-      organization = organization_fixture()
-      location = location_fixture(organization.id)
-      product1 = product_fixture()
-      product2 = product_fixture()
+      organization = organization() |> Ash.Generator.generate()
+      location = location(organization_id: organization.id) |> Ash.Generator.generate()
+      product1 = product() |> Ash.Generator.generate()
+      product2 = product() |> Ash.Generator.generate()
 
       {:ok, inv1} =
         Inventory.create_location_inventory(%{
@@ -318,9 +317,9 @@ defmodule Medishop.Inventory.LocationInventoryTest do
 
   describe "destroy_location_inventory/1" do
     test "deletes an inventory record" do
-      organization = organization_fixture()
-      location = location_fixture(organization.id)
-      product = product_fixture()
+      organization = organization() |> Ash.Generator.generate()
+      location = location(organization_id: organization.id) |> Ash.Generator.generate()
+      product = product() |> Ash.Generator.generate()
 
       {:ok, inventory} =
         Inventory.create_location_inventory(%{
@@ -337,9 +336,9 @@ defmodule Medishop.Inventory.LocationInventoryTest do
 
   describe "relationship loading" do
     test "loads location relationship" do
-      organization = organization_fixture()
-      location = location_fixture(organization.id, %{name: "Test Location"})
-      product = product_fixture()
+      organization = organization() |> Ash.Generator.generate()
+      location = location(organization_id: organization.id, name: "Test Location") |> Ash.Generator.generate()
+      product = product() |> Ash.Generator.generate()
 
       {:ok, inventory} =
         Inventory.create_location_inventory(%{
@@ -355,9 +354,9 @@ defmodule Medishop.Inventory.LocationInventoryTest do
     end
 
     test "loads product relationship" do
-      organization = organization_fixture()
-      location = location_fixture(organization.id)
-      product = product_fixture(%{title: "Test Product"})
+      organization = organization() |> Ash.Generator.generate()
+      location = location(organization_id: organization.id) |> Ash.Generator.generate()
+      product = product(title: "Test Product") |> Ash.Generator.generate()
 
       {:ok, inventory} =
         Inventory.create_location_inventory(%{
@@ -373,9 +372,9 @@ defmodule Medishop.Inventory.LocationInventoryTest do
     end
 
     test "loads inventory_events relationship" do
-      organization = organization_fixture()
-      location = location_fixture(organization.id)
-      product = product_fixture()
+      organization = organization() |> Ash.Generator.generate()
+      location = location(organization_id: organization.id) |> Ash.Generator.generate()
+      product = product() |> Ash.Generator.generate()
 
       {:ok, inventory} =
         Inventory.create_location_inventory(%{
@@ -412,9 +411,9 @@ defmodule Medishop.Inventory.LocationInventoryTest do
     end
 
     test "loads all relationships at once" do
-      organization = organization_fixture()
-      location = location_fixture(organization.id, %{name: "Full Test Location"})
-      product = product_fixture(%{title: "Full Test Product"})
+      organization = organization() |> Ash.Generator.generate()
+      location = location(organization_id: organization.id, name: "Full Test Location") |> Ash.Generator.generate()
+      product = product(title: "Full Test Product") |> Ash.Generator.generate()
 
       {:ok, inventory} =
         Inventory.create_location_inventory(%{

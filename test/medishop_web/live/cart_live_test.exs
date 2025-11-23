@@ -2,16 +2,15 @@ defmodule MedishopWeb.CartLiveTest do
   use MedishopWeb.ConnCase
 
   import Phoenix.LiveViewTest
-  import Medishop.OrganizationsFixtures
-  import Medishop.ProductsFixtures
+  import Medishop.Generator
   import MedishopWeb.LiveViewTestHelpers
 
   alias Medishop.Shop
 
   describe "CartLive - unauthenticated access" do
     test "redirects unauthenticated user to sign-in page", %{conn: conn} do
-      org = organization_fixture()
-      location = location_fixture(org.id)
+      org = organization() |> Ash.Generator.generate()
+      location = location(organization_id: org.id) |> Ash.Generator.generate()
 
       {:error, {:redirect, %{to: path}}} = live(conn, ~p"/location/#{location.id}/cart")
       assert path == ~p"/sign-in"
@@ -20,9 +19,9 @@ defmodule MedishopWeb.CartLiveTest do
 
   describe "CartLive - unauthorized access" do
     setup %{conn: conn} do
-      user = user_fixture()
-      org = organization_fixture()
-      location = location_fixture(org.id)
+      user = user() |> Ash.Generator.generate()
+      org = organization() |> Ash.Generator.generate()
+      location = location(organization_id: org.id) |> Ash.Generator.generate()
 
       # User has no membership to this organization
       conn = log_in_user(conn, user)
@@ -41,13 +40,13 @@ defmodule MedishopWeb.CartLiveTest do
 
   describe "CartLive - authorized user with empty cart" do
     setup %{conn: conn} do
-      user = user_fixture()
-      org = organization_fixture()
-      location = location_fixture(org.id)
+      user = user() |> Ash.Generator.generate()
+      org = organization() |> Ash.Generator.generate()
+      location = location(organization_id: org.id) |> Ash.Generator.generate()
 
       # Create membership with org_buyer role
-      membership = organization_membership_fixture(user.id, org.id, %{org_roles: [:org_buyer]})
-      organization_location_membership_fixture(membership.id, location.id)
+      membership = organization_membership(user_id: user.id, organization_id: org.id, org_roles: [:org_buyer]) |> Ash.Generator.generate()
+      organization_location_membership(organization_membership_id: membership.id, location_id: location.id) |> Ash.Generator.generate()
 
       # Log in the user
       conn = log_in_user(conn, user)
@@ -78,19 +77,19 @@ defmodule MedishopWeb.CartLiveTest do
 
   describe "CartLive - authorized user with items in cart" do
     setup %{conn: conn} do
-      user = user_fixture()
-      org = organization_fixture()
-      location = location_fixture(org.id)
+      user = user() |> Ash.Generator.generate()
+      org = organization() |> Ash.Generator.generate()
+      location = location(organization_id: org.id) |> Ash.Generator.generate()
 
       # Create membership with org_buyer role
-      membership = organization_membership_fixture(user.id, org.id, %{org_roles: [:org_buyer]})
-      organization_location_membership_fixture(membership.id, location.id)
+      membership = organization_membership(user_id: user.id, organization_id: org.id, org_roles: [:org_buyer]) |> Ash.Generator.generate()
+      organization_location_membership(organization_membership_id: membership.id, location_id: location.id) |> Ash.Generator.generate()
 
       # Create products
-      product1 = product_fixture(%{title: "Aspirin", sku: "ASP-100", price: Decimal.new("10.00")})
+      product1 = product(title: "Aspirin", sku: "ASP-100", price: Decimal.new("10.00")) |> Ash.Generator.generate()
 
       product2 =
-        product_fixture(%{title: "Ibuprofen", sku: "IBU-200", price: Decimal.new("15.50")})
+        product(title: "Ibuprofen", sku: "IBU-200", price: Decimal.new("15.50")) |> Ash.Generator.generate()
 
       # Get or create cart and add items
       {:ok, cart} = Shop.get_or_create_cart_for_location(location.id)
@@ -270,16 +269,16 @@ defmodule MedishopWeb.CartLiveTest do
 
   describe "CartLive - place order functionality" do
     setup %{conn: conn} do
-      user = user_fixture()
-      org = organization_fixture()
-      location = location_fixture(org.id)
+      user = user() |> Ash.Generator.generate()
+      org = organization() |> Ash.Generator.generate()
+      location = location(organization_id: org.id) |> Ash.Generator.generate()
 
       # Create membership with org_buyer role
-      membership = organization_membership_fixture(user.id, org.id, %{org_roles: [:org_buyer]})
-      organization_location_membership_fixture(membership.id, location.id)
+      membership = organization_membership(user_id: user.id, organization_id: org.id, org_roles: [:org_buyer]) |> Ash.Generator.generate()
+      organization_location_membership(organization_membership_id: membership.id, location_id: location.id) |> Ash.Generator.generate()
 
       # Create product and add to cart
-      product = product_fixture(%{title: "Test Product", price: Decimal.new("25.00")})
+      product = product(title: "Test Product", price: Decimal.new("25.00")) |> Ash.Generator.generate()
       {:ok, cart} = Shop.get_or_create_cart_for_location(location.id)
       {:ok, _item} = Shop.add_or_update_cart_item(cart.id, product.id, 3)
 
