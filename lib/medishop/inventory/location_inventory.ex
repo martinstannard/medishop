@@ -20,13 +20,7 @@ defmodule Medishop.Inventory.LocationInventory do
 
     create :create do
       primary? true
-      accept [:location_id, :product_id, :quantity_available]
-    end
-
-    update :update do
-      primary? true
-      require_atomic? false
-      accept [:quantity_available]
+      accept [:location_id, :product_id]
     end
 
     read :get_by_location do
@@ -49,23 +43,20 @@ defmodule Medishop.Inventory.LocationInventory do
     end
   end
 
-  validations do
-    validate compare(:quantity_available, greater_than_or_equal_to: 0),
-      message: "Quantity available must be non-negative"
-  end
-
   attributes do
     uuid_primary_key :id
 
-    attribute :quantity_available, :integer do
-      description "Current stock level for this product at this location"
-      allow_nil? false
-      default 0
-      public? true
-    end
-
     create_timestamp :created_at
     update_timestamp :updated_at
+  end
+
+  # Calculate current quantity from inventory events
+  aggregates do
+    sum :current_quantity, :inventory_events, :quantity_change do
+      description "Current stock level calculated from all inventory events"
+      public? true
+      default 0
+    end
   end
 
   relationships do
@@ -77,6 +68,13 @@ defmodule Medishop.Inventory.LocationInventory do
     belongs_to :product, Medishop.Products.Product do
       public? true
       allow_nil? false
+    end
+
+    has_many :inventory_events, Medishop.Inventory.InventoryEvent do
+      public? true
+      destination_attribute :location_id
+      source_attribute :location_id
+      filter expr(product_id == parent(product_id))
     end
   end
 

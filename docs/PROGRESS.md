@@ -4,6 +4,71 @@ This file tracks the high-level progress of work on the Medishop project. Update
 
 ---
 
+## 2025-11-23
+
+### Event-Sourced Inventory Management - Phase 1 ✅ COMPLETE
+
+**What was accomplished:**
+- **InventoryEvent Resource**: Event-sourced inventory tracking using AshEvents extension
+  - 5 event types: purchase_received, administered, expired, disposed, adjustment
+  - Automatic actor attribution via `actor_id` (tracks who made changes)
+  - Event versioning and metadata tracking built-in
+  - Attributes: event_type, quantity_change, batch_number, expiration_date, reference_type, reference_id, reason, occurred_at
+  - Validation: reason required for :disposed and :adjustment events
+  - Relationships: belongs_to :location and :product
+  - Custom read actions: by_location_and_product, by_location, by_product
+  - Comprehensive test suite: 18/18 tests passing ✅
+- **LocationInventory Updated**: Migrated from stored quantity to calculated aggregate
+  - Removed `quantity_available` stored attribute
+  - Added `current_quantity` aggregate (sum of inventory_events.quantity_change)
+  - Added `has_many :inventory_events` relationship with product filter
+  - Removed `update` action (quantity now calculated, not stored)
+  - Tests updated to verify aggregate calculations: 10/10 tests passing ✅
+- **Order-Inventory Integration**: Automatic event creation when orders delivered
+  - Updated `update_status` action in Order resource with `after_action` hook
+  - Helper function: `create_inventory_events_for_order/2` (lib/medishop/shop/order.ex:272)
+  - Creates :purchase_received events for each order item
+  - Idempotent: only triggers when status changes TO :delivered (prevents duplicates)
+  - Proper reference tracking (reference_type: "Order", reference_id: order.id)
+  - Integration tests: 3/3 tests passing ✅
+- **Database Migrations**:
+  - Created inventory_events table with AshEvents fields (actor_id, version, metadata)
+  - Removed quantity_available column from location_inventories
+  - Generated with `mix ash.codegen --dev` for development iterations
+  - Final production migrations created with `mix ash.codegen`
+- **Dependencies**: Added `{:ash_events, "~> 0.1"}` to mix.exs (installed v0.5.1)
+
+**Test Summary:**
+- Total tests: 231/231 passing ✅
+- New inventory tests: 31 tests
+  - InventoryEvent: 18/18 ✅
+  - LocationInventory: 10/10 ✅
+  - Order-Inventory Integration: 3/3 ✅
+- All existing tests still passing
+
+**Files Created:**
+- `lib/medishop/inventory/inventory_event.ex` - InventoryEvent resource with AshEvents
+- `test/medishop/inventory/inventory_event_test.exs` - 18 comprehensive tests
+- `test/medishop/inventory/order_inventory_integration_test.exs` - 3 integration tests
+
+**Files Modified:**
+- `mix.exs` - Added ash_events dependency
+- `lib/medishop/inventory/location_inventory.ex` - Changed to use aggregates
+- `lib/medishop/inventory.ex` - Added InventoryEvent code interfaces
+- `lib/medishop/shop/order.ex` - Added after_action hook for event creation
+- `test/medishop/inventory/location_inventory_test.exs` - Updated tests for aggregate calculations
+- Database migrations and snapshots
+
+**Benefits Achieved:**
+- Complete audit trail of all inventory movements (regulatory compliance)
+- Actor attribution for every change (who did what, when)
+- Event versioning for proper ordering and replay capabilities
+- Immutable event log (append-only, no updates/deletes)
+- Automatic inventory updates when orders are delivered
+- Foundation for physical count reconciliation (Phase 2)
+
+---
+
 ## 2025-11-22
 
 ### Cart Item Ordering Tests ✅ COMPLETE
@@ -522,15 +587,21 @@ The distinction between `accept` and `argument` in Ash actions:
 ### Test Summary
 - Organizations: 37/37 tests ✅
 - Products: 17/17 tests ✅
-- Inventory: 13/13 tests ✅
+- Inventory: 44/44 tests ✅ (LocationInventory: 10, InventoryEvent: 18, Integration: 3, Legacy: 13)
 - Shop: 63/63 tests ✅
 - LiveView: 83/83 tests ✅ (Dashboard: 18, Cart: 24, Products: 16, OrderConfirmation: 11, Orders: 10, Shop: 4)
-- **Total: 213/213 tests passing** (100% pass rate)
+- **Total: 231/231 tests passing** (100% pass rate)
 
-### Medication Purchasing Progress
-- ✅ Phase 1: Products Domain (Steps 1-4) - Complete
-- ✅ Phase 2: Inventory Domain (Steps 5-8) - Complete
-- 🔄 Phase 3: Shop Domain (Steps 9-15) - Ready to start
-- ⏳ Phase 4: Integration & Polish (Steps 16-18) - Pending
-
-**Overall Progress:** 30/113+ planned tests (27% complete)
+### Inventory Management Progress
+- ✅ Phase 1: Event-Sourced Inventory Foundation - Complete
+  - InventoryEvent resource with AshEvents
+  - LocationInventory aggregate calculations
+  - Order-inventory integration
+  - 31 comprehensive tests
+- 🔄 Phase 3: Inventory Management UI - Ready to start
+  - Inventory list LiveView
+  - Inventory detail/event log LiveView
+  - Event recording form/modal
+  - Dashboard widget for low stock alerts
+- ⏳ Phase 4: Batch/Lot Tracking - Future enhancement
+- ⏳ Phase 5: Reports and Analytics - Future enhancement

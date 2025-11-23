@@ -57,6 +57,7 @@ defmodule Medishop.MixProject do
       {:ash_postgres, "~> 2.0"},
       {:ash_json_api, "~> 1.0"},
       {:ash_phoenix, "~> 2.0"},
+      {:ash_events, "~> 0.1"},
       {:ash, "~> 3.0"},
       {:igniter, "~> 0.6", only: [:dev, :test]},
       {:phoenix, "~> 1.8.1"},

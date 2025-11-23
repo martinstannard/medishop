@@ -544,27 +544,44 @@ end
 
 ## Success Criteria
 
+### Phase 1 (COMPLETE ✅)
 - ✅ Every inventory change is recorded as an event
 - ✅ Current stock levels accurately reflect event history
 - ✅ Orders automatically update inventory when delivered
-- ✅ Users can mark items as administered/expired/disposed
-- ✅ Complete audit trail of all inventory movements
-- ✅ No lost inventory events (append-only log)
-- ✅ UI is intuitive for daily inventory management
+- ✅ Actor attribution via AshEvents (tracks who made changes)
+- ✅ Event versioning and metadata tracking
+- ✅ Comprehensive test coverage (31 tests, all passing)
+- ✅ InventoryEvent resource with 5 event types
+- ✅ LocationInventory calculates quantity from events (aggregate)
+- ✅ Order integration with after_action hook
+- ✅ Idempotent event creation (prevents duplicates)
+
+### Phase 3 (IN PROGRESS)
+- ⏳ Users can mark items as administered/expired/disposed (via UI)
+- ⏳ Complete audit trail visible in UI
+- ⏳ Inventory list view with current quantities
+- ⏳ Event log view per product
+- ⏳ UI is intuitive for daily inventory management
 - ✅ All tests passing with good coverage
 
-## Next Steps
+## Implementation Progress
 
+### Phase 1: Event-Sourced Inventory Foundation (COMPLETE ✅)
 1. ✅ Review and approve this plan (DONE - using AshEvents)
-2. Add `ash_events` dependency to mix.exs
-3. Create InventoryEvent resource with AshEvents extension
-4. Update LocationInventory to use calculated quantity from events
-5. Add UI control for marking orders as delivered
-6. Implement order integration with automatic event creation
-7. Build inventory list UI (current stock levels report)
-8. Build inventory management UI for recording events
-9. Write comprehensive tests
-10. Deploy and train users
+2. ✅ Add `ash_events` dependency to mix.exs
+3. ✅ Create InventoryEvent resource with AshEvents extension
+4. ✅ Update LocationInventory to use calculated quantity from events
+5. ✅ Implement order integration with automatic event creation
+6. ✅ Write comprehensive tests (31 tests, all passing)
+7. ✅ Generate and run migrations
+
+### Phase 3: Inventory Management UI (IN PROGRESS)
+1. ⏳ Build inventory list UI (current stock levels report)
+2. ⏳ Build inventory detail/event log UI
+3. ⏳ Build event recording form/modal
+4. ⏳ Add dashboard widget for low stock alerts
+5. ⏳ Write comprehensive LiveView tests
+6. ⏳ Deploy and train users
 
 ## Dependencies
 

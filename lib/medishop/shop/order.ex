@@ -76,6 +76,21 @@ defmodule Medishop.Shop.Order do
            message: "Invalid status transition from #{current_status} to #{new_status}"}
         end
       end
+
+      # After successfully changing to :delivered, create inventory events
+      change after_action(fn changeset, result, context ->
+        old_status = changeset.data.status
+        new_status = Ash.Changeset.get_attribute(changeset, :status)
+
+        if new_status == :delivered and old_status != :delivered do
+          case create_inventory_events_for_order(result, context) do
+            :ok -> {:ok, result}
+            {:error, error} -> {:error, error}
+          end
+        else
+          {:ok, result}
+        end
+      end)
     end
 
     action :create_from_cart do
@@ -254,6 +269,38 @@ defmodule Medishop.Shop.Order do
   end
 
   # Private helper functions
+  defp create_inventory_events_for_order(order, context) do
+    # Load order items with products
+    case Medishop.Shop.get_order(order.id, load: [:order_items], actor: context.actor) do
+      {:ok, order_with_items} ->
+        # Create inventory event for each order item
+        results =
+          Enum.map(order_with_items.order_items, fn item ->
+            Medishop.Inventory.create_inventory_event(
+              %{
+                location_id: order.location_id,
+                product_id: item.product_id,
+                event_type: :purchase_received,
+                quantity_change: item.quantity,
+                reference_type: "Order",
+                reference_id: order.id,
+                occurred_at: DateTime.utc_now()
+              },
+              actor: context.actor
+            )
+          end)
+
+        # Check if all events were created successfully
+        case Enum.find(results, fn result -> match?({:error, _}, result) end) do
+          nil -> :ok
+          {:error, error} -> {:error, error}
+        end
+
+      {:error, error} ->
+        {:error, error}
+    end
+  end
+
   defp generate_order_number do
     # Format: ORD-YYYYMMDD-XXXXXX (where X is random)
     date = Date.utc_today() |> Date.to_string() |> String.replace("-", "")

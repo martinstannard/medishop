@@ -4,6 +4,43 @@ All notable changes to this project will be documented in this file.
 
 ## 2025-11-23
 
+### Added
+- **Event-Sourced Inventory Management (Phase 1 Complete)** (branch: `inventory-events`)
+  - **InventoryEvent Resource** (`lib/medishop/inventory/inventory_event.ex`)
+    - Event-sourced inventory tracking using AshEvents extension
+    - Event types: :purchase_received, :administered, :expired, :disposed, :adjustment
+    - Automatic actor attribution via `actor_id` field (AshEvents)
+    - Event versioning and metadata tracking (AshEvents)
+    - Attributes: event_type, quantity_change, batch_number, expiration_date, reference_type, reference_id, reason, occurred_at
+    - Validation: reason required for :disposed and :adjustment events
+    - Relationships: belongs_to :location, belongs_to :product
+    - Custom read actions: by_location_and_product, by_location, by_product
+    - Comprehensive test suite: `test/medishop/inventory/inventory_event_test.exs` - 18/18 tests passing ✅
+  - **LocationInventory Updated to Event-Sourced Model**
+    - Removed `quantity_available` stored attribute
+    - Added `current_quantity` aggregate (sum of inventory_events.quantity_change)
+    - Added `has_many :inventory_events` relationship with product filter
+    - Removed `update` action (quantity now calculated, not stored)
+    - Tests updated to verify aggregate calculations: `test/medishop/inventory/location_inventory_test.exs` - 10/10 tests passing ✅
+  - **Order-Inventory Integration**
+    - Updated `update_status` action in Order resource with `after_action` hook
+    - Automatic inventory event creation when orders marked as :delivered
+    - Helper function: `create_inventory_events_for_order/2` (lib/medishop/shop/order.ex:272)
+    - Creates :purchase_received events for each order item with proper reference tracking
+    - Idempotent: only triggers when status changes TO :delivered (prevents duplicates)
+    - Integration tests: `test/medishop/inventory/order_inventory_integration_test.exs` - 3/3 tests passing ✅
+  - **Database Migrations**
+    - Created inventory_events table with AshEvents fields
+    - Removed quantity_available column from location_inventories
+    - Migration files in `priv/repo/migrations/`
+    - Resource snapshots updated in `priv/resource_snapshots/`
+  - **Code Interface Updates**
+    - Added 6 interface functions for InventoryEvent in Inventory domain
+    - Removed `update_location_inventory` interface (no longer needed)
+  - **Dependencies**
+    - Added `{:ash_events, "~> 0.1"}` to mix.exs (installed v0.5.1)
+  - **Test Results**: All 231 tests passing (31 new inventory tests + all existing tests) ✅
+
 ### Changed
 - **Inventory Management Plan Updated to Use AshEvents**: Revised implementation approach for event-sourced inventory system
   - Updated `docs/09-inventory-management-plan.md` to use `ash_events` package instead of custom implementation
