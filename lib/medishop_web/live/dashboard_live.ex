@@ -119,7 +119,7 @@ defmodule MedishopWeb.DashboardLive do
                                 <%= if :org_buyer in membership.org_roles and loc_membership.location.store do %>
                                   <.link
                                     navigate={~p"/location/#{loc_membership.location.id}/shop"}
-                                    class="btn btn-primary btn-sm gap-2 shadow-sm"
+                                    class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:bg-blue-500 dark:hover:bg-blue-400 transition-colors"
                                     data-testid={"shop-button-#{loc_membership.location.id}"}
                                   >
                                     <.icon name="hero-shopping-bag" class="w-4 h-4" /> Shop
@@ -127,17 +127,17 @@ defmodule MedishopWeb.DashboardLive do
                                 <% end %>
                                 <.link
                                   navigate={~p"/location/#{loc_membership.location.id}/orders"}
-                                  class="btn btn-ghost btn-sm border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 gap-2"
+                                  class="inline-flex items-center gap-2 rounded-md bg-white px-3 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-700 transition-colors"
                                   data-testid={"orders-button-#{loc_membership.location.id}"}
                                 >
-                                  <.icon name="hero-document-text" class="w-4 h-4 text-gray-500" /> Orders
+                                  <.icon name="hero-document-text" class="w-4 h-4 text-gray-400 dark:text-gray-400" /> Orders
                                 </.link>
                                 <.link
                                   navigate={~p"/location/#{loc_membership.location.id}/inventory"}
-                                  class="btn btn-ghost btn-sm border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 gap-2"
+                                  class="inline-flex items-center gap-2 rounded-md bg-white px-3 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-700 transition-colors"
                                   data-testid={"inventory-button-#{loc_membership.location.id}"}
                                 >
-                                  <.icon name="hero-cube" class="w-4 h-4 text-gray-500" /> Inventory
+                                  <.icon name="hero-cube" class="w-4 h-4 text-gray-400 dark:text-gray-400" /> Inventory
                                 </.link>
                               </div>
                             </div>

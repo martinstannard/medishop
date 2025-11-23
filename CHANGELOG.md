@@ -4,10 +4,16 @@ All notable changes to this project will be documented in this file.
 
 ## 2025-11-23
 
+### Fixed - Dashboard Button Styling
+- **Fixed Dark Mode Support**: Updated buttons in location panels to use standard Tailwind CSS classes instead of relying on `btn-ghost` which had poor contrast in dark mode.
+- **Improved Visibility**: Replaced transparent buttons with white buttons (dark mode: gray-800) with visible borders.
+- **Icon Visibility**: Removed hardcoded `text-gray-500` from icons to allow them to adapt correctly to light/dark themes.
+- **Consistent Styling**: Applied consistent styling to "Orders" and "Inventory" buttons to match the updated dashboard design.
+
 ### Changed - Dashboard UI
 - **Dashboard Redesign**: Updated dashboard layout for cleaner, more modern look
   - Removed "Dashboard" page header and "Welcome back" text
-  - Redesigned organization cards to be full-width for better readability
+  - Redesigned organization cards to be full-width stacked layout
   - Replaced nested location cards with clean, divided list layout
   - Updated typography: location names use `h4`, address details use `p`
   - Improved visual hierarchy with consistent icons and spacing
@@ -500,7 +506,7 @@ All notable changes to this project will be documented in this file.
     - Test relationship preloading (organizations, locations)
   - **Test Infrastructure:**
     - Created `test/medishop_web/live/` directory structure
-    - Implemented `LiveViewTestHelpers.log_in_user/2` using `AshAuthentication.Plug.Helpers.store_in_session/2`
+    - Implemented `LiveViewTestHelpers.log_in_user/2` authentication helper
     - Added comprehensive test documentation (`test/medishop_web/live/README.md`)
   - **Authentication Setup Solved:**
     - Discovered correct approach: `AshAuthentication.Plug.Helpers.store_in_session/2`
