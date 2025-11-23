@@ -21,6 +21,9 @@ defmodule MedishopWeb.ShopLive do
         {:ok, cart_with_items} =
           Shop.get_cart(cart.id, load: [cart_items: [:product, :line_total]])
 
+        # Sort cart items by inserted_at to maintain consistent order
+        sorted_cart_items = sort_cart_items(cart_with_items.cart_items || [])
+
         # Load active products
         {:ok, products} = Products.list_products()
         active_products = Enum.filter(products, & &1.active)
@@ -30,7 +33,7 @@ defmodule MedishopWeb.ShopLive do
           |> assign(:location, location)
           |> assign(:cart, cart_with_items)
           |> assign(:search_query, "")
-          |> stream(:cart_items, cart_with_items.cart_items || [], dom_id: &"cart-item-#{&1.id}")
+          |> stream(:cart_items, sorted_cart_items, dom_id: &"cart-item-#{&1.id}")
           |> stream(:products, active_products, dom_id: &"product-#{&1.id}")
           |> assign(:page_title, "Shop - #{location.name}")
 
@@ -75,10 +78,12 @@ defmodule MedishopWeb.ShopLive do
         {:ok, cart_with_items} =
           Shop.get_cart(cart.id, load: [cart_items: [:product, :line_total]])
 
+        sorted_cart_items = sort_cart_items(cart_with_items.cart_items || [])
+
         socket =
           socket
           |> assign(:cart, cart_with_items)
-          |> stream(:cart_items, cart_with_items.cart_items || [], reset: true)
+          |> stream(:cart_items, sorted_cart_items, reset: true)
           |> put_flash(:info, "Product added to cart!")
 
         {:noreply, socket}
@@ -102,10 +107,12 @@ defmodule MedishopWeb.ShopLive do
             {:ok, cart_with_items} =
               Shop.get_cart(cart.id, load: [cart_items: [:product, :line_total]])
 
+            sorted_cart_items = sort_cart_items(cart_with_items.cart_items || [])
+
             socket =
               socket
               |> assign(:cart, cart_with_items)
-              |> stream(:cart_items, cart_with_items.cart_items || [], reset: true)
+              |> stream(:cart_items, sorted_cart_items, reset: true)
 
             {:noreply, socket}
 
@@ -129,10 +136,12 @@ defmodule MedishopWeb.ShopLive do
             {:ok, cart_with_items} =
               Shop.get_cart(cart.id, load: [cart_items: [:product, :line_total]])
 
+            sorted_cart_items = sort_cart_items(cart_with_items.cart_items || [])
+
             socket =
               socket
               |> assign(:cart, cart_with_items)
-              |> stream(:cart_items, cart_with_items.cart_items || [], reset: true)
+              |> stream(:cart_items, sorted_cart_items, reset: true)
               |> put_flash(:info, "Item removed from cart")
 
             {:noreply, socket}
@@ -212,6 +221,10 @@ defmodule MedishopWeb.ShopLive do
     else
       {:error, :unauthorized}
     end
+  end
+
+  defp sort_cart_items(cart_items) do
+    Enum.sort_by(cart_items, & &1.inserted_at, {:asc, DateTime})
   end
 
   defp calculate_total(cart_items) do
