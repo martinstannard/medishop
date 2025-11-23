@@ -5,6 +5,41 @@ All notable changes to this project will be documented in this file.
 ## 2025-11-23
 
 ### Added
+- **Inventory Detail Page with Event Log (Phase 3.2 Complete)** (`lib/medishop_web/live/inventory_detail_live.ex`)
+  - InventoryDetailLive shows detailed inventory event log for a product at a location
+  - Route: `/location/:location_id/inventory/:product_id`
+  - Product information display: title, SKU, location name
+  - Current quantity card with dynamic stock status badge
+    - Out of Stock (red) - quantity = 0
+    - Low Stock (yellow) - quantity 1-9
+    - In Stock (green) - quantity >= 10
+  - Event type filtering with 6 filter buttons:
+    - All Events, Purchases, Administered, Expired, Disposed, Adjustments
+    - Active filter highlighted in color
+  - Sortable event log table with 5 columns:
+    - Date/Time (sortable) - displays date and time separately
+    - Type - color-coded badges (green=purchase, blue=administered, yellow=expired, red=disposed, purple=adjustment)
+    - Quantity (sortable) - with +/- prefix and color coding
+    - Reference - displays reference_type if available
+    - Reason - displays reason for disposal and adjustment events
+  - Sorting functionality: click column headers to sort by occurred_at or quantity_change
+  - Toggle sort order (ascending/descending) with visual indicators (↑/↓)
+  - Empty state messages for no events and filtered results
+  - Navigation: Back to Inventory link
+  - Auto-creates LocationInventory record if it doesn't exist
+  - Comprehensive test suite: `test/medishop_web/live/inventory_detail_live_test.exs` - 30/30 tests passing ✅
+    - Authentication and authorization tests
+    - Product and location display tests
+    - Stock status badge tests (all 3 states)
+    - Event log table rendering tests
+    - Event type badge display tests
+    - Quantity change formatting tests
+    - Reason display tests for disposal/adjustment events
+    - Event type filtering tests (all 6 types + switching)
+    - Empty state message tests
+    - Sorting functionality tests (both columns)
+    - Navigation tests
+
 - **Order Status Change UI** (`lib/medishop_web/live/orders_live.ex`)
   - Added status transition buttons to OrdersLive page
   - Contextual buttons based on current order status:
@@ -70,10 +105,11 @@ All notable changes to this project will be documented in this file.
     - Removed `update_location_inventory` interface (no longer needed)
   - **Dependencies**
     - Added `{:ash_events, "~> 0.1"}` to mix.exs (installed v0.5.1)
-  - **Test Results**: All 256 tests passing ✅
-    - 31 inventory tests (InventoryEvent, LocationInventory, Order-Inventory integration)
+  - **Test Results**: All 286 tests passing ✅
+    - 61 inventory tests (InventoryEvent, LocationInventory, Order-Inventory integration, InventoryDetailLive)
     - 18 OrdersLive tests (including 8 new status transition tests)
     - 17 InventoryListLive tests (authentication, search, sort, status badges)
+    - 30 InventoryDetailLive tests (authentication, display, filtering, sorting, navigation)
 
 ### Changed
 - **LocationInventory Create Action with Upsert** (`lib/medishop/inventory/location_inventory.ex:24-25`)

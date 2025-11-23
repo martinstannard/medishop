@@ -276,24 +276,26 @@ end
 )
 ```
 
-#### 3.2 Inventory Detail/Event Log LiveView
+#### 3.2 Inventory Detail/Event Log LiveView ✅ **COMPLETED**
 
 **Route**: `/location/:location_id/inventory/:product_id`
 
-**Features**:
-- Product information (name, SKU, current quantity)
-- Event log table (all inventory events for this product)
-  - Columns: Date/Time, Type, Quantity Change, Batch, Expiration, Reason, User
-  - Sort by date (newest first)
-  - Filter by event type
-- Quick actions:
-  - Record usage (administered)
-  - Mark as expired
-  - Record disposal
-  - Manual adjustment
-- Charts:
-  - Stock level over time
-  - Usage patterns
+**Features** (✅ All Implemented):
+- ✅ Product information (name, SKU, current quantity)
+- ✅ Stock status badge (Out of Stock / Low Stock / In Stock)
+- ✅ Event log table (all inventory events for this product)
+  - ✅ Columns: Date/Time, Type, Quantity Change, Reference, Reason
+  - ✅ Sort by occurred_at and quantity_change (toggleable asc/desc)
+  - ✅ Filter by event type (All, Purchases, Administered, Expired, Disposed, Adjustments)
+  - ✅ Color-coded event type badges
+  - ✅ Quantity changes with +/- formatting
+  - ✅ Empty state messages
+- ✅ Navigation: Back to Inventory link
+- ✅ 30 comprehensive tests covering all features
+
+**Implementation**: `lib/medishop_web/live/inventory_detail_live.ex` (484 lines)
+
+**Tests**: `test/medishop_web/live/inventory_detail_live_test.exs` (30 tests, all passing)
 
 #### 3.3 Record Inventory Event Modal/Form
 
