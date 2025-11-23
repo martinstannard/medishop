@@ -319,12 +319,20 @@ end
 
 **Tests**: `test/medishop_web/live/inventory_detail_live_test.exs` (36 tests, all passing)
 
-#### 3.4 Dashboard Inventory Widget
+#### 3.4 Dashboard Inventory Widget ✅ **COMPLETED**
 
-**Add to main Dashboard**:
-- "Low Stock Alerts" section
-- Shows products below reorder threshold across all user's locations
-- Click to navigate to inventory page
+**Features** (✅ All Implemented):
+- ✅ "Low Stock Alerts" section added to main Dashboard
+- ✅ Shows all products with quantity < 10 across all user's locations
+- ✅ Displays in prominent yellow-bordered card above organizations
+- ✅ Item count badge
+- ✅ Product title, SKU, and location name for each item
+- ✅ Color-coded quantity badges (red for out of stock, yellow for low stock)
+- ✅ "View Details" link navigates to inventory detail page
+- ✅ Sorted by quantity (lowest first) for most urgent items at top
+- ✅ Only displays when there are low stock items (clean UI when stock is good)
+
+**Implementation**: Updated `lib/medishop_web/live/dashboard_live.ex` with `get_low_stock_items/1` helper
 
 ### Phase 4: Batch/Lot Tracking (Optional Enhancement)
 
@@ -564,13 +572,14 @@ end
 - ✅ Order integration with after_action hook
 - ✅ Idempotent event creation (prevents duplicates)
 
-### Phase 3 (IN PROGRESS)
+### Phase 3 (COMPLETE ✅)
 - ✅ Users can mark items as administered/expired/disposed (via UI form)
 - ✅ Complete audit trail visible in UI (inventory detail page)
-- ⏳ Inventory list view with current quantities
+- ✅ Inventory list view with current quantities (17 tests)
 - ✅ Event log view per product (with sorting and filtering)
 - ✅ UI is intuitive for daily inventory management (form with inline validation)
-- ✅ All tests passing with good coverage (36 tests for inventory detail)
+- ✅ All tests passing with good coverage (36 tests for inventory detail, 17 for inventory list)
+- ✅ Dashboard widget shows low stock alerts across all locations
 
 ## Implementation Progress
 
@@ -583,12 +592,12 @@ end
 6. ✅ Write comprehensive tests (31 tests, all passing)
 7. ✅ Generate and run migrations
 
-### Phase 3: Inventory Management UI (IN PROGRESS)
-1. ⏳ Build inventory list UI (current stock levels report)
+### Phase 3: Inventory Management UI (COMPLETE ✅)
+1. ✅ Build inventory list UI (current stock levels report) - 17 tests
 2. ✅ Build inventory detail/event log UI (DONE - 30 tests)
 3. ✅ Build event recording form (DONE - 6 tests)
-4. ⏳ Add dashboard widget for low stock alerts
-5. ✅ Write comprehensive LiveView tests (36 tests for inventory detail)
+4. ✅ Add dashboard widget for low stock alerts (DONE)
+5. ✅ Write comprehensive LiveView tests (36 tests for inventory detail, 17 for inventory list)
 6. ⏳ Deploy and train users
 
 ## Dependencies

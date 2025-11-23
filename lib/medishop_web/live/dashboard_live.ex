@@ -1,7 +1,7 @@
 defmodule MedishopWeb.DashboardLive do
   use MedishopWeb, :live_view
 
-  alias Medishop.Organizations
+  alias Medishop.{Organizations, Inventory}
 
   on_mount {MedishopWeb.LiveUserAuth, :live_user_required}
 
@@ -10,7 +10,40 @@ defmodule MedishopWeb.DashboardLive do
 
     {:ok, memberships} = Organizations.get_memberships_for_user(user.id)
 
-    {:ok, assign(socket, memberships: memberships, page_title: "Dashboard")}
+    # Get low stock items across all user's locations
+    low_stock_items = get_low_stock_items(memberships)
+
+    {:ok,
+     assign(socket,
+       memberships: memberships,
+       low_stock_items: low_stock_items,
+       page_title: "Dashboard"
+     )}
+  end
+
+  # Get low stock items (quantity < 10) across all user's locations
+  defp get_low_stock_items(memberships) do
+    memberships
+    |> Enum.flat_map(fn membership ->
+      membership.organization_location_memberships
+      |> Enum.flat_map(fn loc_membership ->
+        location_id = loc_membership.location.id
+
+        case Inventory.get_inventory_by_location(%{location_id: location_id}) do
+          {:ok, inventory_items} ->
+            inventory_items
+            |> Enum.map(fn item ->
+              {:ok, item_with_data} = Ash.load(item, [:current_quantity, :product, :location])
+              item_with_data
+            end)
+            |> Enum.filter(fn item -> item.current_quantity < 10 end)
+
+          _ ->
+            []
+        end
+      end)
+    end)
+    |> Enum.sort_by(fn item -> item.current_quantity end, :asc)
   end
 
   def render(assigns) do
@@ -25,6 +58,64 @@ defmodule MedishopWeb.DashboardLive do
       </div>
 
       <div class="space-y-8">
+        <%!-- Low Stock Alerts Section --%>
+        <%= if not Enum.empty?(@low_stock_items) do %>
+          <section id="low-stock-alerts">
+            <div class="mb-6 flex items-center justify-between">
+              <h2 class="text-3xl font-bold text-gray-900 dark:text-white">
+                Low Stock Alerts
+              </h2>
+              <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-100">
+                {length(@low_stock_items)} {if length(@low_stock_items) == 1, do: "Item", else: "Items"}
+              </span>
+            </div>
+
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-yellow-200 dark:border-yellow-600 overflow-hidden">
+              <div class="divide-y divide-gray-200 dark:divide-gray-700">
+                <%= for item <- @low_stock_items do %>
+                  <div
+                    class="p-6 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                    id={"low-stock-item-#{item.id}"}
+                  >
+                    <div class="flex items-center justify-between">
+                      <div class="flex-1">
+                        <div class="flex items-center gap-4">
+                          <div>
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-white">
+                              {item.product.title}
+                            </h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                              SKU: {item.product.sku} • {item.location.name}
+                            </p>
+                          </div>
+                          <span class={[
+                            "inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold",
+                            if(item.current_quantity == 0,
+                              do: "bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300",
+                              else: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300"
+                            )
+                          ]}>
+                            {item.current_quantity} {if item.current_quantity == 1, do: "unit", else: "units"}
+                          </span>
+                        </div>
+                      </div>
+                      <div>
+                        <.link
+                          navigate={~p"/location/#{item.location_id}/inventory/#{item.product_id}"}
+                          class="inline-flex items-center px-4 py-2 text-sm font-semibold text-white bg-blue-600 dark:bg-blue-500 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
+                        >
+                          View Details →
+                        </.link>
+                      </div>
+                    </div>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+          </section>
+        <% end %>
+        <%!-- End Low Stock Alerts Section --%>
+
         <section>
           <h2 class="text-3xl font-bold mb-8 text-gray-900 dark:text-white">My Organizations</h2>
 

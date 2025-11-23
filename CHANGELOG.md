@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 ## 2025-11-23
 
 ### Added
+- **Dashboard Low Stock Alerts Widget (Phase 3.4 Complete)** (`lib/medishop_web/live/dashboard_live.ex`)
+  - Added "Low Stock Alerts" section to main Dashboard
+  - Shows all products with quantity < 10 across all user's locations
+  - Displays in prominent yellow-bordered card above organizations section
+  - Features:
+    - Item count badge showing total number of low stock items
+    - Product title and SKU display
+    - Location name for each item
+    - Current quantity with color-coded badges (red for 0, yellow for 1-9)
+    - "View Details" link to inventory detail page for each item
+    - Sorted by quantity (lowest first) for urgent items at top
+    - Only shows if there are low stock items (doesn't show empty state)
+  - Automatically loads inventory data across all accessible locations on dashboard mount
+  - Provides quick visibility into stock issues without navigating to each location
 - **Record Inventory Event Form (Phase 3.3 Complete)** (`lib/medishop_web/live/inventory_detail_live.ex`)
   - Added interactive form to record inventory events directly from the inventory detail page
   - "Record Event" button to toggle form visibility
