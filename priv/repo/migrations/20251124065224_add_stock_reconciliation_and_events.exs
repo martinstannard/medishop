@@ -1,4 +1,4 @@
-defmodule Medishop.Repo.Migrations.MigrateResources3 do
+defmodule Medishop.Repo.Migrations.AddStockReconciliationAndEvents do
   @moduledoc """
   Updates resources based on their most recent snapshots.
 
@@ -78,18 +78,8 @@ defmodule Medishop.Repo.Migrations.MigrateResources3 do
           ),
           null: false
 
-      add :inventory_event_id,
-          references(:inventory_events,
-            column: :id,
-            name: "reconciliation_items_inventory_event_id_fkey",
-            type: :uuid,
-            prefix: "public"
-          )
+      add :inventory_event_id, :uuid
     end
-
-    create unique_index(:reconciliation_items, [:reconciliation_id, :product_id],
-             name: "reconciliation_items_unique_reconciliation_product_index"
-           )
 
     alter table(:products) do
       add :unit_of_measure, :text
@@ -97,9 +87,103 @@ defmodule Medishop.Repo.Migrations.MigrateResources3 do
       add :active_ingredient, :text
       add :strength, :text
     end
+
+    alter table(:location_inventories) do
+      remove :quantity_available
+    end
+
+    create table(:inventory_events, primary_key: false) do
+      add :id, :uuid, null: false, default: fragment("gen_random_uuid()"), primary_key: true
+    end
+
+    alter table(:reconciliation_items) do
+      modify :inventory_event_id,
+             references(:inventory_events,
+               column: :id,
+               name: "reconciliation_items_inventory_event_id_fkey",
+               type: :uuid,
+               prefix: "public"
+             )
+    end
+
+    create unique_index(:reconciliation_items, [:reconciliation_id, :product_id],
+             name: "reconciliation_items_unique_reconciliation_product_index"
+           )
+
+    alter table(:inventory_events) do
+      add :event_type, :text, null: false
+      add :quantity_change, :bigint, null: false
+      add :batch_number, :text
+      add :expiration_date, :date
+      add :reference_type, :text
+      add :reference_id, :uuid
+      add :reason, :text
+      add :occurred_at, :utc_datetime_usec, null: false
+
+      add :created_at, :utc_datetime_usec,
+        null: false,
+        default: fragment("(now() AT TIME ZONE 'utc')")
+
+      add :updated_at, :utc_datetime_usec,
+        null: false,
+        default: fragment("(now() AT TIME ZONE 'utc')")
+
+      add :location_id,
+          references(:locations,
+            column: :id,
+            name: "inventory_events_location_id_fkey",
+            type: :uuid,
+            prefix: "public"
+          ),
+          null: false
+
+      add :product_id,
+          references(:products,
+            column: :id,
+            name: "inventory_events_product_id_fkey",
+            type: :uuid,
+            prefix: "public"
+          ),
+          null: false
+    end
   end
 
   def down do
+    drop constraint(:inventory_events, "inventory_events_location_id_fkey")
+
+    drop constraint(:inventory_events, "inventory_events_product_id_fkey")
+
+    alter table(:inventory_events) do
+      remove :product_id
+      remove :location_id
+      remove :updated_at
+      remove :created_at
+      remove :occurred_at
+      remove :reason
+      remove :reference_id
+      remove :reference_type
+      remove :expiration_date
+      remove :batch_number
+      remove :quantity_change
+      remove :event_type
+    end
+
+    drop_if_exists unique_index(:reconciliation_items, [:reconciliation_id, :product_id],
+                     name: "reconciliation_items_unique_reconciliation_product_index"
+                   )
+
+    drop constraint(:reconciliation_items, "reconciliation_items_inventory_event_id_fkey")
+
+    alter table(:reconciliation_items) do
+      modify :inventory_event_id, :uuid
+    end
+
+    drop table(:inventory_events)
+
+    alter table(:location_inventories) do
+      add :quantity_available, :bigint, null: false, default: 0
+    end
+
     alter table(:products) do
       remove :strength
       remove :active_ingredient
@@ -107,17 +191,11 @@ defmodule Medishop.Repo.Migrations.MigrateResources3 do
       remove :unit_of_measure
     end
 
-    drop_if_exists unique_index(:reconciliation_items, [:reconciliation_id, :product_id],
-                     name: "reconciliation_items_unique_reconciliation_product_index"
-                   )
-
     drop constraint(:reconciliation_items, "reconciliation_items_reconciliation_id_fkey")
 
     drop constraint(:reconciliation_items, "reconciliation_items_product_id_fkey")
 
     drop constraint(:reconciliation_items, "reconciliation_items_location_inventory_id_fkey")
-
-    drop constraint(:reconciliation_items, "reconciliation_items_inventory_event_id_fkey")
 
     drop table(:reconciliation_items)
 

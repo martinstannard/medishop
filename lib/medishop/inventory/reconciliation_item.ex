@@ -168,32 +168,6 @@ defmodule Medishop.Inventory.ReconciliationItem do
   end
 
   validations do
-    # Ensure adjustment_reason is provided if there's a discrepancy
-    validate fn changeset, _context ->
-      system_quantity = Ash.Changeset.get_attribute(changeset, :system_quantity)
-      physical_quantity = Ash.Changeset.get_attribute(changeset, :physical_quantity)
-      adjustment_reason = Ash.Changeset.get_attribute(changeset, :adjustment_reason)
-
-      # Only validate if:
-      # 1. We're creating a new record (no data present), OR
-      # 2. physical_quantity is being changed and creates/increases discrepancy
-      is_create = is_nil(changeset.data.id)
-
-      physical_changed = Ash.Changeset.changing_attribute?(changeset, :physical_quantity)
-
-      should_validate =
-        (is_create and system_quantity != physical_quantity) or
-          (physical_changed and system_quantity != physical_quantity)
-
-      if should_validate and is_nil(adjustment_reason) do
-        {:error,
-         field: :adjustment_reason,
-         message: "Adjustment reason is required when there is a discrepancy"}
-      else
-        :ok
-      end
-    end
-
     # Ensure adjustment_notes is provided when reason is :other
     validate fn changeset, _context ->
       adjustment_reason = Ash.Changeset.get_attribute(changeset, :adjustment_reason)

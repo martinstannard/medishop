@@ -5,8 +5,6 @@ defmodule MedishopWeb.InventoryDetailLiveTest do
   import Medishop.Generator
   import MedishopWeb.LiveViewTestHelpers
 
-  alias Medishop.Inventory
-
   setup do
     user = user() |> Ash.Generator.generate()
     organization = organization() |> Ash.Generator.generate()

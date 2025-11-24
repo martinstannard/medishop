@@ -14,14 +14,14 @@
     },
     {
       "allow_nil?": false,
-      "default": "\"in_progress\"",
+      "default": "nil",
       "generated?": false,
       "precision": null,
       "primary_key?": false,
       "references": null,
       "scale": null,
       "size": null,
-      "source": "status",
+      "source": "event_type",
       "type": "text"
     },
     {
@@ -33,8 +33,8 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "started_at",
-      "type": "utc_datetime_usec"
+      "source": "quantity_change",
+      "type": "bigint"
     },
     {
       "allow_nil?": true,
@@ -45,8 +45,8 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "completed_at",
-      "type": "utc_datetime_usec"
+      "source": "batch_number",
+      "type": "text"
     },
     {
       "allow_nil?": true,
@@ -57,44 +57,56 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "notes",
+      "source": "expiration_date",
+      "type": "date"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "reference_type",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "reference_id",
+      "type": "uuid"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "reason",
       "type": "text"
     },
     {
       "allow_nil?": false,
-      "default": "0",
+      "default": "nil",
       "generated?": false,
       "precision": null,
       "primary_key?": false,
       "references": null,
       "scale": null,
       "size": null,
-      "source": "total_items_checked",
-      "type": "bigint"
-    },
-    {
-      "allow_nil?": false,
-      "default": "0",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "total_discrepancies",
-      "type": "bigint"
-    },
-    {
-      "allow_nil?": false,
-      "default": "0",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "total_adjustments_made",
-      "type": "bigint"
+      "source": "occurred_at",
+      "type": "utc_datetime_usec"
     },
     {
       "allow_nil?": false,
@@ -139,7 +151,7 @@
           "global": true,
           "strategy": "attribute"
         },
-        "name": "stock_reconciliations_location_id_fkey",
+        "name": "inventory_events_location_id_fkey",
         "on_delete": null,
         "on_update": null,
         "primary_key?": true,
@@ -150,6 +162,37 @@
       "size": null,
       "source": "location_id",
       "type": "uuid"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": {
+        "deferrable": false,
+        "destination_attribute": "id",
+        "destination_attribute_default": null,
+        "destination_attribute_generated": null,
+        "index?": false,
+        "match_type": null,
+        "match_with": null,
+        "multitenancy": {
+          "attribute": null,
+          "global": null,
+          "strategy": null
+        },
+        "name": "inventory_events_product_id_fkey",
+        "on_delete": null,
+        "on_update": null,
+        "primary_key?": true,
+        "schema": "public",
+        "table": "products"
+      },
+      "scale": null,
+      "size": null,
+      "source": "product_id",
+      "type": "uuid"
     }
   ],
   "base_filter": null,
@@ -157,7 +200,7 @@
   "custom_indexes": [],
   "custom_statements": [],
   "has_create_action": true,
-  "hash": "A429483905B513AE6CE609A69B454095CC4D37F0269C900D12BF134B9EA5BDD0",
+  "hash": "8C561BC439FE9C5B452E2F91A71BEF973E80EA9E00AD25A375C5CEEF872CF77E",
   "identities": [],
   "multitenancy": {
     "attribute": null,
@@ -166,5 +209,5 @@
   },
   "repo": "Elixir.Medishop.Repo",
   "schema": null,
-  "table": "stock_reconciliations"
+  "table": "inventory_events"
 }

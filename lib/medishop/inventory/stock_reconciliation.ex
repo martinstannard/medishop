@@ -113,6 +113,15 @@ defmodule Medishop.Inventory.StockReconciliation do
 
       filter expr(status == ^arg(:status))
     end
+
+    read :in_progress_by_location do
+      description "Get in-progress reconciliation for a location"
+      argument :location_id, :uuid, allow_nil?: false
+
+      filter expr(location_id == ^arg(:location_id) and status == :in_progress)
+      # We expect at most one, but read actions return a list by default unless we use get? true (but get expects primary key usually or unique constraint)
+      # We'll just return list and take first.
+    end
   end
 
   policies do

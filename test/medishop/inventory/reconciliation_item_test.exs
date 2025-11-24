@@ -56,7 +56,7 @@ defmodule Medishop.Inventory.ReconciliationItemTest do
       assert item.adjustment_notes == "Two units damaged during inspection"
     end
 
-    test "requires adjustment_reason when system and physical quantities differ" do
+    test "allows creation without adjustment_reason (draft state)" do
       reconciliation = stock_reconciliation() |> Ash.Generator.generate()
       product = product() |> Ash.Generator.generate()
       location_inventory =
@@ -66,7 +66,7 @@ defmodule Medishop.Inventory.ReconciliationItemTest do
         )
         |> Ash.Generator.generate()
 
-      assert {:error, %Ash.Error.Invalid{} = error} =
+      assert {:ok, item} =
                Inventory.create_reconciliation_item(%{
                  reconciliation_id: reconciliation.id,
                  product_id: product.id,
@@ -75,7 +75,9 @@ defmodule Medishop.Inventory.ReconciliationItemTest do
                  physical_quantity: 7
                })
 
-      assert Exception.message(error) =~ "Adjustment reason is required"
+      item = item |> Ash.load!(:discrepancy)
+      assert item.discrepancy == -3
+      assert is_nil(item.adjustment_reason)
     end
 
     test "requires adjustment_notes when reason is :other" do
@@ -306,25 +308,18 @@ defmodule Medishop.Inventory.ReconciliationItemTest do
       assert updated.physical_quantity == 7
     end
 
-    test "updates physical_quantity and requires adjustment_reason when creating new discrepancy" do
+    test "updates physical_quantity creating discrepancy without reason (draft state)" do
       # Start with no discrepancy, update to create one
       item = reconciliation_item(system_quantity: 10, physical_quantity: 10) |> Ash.Generator.generate()
 
-      # This should fail because we're creating a discrepancy without providing a reason
-      assert {:error, %Ash.Error.Invalid{}} =
+      # This should succeed now as we allow draft state
+      assert {:ok, updated} =
                Inventory.update_reconciliation_item(item, %{
                  physical_quantity: 12
                })
 
-      # Now provide the reason - should succeed
-      assert {:ok, updated} =
-               Inventory.update_reconciliation_item(item, %{
-                 physical_quantity: 12,
-                 adjustment_reason: :count_error
-               })
-
       assert updated.physical_quantity == 12
-      assert updated.adjustment_reason == :count_error
+      assert is_nil(updated.adjustment_reason)
     end
 
     test "updates adjustment_reason and notes" do

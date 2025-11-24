@@ -23,6 +23,7 @@ defmodule Medishop.Inventory do
       define :get_location_inventory, action: :read, get_by: [:id]
       define :get_inventory_by_location, action: :get_by_location
       define :get_inventory_by_product, action: :get_by_product
+      define :get_location_inventory_by_location_and_product, action: :read, get_by: [:location_id, :product_id]
       define :destroy_location_inventory, action: :destroy
     end
 
@@ -41,6 +42,7 @@ defmodule Medishop.Inventory do
       define :get_reconciliation, action: :read, get_by: [:id]
       define :get_reconciliations_by_location, action: :by_location
       define :get_reconciliations_by_status, action: :by_status
+      define :get_in_progress_reconciliation, action: :in_progress_by_location
       define :update_reconciliation, action: :update
       define :complete_reconciliation, action: :complete
       define :cancel_reconciliation, action: :cancel
