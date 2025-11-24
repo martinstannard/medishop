@@ -68,6 +68,14 @@ defmodule Medishop.Inventory.StockReconciliation do
         |> Ash.Changeset.force_change_attribute(:status, :completed)
         |> Ash.Changeset.force_change_attribute(:completed_at, DateTime.utc_now())
       end
+
+      # After completing the reconciliation, create inventory adjustment events for all discrepancies
+      change after_action(fn changeset, reconciliation, context ->
+        case create_adjustment_events_for_reconciliation(reconciliation, context) do
+          {:ok, _events} -> {:ok, reconciliation}
+          {:error, error} -> {:error, error}
+        end
+      end)
     end
 
     update :cancel do
@@ -194,6 +202,94 @@ defmodule Medishop.Inventory.StockReconciliation do
       end
     ) do
       description "Duration of the reconciliation session in minutes"
+    end
+  end
+
+  # Helper function to create adjustment events for all discrepancies in a reconciliation
+  defp create_adjustment_events_for_reconciliation(reconciliation, context) do
+    # Load reconciliation items with discrepancies
+    {:ok, reconciliation_with_items} =
+      reconciliation
+      |> Ash.load([reconciliation_items: [:product, :discrepancy, :has_discrepancy]])
+
+    items_with_discrepancies =
+      reconciliation_with_items.reconciliation_items
+      |> Enum.filter(fn item ->
+        # Load calculations if not already loaded
+        {:ok, loaded} = Ash.load(item, [:has_discrepancy, :discrepancy])
+        loaded.has_discrepancy
+      end)
+
+    # Create inventory events for each discrepancy
+    results =
+      Enum.map(items_with_discrepancies, fn item ->
+        # Load the item with calculations if needed
+        {:ok, item_loaded} = Ash.load(item, [:discrepancy])
+
+        # Format the reason string combining adjustment_reason and notes
+        reason =
+          format_adjustment_reason(item.adjustment_reason, item.adjustment_notes)
+
+        # Create the inventory event
+        event_result =
+          Medishop.Inventory.create_inventory_event(
+            %{
+              location_id: reconciliation.location_id,
+              product_id: item.product_id,
+              event_type: :adjustment,
+              quantity_change: item_loaded.discrepancy,
+              reason: reason,
+              reference_type: "StockReconciliation",
+              reference_id: reconciliation.id,
+              occurred_at: reconciliation.completed_at || DateTime.utc_now()
+            },
+            actor: Map.get(context, :actor)
+          )
+
+        case event_result do
+          {:ok, event} ->
+            # Update the reconciliation item with the created event ID
+            Medishop.Inventory.update_reconciliation_item(item, %{
+              inventory_event_id: event.id
+            })
+
+            {:ok, event}
+
+          {:error, error} ->
+            {:error, error}
+        end
+      end)
+
+    # Check if any errors occurred
+    errors = Enum.filter(results, fn result -> match?({:error, _}, result) end)
+
+    if Enum.empty?(errors) do
+      events = Enum.map(results, fn {:ok, event} -> event end)
+      {:ok, events}
+    else
+      {:error, List.first(errors)}
+    end
+  end
+
+  # Helper function to format adjustment reason into a readable string
+  defp format_adjustment_reason(reason, notes) do
+    reason_text =
+      case reason do
+        :training_stock -> "Training Stock"
+        :breakage -> "Breakage"
+        :expired -> "Expired"
+        :theft -> "Theft"
+        :count_error -> "Count Error"
+        :system_error -> "System Error"
+        :spillage -> "Spillage"
+        :other -> "Other"
+        _ -> "Unknown"
+      end
+
+    if notes && String.trim(notes) != "" do
+      "#{reason_text}: #{notes}"
+    else
+      reason_text
     end
   end
 end

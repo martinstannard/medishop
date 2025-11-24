@@ -184,9 +184,28 @@ Track individual product checks within a reconciliation:
 
 ---
 
-### Phase 2: Business Logic
+### Phase 2: Business Logic ✅ COMPLETE
 
-#### 2.1 Reconciliation Workflow
+**Status**: ✅ COMPLETED on 2025-11-24
+**Branch**: `drugbook`
+**Tests**: 6 new integration tests (359 total, all passing)
+**Implementation**: Automatic adjustment event creation on reconciliation completion
+
+#### 2.1 Reconciliation Workflow ✅
+
+**Implemented**:
+- After-action hook on `complete_reconciliation` action
+- Automatic processing of all reconciliation items with discrepancies
+- InventoryEvent creation for each discrepancy
+- ReconciliationItem update with created event ID
+- Formatted adjustment reasons with optional notes
+- Reference tracking to link events back to reconciliation
+
+**Files Modified**:
+- `lib/medishop/inventory/stock_reconciliation.ex` - Added helper functions and workflow logic
+- `test/medishop/inventory/reconciliation_workflow_test.exs` - 6 comprehensive integration tests
+
+**Original Plan**:
 1. **Start Reconciliation**
    - User navigates to location inventory page
    - Clicks "Start Stock Take" button
@@ -217,20 +236,33 @@ Track individual product checks within a reconciliation:
    - System calculates summary statistics
    - UI shows confirmation with summary
 
-#### 2.2 Adjustment Event Creation
+#### 2.2 Adjustment Event Creation ✅
+
+**Implemented**: Fully automated adjustment event creation workflow
+
 When reconciliation is completed:
-- For each `ReconciliationItem` with discrepancy:
-  - Create `InventoryEvent` with:
-    - `event_type`: `:adjustment`
-    - `quantity_change`: the discrepancy amount (can be positive or negative)
-    - `reason`: formatted string combining reason category and notes
-    - `reference_type`: "StockReconciliation"
-    - `reference_id`: the reconciliation session ID
-    - `occurred_at`: the reconciliation completion time
-  - Update `ReconciliationItem.inventory_event_id` with created event
-- LocationInventory current_quantity will automatically update via aggregate
+- ✅ For each `ReconciliationItem` with discrepancy:
+  - ✅ Create `InventoryEvent` with:
+    - ✅ `event_type`: `:adjustment`
+    - ✅ `quantity_change`: the discrepancy amount (can be positive or negative)
+    - ✅ `reason`: formatted string combining reason category and notes
+    - ✅ `reference_type`: "StockReconciliation"
+    - ✅ `reference_id`: the reconciliation session ID
+    - ✅ `occurred_at`: the reconciliation completion time
+  - ✅ Update `ReconciliationItem.inventory_event_id` with created event
+- ✅ LocationInventory current_quantity automatically updates via aggregate
+
+**Implementation Details**:
+- Helper function: `create_adjustment_events_for_reconciliation/2`
+- Helper function: `format_adjustment_reason/2`
+- Error handling for atomic operations
+- Actor context passed through for attribution
+- 6 integration tests covering all scenarios
 
 #### 2.3 Authorization
+**Status**: 📋 Planned for future enhancement (Phase 5)
+
+Authorization currently uses default "allow all" policy. Future implementation:
 - Only users with `org_admin` or location-level inventory management permission can perform reconciliations
 - Users can only reconcile locations they have access to
 - Reconciliation history viewable by all location members
@@ -447,13 +479,17 @@ define :update_reconciliation_item, action: :update
 | Phase | Description | Status | Completed | Dependencies |
 |-------|-------------|--------|-----------|--------------|
 | Phase 1 | Data Model Enhancements | ✅ COMPLETE | 2025-11-24 | None |
-| Phase 2 | Business Logic | 📋 Planned | - | Phase 1 |
+| Phase 2 | Business Logic | ✅ COMPLETE | 2025-11-24 | Phase 1 |
 | Phase 3 | UI Implementation | 📋 Planned | - | Phase 1, 2 |
 | Phase 4 | Testing | 📋 Planned | - | Phase 1, 2, 3 |
 | Phase 5 | Future Enhancements | 📋 Planned | - | Phase 1-4 complete |
 
-**Phase 1 Complete**: 56 new tests, 353 total passing, full data model implementation
-**Remaining MVP**: Phases 2-4 (Business Logic, UI, Integration Testing)
+**Phases 1-2 Complete**:
+- Phase 1: 56 new tests, data model foundation
+- Phase 2: 6 integration tests, automatic adjustment events
+- Total: 359 tests passing, complete business logic
+
+**Remaining MVP**: Phases 3-4 (UI Implementation, LiveView Testing)
 
 ## Success Metrics
 
