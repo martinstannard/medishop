@@ -2,6 +2,117 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2025-11-24
+
+### Added - Stock Reconciliation System (Phase 1: Data Model)
+- **Product Enhancements for Drugbook**: Extended Product resource with pharmacy-specific attributes
+  - `unit_of_measure`: Enum attribute for tablets, milliliters, vials, boxes, bottles, syringes
+  - `storage_location`: Enum attribute for cupboard, fridge, controlled_drugs_cabinet
+  - `active_ingredient`: String field for active pharmaceutical ingredient (drug reference)
+  - `strength`: String field for drug strength (e.g., "500mg", "10mg/mL")
+  - Updated create/update actions to accept new attributes
+  - Updated product generator with default values (tablets, cupboard)
+
+- **StockReconciliation Resource** (`lib/medishop/inventory/stock_reconciliation.ex`): Tracks physical stock take sessions
+  - Status workflow: `:in_progress` → `:completed` or `:cancelled`
+  - Timestamps: `started_at`, `completed_at` (auto-set on create/complete)
+  - Statistics tracking: `total_items_checked`, `total_discrepancies`, `total_adjustments_made`
+  - Relationships: `belongs_to :location`, `has_many :reconciliation_items`
+  - Actions: create, read, update, complete, cancel, destroy
+  - Custom queries: `by_location`, `by_status`
+  - Calculation: `duration_minutes` (time between started_at and completed_at)
+  - AshEvents integration for actor attribution and audit trail
+  - Validation: Can only complete/cancel reconciliations that are `:in_progress`
+  - 9 code interface functions in Inventory domain
+
+- **ReconciliationItem Resource** (`lib/medishop/inventory/reconciliation_item.ex`): Individual product checks within reconciliation
+  - Attributes: `system_quantity`, `physical_quantity` (captured at reconciliation time)
+  - Structured adjustment reasons (8 categories):
+    - `:training_stock` - Used for training purposes
+    - `:breakage` - Physical damage or breakage
+    - `:expired` - Past expiration date
+    - `:theft` - Suspected theft or loss
+    - `:count_error` - Previous counting error
+    - `:system_error` - System data entry error
+    - `:spillage` - Spilled or contaminated
+    - `:other` - Other reason (requires additional notes)
+  - Optional `adjustment_notes` field (required when reason is `:other`)
+  - Relationships: belongs_to Reconciliation, Product, LocationInventory, InventoryEvent
+  - Calculations:
+    - `discrepancy`: Calculated as `physical_quantity - system_quantity`
+    - `has_discrepancy`: Boolean indicating if quantities differ
+  - Validations:
+    - Adjustment reason required when creating/updating items with discrepancies
+    - Additional notes required when adjustment reason is `:other`
+  - Unique constraint: One item per product per reconciliation (reconciliation_id + product_id)
+  - Actions: create, update, bulk_create, read, destroy
+  - Custom queries: `by_reconciliation`, `with_discrepancies`
+  - 9 code interface functions in Inventory domain
+
+- **Database Migrations** (`priv/repo/migrations/20251124025227_migrate_resources3_dev.exs`):
+  - Created `stock_reconciliations` table with location foreign key and status tracking
+  - Created `reconciliation_items` table with relationships to reconciliations, products, location_inventories, and inventory_events
+  - Added unique index on `reconciliation_items(reconciliation_id, product_id)`
+  - Altered `products` table to add 4 new columns: unit_of_measure, storage_location, active_ingredient, strength
+  - All migrations applied successfully with development flag (--dev)
+
+- **Test Generators** (`test/support/generator.ex`):
+  - Added `stock_reconciliation/1` generator with location relationship
+  - Added `reconciliation_item/1` generator with complex relationship handling
+  - Updated `product/1` generator with default `unit_of_measure: :tablets` and `storage_location: :cupboard`
+
+- **Comprehensive Test Coverage** (56 new tests, 353 total passing):
+  - **StockReconciliation Tests** (`test/medishop/inventory/stock_reconciliation_test.exs`) - 25 tests:
+    - Create reconciliation with default values and optional notes
+    - Retrieve by ID, list all, filter by location and status
+    - Update reconciliation notes
+    - Complete reconciliation with statistics (validates status, sets completed_at)
+    - Cancel reconciliation (validates status, sets completed_at)
+    - State transition validation (cannot complete/cancel already completed/cancelled)
+    - Destroy reconciliation
+    - Duration calculation availability
+  - **ReconciliationItem Tests** (`test/medishop/inventory/reconciliation_item_test.exs`) - 31 tests:
+    - Create items with and without discrepancies
+    - Create items with all 8 adjustment reason categories
+    - Validation: Adjustment reason required for discrepancies
+    - Validation: Notes required when reason is `:other`
+    - Unique constraint enforcement (reconciliation + product)
+    - Retrieve by ID, list all, filter by reconciliation
+    - Filter items with discrepancies only
+    - Update physical_quantity, adjustment_reason, and notes
+    - Validation on update when creating new discrepancy
+    - Discrepancy calculation (positive, negative, zero)
+    - has_discrepancy calculation (true/false)
+    - Destroy reconciliation item
+  - All 353 tests passing with 0 failures
+
+### Changed
+- **Inventory Domain** (`lib/medishop/inventory.ex`):
+  - Added 2 new resources: StockReconciliation, ReconciliationItem
+  - Added 18 new code interface functions (9 per resource)
+  - Updated moduledoc to include "Physical stock take reconciliations" and "Discrepancy tracking and adjustment event creation"
+
+### Technical Details
+- **Event Sourcing Ready**: ReconciliationItem has optional `inventory_event_id` field to link to adjustment events created during reconciliation completion (Phase 2)
+- **Audit Compliance**: Structured adjustment reasons provide categorized audit trail for regulatory compliance
+- **Data Integrity**: Unique constraints prevent duplicate reconciliation items, validations ensure data quality
+- **AshEvents Integration**: StockReconciliation uses AshEvents extension for automatic actor attribution
+- **Development Migrations**: All migrations created with `--dev` flag for iterative development
+- **Test-Driven Development**: All features fully tested before marking complete
+
+### Documentation
+- Created `docs/10-stock-reconciliation-plan.md`: Comprehensive 5-phase implementation plan
+  - Phase 1: Data Model Enhancements ✅ COMPLETE
+  - Phase 2: Business Logic (reconciliation workflow, adjustment event creation)
+  - Phase 3: UI Implementation (stock take interface, history views, detail view)
+  - Phase 4: Testing (integration tests, LiveView tests)
+  - Phase 5: Future Enhancements (scheduled reconciliations, mobile scanning, analytics)
+
+### Next Steps
+- Phase 2: Implement reconciliation completion workflow with automatic InventoryEvent creation
+- Phase 3: Build stock take UI (record counts, review discrepancies, complete session)
+- Phase 4: Integration and LiveView testing
+
 ## 2025-11-23
 
 ### Fixed - Dashboard Button Styling
