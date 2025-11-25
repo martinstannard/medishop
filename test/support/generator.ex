@@ -300,6 +300,23 @@ defmodule Medishop.Generator do
     )
   end
 
+  def voucher(overrides \\ []) do
+    Ash.Generator.changeset_generator(
+      Medishop.Shop.Voucher,
+      :create,
+      defaults: [
+        name: sequence(:name, &"Voucher #{&1}"),
+        code: sequence(:code, &"CODE#{&1}"),
+        discount_type: :percentage,
+        discount_value: Decimal.new("10.0"),
+        min_purchase_type: :none,
+        active: true
+      ],
+      overrides: overrides,
+      authorize?: false
+    )
+  end
+
   def stock_reconciliation(overrides \\ []) do
     location_id =
       overrides[:location_id] ||

@@ -90,5 +90,60 @@ defmodule Medishop.Shop do
       define :list_order_items, action: :read
       define :get_order_item, action: :read, get_by: [:id]
     end
+
+    resource Medishop.Shop.Voucher do
+      define :create_voucher, action: :create
+      define :list_vouchers, action: :read
+      define :get_voucher, action: :read, get_by: [:id]
+      define :get_voucher_by_code, action: :by_code, args: [:code]
+      define :update_voucher, action: :update
+      define :destroy_voucher, action: :destroy
+    end
+
+    resource Medishop.Shop.VoucherRedemption
+    resource Medishop.Shop.VoucherOrganization
+    resource Medishop.Shop.VoucherLocation
+    resource Medishop.Shop.VoucherProduct
+  end
+
+  def validate_voucher(code, _cart, _user) do
+    case get_voucher_by_code(code) do
+      {:ok, voucher} ->
+        cond do
+          !voucher.active -> {:error, :inactive}
+          !is_nil(voucher.start_date) and Date.compare(voucher.start_date, Date.utc_today()) == :gt -> {:error, :not_started}
+          !is_nil(voucher.end_date) and Date.compare(voucher.end_date, Date.utc_today()) == :lt -> {:error, :expired}
+          true -> {:ok, voucher}
+        end
+
+      {:error, _} ->
+        {:error, :not_found}
+    end
+  end
+
+  def calculate_discount(voucher, cart) do
+    subtotal =
+      Enum.reduce(cart.cart_items, Decimal.new(0), fn item, acc ->
+        # Calculate line total if not present, or use item.line_total if it exists and is reliable
+        # Assuming cart_items are loaded.
+        # Recalculate to be safe: quantity * price_at_addition
+        line_total = Decimal.mult(Decimal.new(item.quantity), item.price_at_addition)
+        Decimal.add(acc, line_total)
+      end)
+
+    case voucher.discount_type do
+      :percentage ->
+        # discount_value is percentage (e.g., 10.0 for 10%)
+        multiplier = Decimal.div(voucher.discount_value, Decimal.new(100))
+        Decimal.mult(subtotal, multiplier)
+
+      :fixed ->
+        # Cap at subtotal
+        if Decimal.compare(voucher.discount_value, subtotal) == :gt do
+          subtotal
+        else
+          voucher.discount_value
+        end
+    end
   end
 end

@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ## 2025-11-25
 
+### Added - Voucher System (Phase 1)
+- **Voucher Resource** (`Medishop.Shop.Voucher`):
+  - Attributes: code, discount type/value, min purchase, limits, validity dates.
+  - Relationships: eligible organizations, locations, products.
+  - Logic: `validate_voucher/3` and `calculate_discount/2`.
+- **VoucherRedemption Resource** (`Medishop.Shop.VoucherRedemption`): Tracks usage.
+- **Tests**: Unit tests for Voucher CRUD and business logic.
+
 ### Added - Product Supplier Management
 - **Supplier Resource** (`lib/medishop/products/supplier.ex`): Manages product supplier information
   - Attributes: name, address, sage_id, contact_email, contact_number
