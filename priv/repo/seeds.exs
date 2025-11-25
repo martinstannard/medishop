@@ -266,7 +266,7 @@ member_user =
 # Create products using interface functions
 IO.puts("\nCreating products...")
 
-{:ok, _aspirin} =
+{:ok, aspirin} =
   Products.create_product(%{
     sku: "MED-ASP-100",
     title: "Aspirin 100mg Tablets",
@@ -276,7 +276,7 @@ IO.puts("\nCreating products...")
     images: []
   })
 
-{:ok, _ibuprofen} =
+{:ok, ibuprofen} =
   Products.create_product(%{
     sku: "MED-IBU-200",
     title: "Ibuprofen 200mg Capsules",
@@ -286,7 +286,7 @@ IO.puts("\nCreating products...")
     images: []
   })
 
-{:ok, _acetaminophen} =
+{:ok, acetaminophen} =
   Products.create_product(%{
     sku: "MED-ACE-500",
     title: "Acetaminophen 500mg Tablets",
@@ -296,7 +296,7 @@ IO.puts("\nCreating products...")
     images: []
   })
 
-{:ok, _amoxicillin} =
+{:ok, amoxicillin} =
   Products.create_product(%{
     sku: "MED-AMX-500",
     title: "Amoxicillin 500mg Capsules",
@@ -306,7 +306,7 @@ IO.puts("\nCreating products...")
     images: []
   })
 
-{:ok, _lisinopril} =
+{:ok, lisinopril} =
   Products.create_product(%{
     sku: "MED-LIS-10",
     title: "Lisinopril 10mg Tablets",
@@ -316,7 +316,7 @@ IO.puts("\nCreating products...")
     images: []
   })
 
-{:ok, _metformin} =
+{:ok, metformin} =
   Products.create_product(%{
     sku: "MED-MET-500",
     title: "Metformin 500mg Tablets",
@@ -326,7 +326,7 @@ IO.puts("\nCreating products...")
     images: []
   })
 
-{:ok, _atorvastatin} =
+{:ok, atorvastatin} =
   Products.create_product(%{
     sku: "MED-ATO-20",
     title: "Atorvastatin 20mg Tablets",
@@ -336,7 +336,7 @@ IO.puts("\nCreating products...")
     images: []
   })
 
-{:ok, _omeprazole} =
+{:ok, omeprazole} =
   Products.create_product(%{
     sku: "MED-OME-20",
     title: "Omeprazole 20mg Capsules",
@@ -346,7 +346,7 @@ IO.puts("\nCreating products...")
     images: []
   })
 
-{:ok, _losartan} =
+{:ok, losartan} =
   Products.create_product(%{
     sku: "MED-LOS-50",
     title: "Losartan 50mg Tablets",
@@ -356,7 +356,7 @@ IO.puts("\nCreating products...")
     images: []
   })
 
-{:ok, _gabapentin} =
+{:ok, gabapentin} =
   Products.create_product(%{
     sku: "MED-GAB-300",
     title: "Gabapentin 300mg Capsules",
@@ -366,7 +366,7 @@ IO.puts("\nCreating products...")
     images: []
   })
 
-{:ok, _levothyroxine} =
+{:ok, levothyroxine} =
   Products.create_product(%{
     sku: "MED-LEV-50",
     title: "Levothyroxine 50mcg Tablets",
@@ -376,7 +376,7 @@ IO.puts("\nCreating products...")
     images: []
   })
 
-{:ok, _amlodipine} =
+{:ok, amlodipine} =
   Products.create_product(%{
     sku: "MED-AML-5",
     title: "Amlodipine 5mg Tablets",
@@ -397,6 +397,57 @@ IO.puts("\nCreating products...")
     images: []
   })
 
+# Create Suppliers
+IO.puts("\nCreating suppliers...")
+
+{:ok, supplier_a} =
+  Products.create_supplier(%{
+    name: "PharmaDirect Distributors",
+    address: "123 Pharma Way, Chicago, IL 60601",
+    sage_id: "SAGE-PD-001",
+    contact_email: "orders@pharmadirect.test",
+    contact_number: "+1-312-555-0100"
+  })
+
+{:ok, supplier_b} =
+  Products.create_supplier(%{
+    name: "MedSupply Logistics",
+    address: "456 Logistics Lane, Dallas, TX 75201",
+    sage_id: "SAGE-MS-002",
+    contact_email: "support@medsupply.test",
+    contact_number: "+1-214-555-0200"
+  })
+
+{:ok, supplier_c} =
+  Products.create_supplier(%{
+    name: "Global Generics Inc.",
+    address: "789 Generic Blvd, New York, NY 10001",
+    sage_id: "SAGE-GG-003",
+    contact_email: "sales@globalgenerics.test",
+    contact_number: "+1-212-555-0300"
+  })
+
+# Link products to suppliers
+IO.puts("Linking products to suppliers...")
+
+# PharmaDirect supplies basic pain relievers
+{:ok, _} = Products.update_product(aspirin, %{supplier_ids: [supplier_a.id]})
+{:ok, _} = Products.update_product(ibuprofen, %{supplier_ids: [supplier_a.id]})
+{:ok, _} = Products.update_product(acetaminophen, %{supplier_ids: [supplier_a.id, supplier_c.id]}) # Multiple suppliers
+
+# MedSupply supplies prescription meds
+{:ok, _} = Products.update_product(amoxicillin, %{supplier_ids: [supplier_b.id]})
+{:ok, _} = Products.update_product(lisinopril, %{supplier_ids: [supplier_b.id]})
+{:ok, _} = Products.update_product(metformin, %{supplier_ids: [supplier_b.id, supplier_c.id]}) # Multiple suppliers
+{:ok, _} = Products.update_product(atorvastatin, %{supplier_ids: [supplier_b.id]})
+
+# Global Generics supplies various generics
+{:ok, _} = Products.update_product(omeprazole, %{supplier_ids: [supplier_c.id]})
+{:ok, _} = Products.update_product(losartan, %{supplier_ids: [supplier_c.id]})
+{:ok, _} = Products.update_product(gabapentin, %{supplier_ids: [supplier_c.id]})
+{:ok, _} = Products.update_product(levothyroxine, %{supplier_ids: [supplier_c.id, supplier_b.id]})
+{:ok, _} = Products.update_product(amlodipine, %{supplier_ids: [supplier_c.id]})
+
 IO.puts("\n✅ Seeds completed successfully!")
 IO.puts("\nCreated:")
 IO.puts("- 3 users (admin@medishop.test, buyer@medishop.test, member@medishop.test)")
@@ -405,5 +456,6 @@ IO.puts("- 5 locations across all organizations")
 IO.puts("- 6 organization memberships (Enriched)")
 IO.puts("- 6 location memberships (Enriched)")
 IO.puts("- 13 products (12 active, 1 inactive)")
+IO.puts("- 3 suppliers (PharmaDirect, MedSupply, Global Generics)")
 IO.puts("\nYou can now test the shopping cart and purchase flow!")
 IO.puts("Login credentials: password = 'password' for all test users")
