@@ -32,6 +32,9 @@ defmodule Medishop.Products.Product do
         :active_ingredient,
         :strength
       ]
+
+      argument :supplier_ids, {:array, :uuid}
+      change manage_relationship(:supplier_ids, :suppliers, type: :append_and_remove)
     end
 
     update :update do
@@ -48,6 +51,9 @@ defmodule Medishop.Products.Product do
         :active_ingredient,
         :strength
       ]
+
+      argument :supplier_ids, {:array, :uuid}
+      change manage_relationship(:supplier_ids, :suppliers, type: :append_and_remove)
     end
 
     read :search do
@@ -174,6 +180,12 @@ defmodule Medishop.Products.Product do
   end
 
   relationships do
+    many_to_many :suppliers, Medishop.Products.Supplier do
+      through Medishop.Products.ProductSupplier
+      source_attribute_on_join_resource :product_id
+      destination_attribute_on_join_resource :supplier_id
+    end
+
     has_many :location_inventories, Medishop.Inventory.LocationInventory
 
     has_many :cart_items, Medishop.Shop.CartItem do

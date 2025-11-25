@@ -163,6 +163,25 @@ mix credo --strict      # Code quality (when available)
 - [x] Review migration for products table
 - [x] Run migration
 
+### Phase 1.5: Product Suppliers ✅ COMPLETED
+
+#### Step 4b: Add Supplier Management ✅ COMPLETED
+**Effort:** Small
+**Dependencies:** Step 1
+
+- [x] Create `Medishop.Products.Supplier` resource
+- [x] Create `Medishop.Products.ProductSupplier` join resource
+- [x] Add many-to-many relationship between Products and Suppliers
+- [x] Create supplier test suite and generator
+- [x] Generate and run migrations
+
+**Supplier Attributes:**
+- `name` (string, required)
+- `address` (string)
+- `sage_id` (string) - external accounting ID
+- `contact_email` (string)
+- `contact_number` (string)
+
 ---
 
 ### Phase 2: Inventory Domain (Location Stock)

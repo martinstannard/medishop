@@ -23,5 +23,15 @@ defmodule Medishop.Products do
       define :update_product, action: :update
       define :destroy_product, action: :destroy
     end
+
+    resource Medishop.Products.Supplier do
+      define :create_supplier, action: :create
+      define :list_suppliers, action: :read
+      define :get_supplier, action: :read, get_by: [:id]
+      define :update_supplier, action: :update
+      define :destroy_supplier, action: :destroy
+    end
+
+    resource Medishop.Products.ProductSupplier
   end
 end

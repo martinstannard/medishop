@@ -285,6 +285,21 @@ defmodule Medishop.Generator do
     )
   end
 
+  def supplier(overrides \\ []) do
+    Ash.Generator.changeset_generator(
+      Medishop.Products.Supplier,
+      :create,
+      defaults: [
+        name: sequence(:name, &"Supplier #{&1}"),
+        address: "123 Supplier St",
+        contact_email: sequence(:email, &"supplier#{&1}@example.com"),
+        contact_number: "+1-555-000-0000"
+      ],
+      overrides: overrides,
+      authorize?: false
+    )
+  end
+
   def stock_reconciliation(overrides \\ []) do
     location_id =
       overrides[:location_id] ||

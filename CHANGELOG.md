@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2025-11-25
+
+### Added - Product Supplier Management
+- **Supplier Resource** (`lib/medishop/products/supplier.ex`): Manages product supplier information
+  - Attributes: name, address, sage_id, contact_email, contact_number
+  - Relationships: many-to-many with Products (via ProductSupplier)
+  - Code interface functions: create, read, update, destroy
+- **ProductSupplier Resource** (`lib/medishop/products/product_supplier.ex`): Join resource
+  - Links Products and Suppliers
+  - Supports many-to-many relationship
+- **Product Resource Updates**:
+  - Added `many_to_many :suppliers` relationship
+  - Updated `create` and `update` actions to accept `supplier_ids` argument
+  - Allows managing suppliers directly when creating/updating products
+- **Test Coverage**:
+  - Created `test/medishop/products/supplier_test.exs` covering CRUD and relationship management
+  - Added `supplier` generator to `test/support/generator.ex`
+  - 5 comprehensive tests passing ✅
+- **Database Migrations**:
+  - Generated and ran development migrations for `suppliers` and `product_suppliers` tables
+
 ## 2025-11-24
 
 ### Added - Stock Reconciliation System (Phase 2: Business Logic)
