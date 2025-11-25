@@ -6,6 +6,28 @@ This file tracks the high-level progress of work on the Medishop project. Update
 
 ## 2025-11-25
 
+### Voucher System - Phase 2: Cart Integration ✅ COMPLETE
+
+**What was accomplished:**
+- **Cart Resource Updates**: Added `voucher_id` and `discount_total` fields.
+- **Cart Logic**:
+  - Implemented `calculate_cart_totals/1` in Shop domain.
+  - Added `after_action` hooks to `CartItem` (create, update, destroy) to automatically recalculate cart totals.
+  - Added `after_action` hook to `Cart` (update) to handle voucher application/removal.
+- **Order Integration**:
+  - Updated `Order` resource to store `voucher_id` and `discount_total`.
+  - Updated `create_from_cart` action to:
+    - Pass discount data to the new order.
+    - Create a `VoucherRedemption` record.
+    - Clear the voucher from the cart after order placement.
+- **Migrations**: Generated and ran migrations for all schema changes.
+
+**Files Modified:**
+- `lib/medishop/shop/cart.ex`
+- `lib/medishop/shop/cart_item.ex`
+- `lib/medishop/shop/order.ex`
+- `lib/medishop/shop.ex`
+
 ### Voucher System - Phase 1: Data Model & Logic ✅ COMPLETE
 
 **What was accomplished:**
@@ -32,28 +54,4 @@ This file tracks the high-level progress of work on the Medishop project. Update
 - `test/medishop/shop/voucher_logic_test.exs`
 
 ### Product Supplier Management ✅ COMPLETE
-
-**What was accomplished:**
-- **New Supplier Resource**: Created `Medishop.Products.Supplier` to manage product suppliers
-  - Attributes: name, address, sage_id, contact_email, contact_number
-  - Code interface functions for full CRUD operations
-  - Relationship to Products via join table
-- **Product Integration**:
-  - Added `many_to_many` relationship between Products and Suppliers
-  - Updated Product create/update actions to accept `supplier_ids` for easy management
-- **Testing**:
-  - Created `test/medishop/products/supplier_test.exs` with 5 comprehensive tests
-  - Added `supplier` generator to test support
-  - All tests passing ✅
-
-**Files Modified:**
-- `lib/medishop/products/supplier.ex` - New resource
-- `lib/medishop/products/product_supplier.ex` - New join resource
-- `lib/medishop/products/product.ex` - Added relationship
-- `lib/medishop/products.ex` - Registered resources
-- `test/medishop/products/supplier_test.exs` - Test suite
-
----
-
-## 2025-11-24
 ... (rest of file)

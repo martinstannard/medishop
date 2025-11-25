@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## 2025-11-25
 
+### Added - Voucher System (Phase 2)
+- **Cart Integration**:
+  - `Cart` resource: Added `voucher_id`, `discount_total`, `belongs_to :voucher`.
+  - `CartItem` resource: Auto-recalculates cart totals on create/update/destroy.
+  - `Order` resource: Snapshots discount data and creates `VoucherRedemption` on order creation.
+- **Business Logic**: `calculate_cart_totals/1` public function in Shop domain.
+
 ### Added - Voucher System (Phase 1)
 - **Voucher Resource** (`Medishop.Shop.Voucher`):
   - Attributes: code, discount type/value, min purchase, limits, validity dates.

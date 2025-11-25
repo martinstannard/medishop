@@ -100,10 +100,31 @@ defmodule Medishop.Shop do
       define :destroy_voucher, action: :destroy
     end
 
-    resource Medishop.Shop.VoucherRedemption
+    resource Medishop.Shop.VoucherRedemption do
+      define :create_voucher_redemption, action: :create
+    end
     resource Medishop.Shop.VoucherOrganization
     resource Medishop.Shop.VoucherLocation
     resource Medishop.Shop.VoucherProduct
+  end
+
+  def calculate_cart_totals(cart) do
+    subtotal =
+      Enum.reduce(cart.cart_items, Decimal.new(0), fn item, acc ->
+        Decimal.add(acc, Decimal.mult(Decimal.new(item.quantity), item.price_at_addition))
+      end)
+
+    if cart.voucher_id do
+      case get_voucher(cart.voucher_id) do
+        {:ok, voucher} ->
+          discount = calculate_discount(voucher, cart)
+          {:ok, %{subtotal: subtotal, discount_total: discount, total: Decimal.sub(subtotal, discount)}}
+        {:error, _} ->
+          {:ok, %{subtotal: subtotal, discount_total: Decimal.new("0.00"), total: subtotal}}
+      end
+    else
+      {:ok, %{subtotal: subtotal, discount_total: Decimal.new("0.00"), total: subtotal}}
+    end
   end
 
   def validate_voucher(code, _cart, _user) do

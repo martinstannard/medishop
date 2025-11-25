@@ -20,11 +20,35 @@ defmodule Medishop.Shop.Cart do
 
     create :create do
       primary? true
-      accept [:location_id]
+      accept [:location_id, :voucher_id, :discount_total]
     end
 
     update :update do
       primary? true
+      require_atomic? false
+      accept [:voucher_id, :discount_total]
+
+      change after_action(fn changeset, result, _context ->
+        # Only recalculate if voucher_id was changed or it was cleared
+        if Ash.Changeset.retrieve_set_attribute(changeset, :voucher_id) || Ash.Changeset.retrieve_set_attribute(changeset, :discount_total) do
+          # Load cart with items and voucher to calculate totals
+          case Medishop.Shop.get_cart(result.id, load: [:cart_items, :voucher]) do
+            {:ok, cart_with_relations} ->
+              case Medishop.Shop.calculate_cart_totals(cart_with_relations) do
+                {:ok, %{discount_total: new_discount_total}} ->
+                  # Update the cart itself with the new discount total
+                  Medishop.Shop.update_cart(result, %{discount_total: new_discount_total})
+                _ ->
+                  # If calculation fails or no voucher, ensure discount is 0
+                  Medishop.Shop.update_cart(result, %{discount_total: Decimal.new("0.00")})
+              end
+            {:error, _} ->
+              # Handle error loading cart, ensure discount is 0
+              Medishop.Shop.update_cart(result, %{discount_total: Decimal.new("0.00")})
+          end
+        end
+        {:ok, result}
+      end)
     end
 
     action :get_or_create_for_location do
@@ -83,6 +107,12 @@ defmodule Medishop.Shop.Cart do
   attributes do
     uuid_primary_key :id
 
+    attribute :discount_total, :decimal do
+      default Decimal.new("0.00")
+      allow_nil? false
+      public? true
+    end
+
     create_timestamp :created_at
     update_timestamp :updated_at
   end
@@ -90,6 +120,11 @@ defmodule Medishop.Shop.Cart do
   relationships do
     belongs_to :location, Medishop.Organizations.Location do
       allow_nil? false
+      public? true
+    end
+
+    belongs_to :voucher, Medishop.Shop.Voucher do
+      allow_nil? true
       public? true
     end
 

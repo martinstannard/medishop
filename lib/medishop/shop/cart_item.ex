@@ -16,16 +16,58 @@ defmodule Medishop.Shop.CartItem do
   end
 
   actions do
-    defaults [:read, :destroy]
+    read :read do
+      primary? true
+    end
+
+    destroy :destroy do
+      primary? true
+      change after_action(fn _changeset, result, _context ->
+        # Trigger cart total recalculation
+        {:ok, cart} = Medishop.Shop.get_cart(result.cart_id, load: [:cart_items, :voucher])
+        case Medishop.Shop.calculate_cart_totals(cart) do
+          {:ok, %{discount_total: new_discount_total, total: _new_total}} ->
+            Medishop.Shop.update_cart(cart, %{discount_total: new_discount_total})
+          _ ->
+            Medishop.Shop.update_cart(cart, %{discount_total: Decimal.new("0.00")})
+        end
+        {:ok, result}
+      end)
+    end
 
     create :create do
       primary? true
       accept [:cart_id, :product_id, :quantity, :price_at_addition]
+
+      change after_action(fn _changeset, result, _context ->
+        # Trigger cart total recalculation
+        {:ok, cart} = Medishop.Shop.get_cart(result.cart_id, load: [:cart_items, :voucher])
+        case Medishop.Shop.calculate_cart_totals(cart) do
+          {:ok, %{discount_total: new_discount_total, total: _new_total}} ->
+            Medishop.Shop.update_cart(cart, %{discount_total: new_discount_total})
+          _ ->
+            Medishop.Shop.update_cart(cart, %{discount_total: Decimal.new("0.00")})
+        end
+        {:ok, result}
+      end)
     end
 
     update :update do
       primary? true
+      require_atomic? false
       accept [:quantity]
+
+      change after_action(fn _changeset, result, _context ->
+        # Trigger cart total recalculation
+        {:ok, cart} = Medishop.Shop.get_cart(result.cart_id, load: [:cart_items, :voucher])
+        case Medishop.Shop.calculate_cart_totals(cart) do
+          {:ok, %{discount_total: new_discount_total, total: _new_total}} ->
+            Medishop.Shop.update_cart(cart, %{discount_total: new_discount_total})
+          _ ->
+            Medishop.Shop.update_cart(cart, %{discount_total: Decimal.new("0.00")})
+        end
+        {:ok, result}
+      end)
     end
 
     action :add_or_update do

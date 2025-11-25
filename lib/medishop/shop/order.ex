@@ -20,7 +20,7 @@ defmodule Medishop.Shop.Order do
 
     create :create do
       primary? true
-      accept [:location_id, :user_id, :status, :subtotal, :total, :notes]
+      accept [:location_id, :user_id, :status, :subtotal, :total, :notes, :voucher_id, :discount_total]
 
       change fn changeset, _context ->
         # Generate unique order number
@@ -124,8 +124,10 @@ defmodule Medishop.Shop.Order do
                   user_id: user_id,
                   status: :pending,
                   subtotal: subtotal,
-                  total: subtotal,
-                  notes: notes
+                  total: Decimal.sub(subtotal, cart.discount_total),
+                  notes: notes,
+                  voucher_id: cart.voucher_id,
+                  discount_total: cart.discount_total
                 })
 
               case order_result do
@@ -151,14 +153,26 @@ defmodule Medishop.Shop.Order do
 
                   case order_items_result do
                     {:ok, _order_items} ->
+                      # Create a VoucherRedemption if a voucher was applied
+                      if cart.voucher_id do
+                        {:ok, _redemption} = Medishop.Shop.create_voucher_redemption(%{
+                          order_id: order.id,
+                          voucher_id: cart.voucher_id,
+                          location_id: cart.location_id,
+                          user_id: user_id,
+                          discount_amount: cart.discount_total
+                        })
+                      end
+
                       # Clear the cart after successful order creation
-                      # For now, we'll delete all cart items
+                      # For now, we'll delete all cart items and clear voucher info
                       Enum.each(cart.cart_items, fn item ->
                         Medishop.Shop.remove_cart_item(item)
                       end)
+                      Medishop.Shop.update_cart(cart, %{voucher_id: nil, discount_total: Decimal.new("0.00")})
 
-                      # Return the order with items loaded
-                      Medishop.Shop.get_order(order.id, load: [:order_items])
+                      # Return the order with items and voucher loaded
+                      Medishop.Shop.get_order(order.id, load: [:order_items, :voucher])
 
                     {:error, error} ->
                       {:error, error}
@@ -199,6 +213,12 @@ defmodule Medishop.Shop.Order do
     uuid_primary_key :id
 
     attribute :order_number, :string do
+      allow_nil? false
+      public? true
+    end
+
+    attribute :discount_total, :decimal do
+      default Decimal.new("0.00")
       allow_nil? false
       public? true
     end
@@ -256,6 +276,11 @@ defmodule Medishop.Shop.Order do
 
     belongs_to :user, Medishop.Accounts.User do
       allow_nil? false
+      public? true
+    end
+
+    belongs_to :voucher, Medishop.Shop.Voucher do
+      allow_nil? true
       public? true
     end
 

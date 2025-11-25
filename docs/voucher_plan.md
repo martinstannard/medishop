@@ -69,14 +69,14 @@ Tracks usage history to enforce limits.
     *   Handles Product eligibility (only discount eligible items?).
     *   *Clarification needed on Tax logic.*
 
-### Phase 2: Cart Integration
+### Phase 2: Cart Integration ✅ COMPLETED
 
-4.  **Update Cart Resource:**
+4.  **Update Cart Resource:** ✅
     *   Add `applied_voucher_code` (string) or relationship to Voucher.
     *   Add `discount_total` (decimal) to Cart and Order.
-5.  **Cart Calculations:**
+5.  **Cart Calculations:** ✅
     *   Update `Shop.calculate_cart_totals` to subtract discount.
-6.  **Order Creation:**
+6.  **Order Creation:** ✅
     *   When converting Cart to Order, create a `VoucherRedemption` record.
     *   Snapshot the discount amount on the Order.
 
