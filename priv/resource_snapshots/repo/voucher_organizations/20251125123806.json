@@ -19,16 +19,16 @@
           "global": null,
           "strategy": null
         },
-        "name": "product_suppliers_product_id_fkey",
+        "name": "voucher_organizations_voucher_id_fkey",
         "on_delete": null,
         "on_update": null,
         "primary_key?": true,
         "schema": "public",
-        "table": "products"
+        "table": "vouchers"
       },
       "scale": null,
       "size": null,
-      "source": "product_id",
+      "source": "voucher_id",
       "type": "uuid"
     },
     {
@@ -50,16 +50,16 @@
           "global": null,
           "strategy": null
         },
-        "name": "product_suppliers_supplier_id_fkey",
+        "name": "voucher_organizations_organization_id_fkey",
         "on_delete": null,
         "on_update": null,
         "primary_key?": true,
         "schema": "public",
-        "table": "suppliers"
+        "table": "organizations"
       },
       "scale": null,
       "size": null,
-      "source": "supplier_id",
+      "source": "organization_id",
       "type": "uuid"
     }
   ],
@@ -68,7 +68,7 @@
   "custom_indexes": [],
   "custom_statements": [],
   "has_create_action": true,
-  "hash": "A5A40EB0F7AA0D7E3072F01D2F62F2423CDB110DD88594EACA0AF11249C79F4F",
+  "hash": "7A0C7D75C29142E125062BD7209CF0E0D7A0804A606CEE9D28ADAA3FE140C585",
   "identities": [],
   "multitenancy": {
     "attribute": null,
@@ -77,5 +77,5 @@
   },
   "repo": "Elixir.Medishop.Repo",
   "schema": null,
-  "table": "product_suppliers"
+  "table": "voucher_organizations"
 }

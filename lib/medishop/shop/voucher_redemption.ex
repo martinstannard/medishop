@@ -15,7 +15,12 @@ defmodule Medishop.Shop.VoucherRedemption do
   end
 
   actions do
-    defaults [:read, :destroy, :create, :update]
+    defaults [:read, :destroy, :update]
+
+    create :create do
+      primary? true
+      accept [:order_id, :voucher_id, :location_id, :user_id, :discount_amount, :redeemed_at]
+    end
   end
 
   attributes do

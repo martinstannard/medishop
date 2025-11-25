@@ -28,26 +28,30 @@ defmodule Medishop.Shop.Cart do
       require_atomic? false
       accept [:voucher_id, :discount_total]
 
-      change after_action(fn changeset, result, _context ->
-        # Only recalculate if voucher_id was changed or it was cleared
-        if Ash.Changeset.retrieve_set_attribute(changeset, :voucher_id) || Ash.Changeset.retrieve_set_attribute(changeset, :discount_total) do
-          # Load cart with items and voucher to calculate totals
-          case Medishop.Shop.get_cart(result.id, load: [:cart_items, :voucher]) do
-            {:ok, cart_with_relations} ->
-              case Medishop.Shop.calculate_cart_totals(cart_with_relations) do
-                {:ok, %{discount_total: new_discount_total}} ->
-                  # Update the cart itself with the new discount total
+      change after_action(fn _changeset, result, _context ->
+        # Always trigger recalculation on update
+        case Medishop.Shop.get_cart(result.id, load: [:cart_items, :voucher]) do
+          {:ok, cart_with_relations} ->
+            case Medishop.Shop.calculate_cart_totals(cart_with_relations) do
+              {:ok, %{discount_total: new_discount_total}} ->
+                # Update the cart itself with the new discount total
+                # Avoid infinite loop by checking if value is different
+                if Decimal.compare(result.discount_total, new_discount_total) != :eq do
                   Medishop.Shop.update_cart(result, %{discount_total: new_discount_total})
-                _ ->
-                  # If calculation fails or no voucher, ensure discount is 0
+                else
+                  {:ok, result}
+                end
+              _ ->
+                # If calculation fails or no voucher, ensure discount is 0
+                if Decimal.compare(result.discount_total, Decimal.new("0.00")) != :eq do
                   Medishop.Shop.update_cart(result, %{discount_total: Decimal.new("0.00")})
-              end
-            {:error, _} ->
-              # Handle error loading cart, ensure discount is 0
-              Medishop.Shop.update_cart(result, %{discount_total: Decimal.new("0.00")})
-          end
+                else
+                  {:ok, result}
+                end
+            end
+          {:error, _} ->
+            {:ok, result}
         end
-        {:ok, result}
       end)
     end
 

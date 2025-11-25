@@ -1,4 +1,4 @@
-defmodule Medishop.Repo.Migrations.AddVouchers do
+defmodule Medishop.Repo.Migrations.AddResources do
   @moduledoc """
   Updates resources based on their most recent snapshots.
 
@@ -154,9 +154,94 @@ defmodule Medishop.Repo.Migrations.AddVouchers do
           primary_key: true,
           null: false
     end
+
+    create table(:suppliers, primary_key: false) do
+      add :id, :uuid, null: false, default: fragment("gen_random_uuid()"), primary_key: true
+      add :name, :text, null: false
+      add :address, :text
+      add :sage_id, :text
+      add :contact_email, :text
+      add :contact_number, :text
+
+      add :created_at, :utc_datetime_usec,
+        null: false,
+        default: fragment("(now() AT TIME ZONE 'utc')")
+
+      add :updated_at, :utc_datetime_usec,
+        null: false,
+        default: fragment("(now() AT TIME ZONE 'utc')")
+    end
+
+    create table(:product_suppliers, primary_key: false) do
+      add :product_id,
+          references(:products,
+            column: :id,
+            name: "product_suppliers_product_id_fkey",
+            type: :uuid,
+            prefix: "public"
+          ),
+          primary_key: true,
+          null: false
+
+      add :supplier_id,
+          references(:suppliers,
+            column: :id,
+            name: "product_suppliers_supplier_id_fkey",
+            type: :uuid,
+            prefix: "public"
+          ),
+          primary_key: true,
+          null: false
+    end
+
+    alter table(:orders) do
+      add :discount_total, :decimal, null: false, default: "0.00"
+
+      add :voucher_id,
+          references(:vouchers,
+            column: :id,
+            name: "orders_voucher_id_fkey",
+            type: :uuid,
+            prefix: "public"
+          )
+    end
+
+    alter table(:carts) do
+      add :discount_total, :decimal, null: false, default: "0.00"
+
+      add :voucher_id,
+          references(:vouchers,
+            column: :id,
+            name: "carts_voucher_id_fkey",
+            type: :uuid,
+            prefix: "public"
+          )
+    end
   end
 
   def down do
+    drop constraint(:carts, "carts_voucher_id_fkey")
+
+    alter table(:carts) do
+      remove :voucher_id
+      remove :discount_total
+    end
+
+    drop constraint(:orders, "orders_voucher_id_fkey")
+
+    alter table(:orders) do
+      remove :voucher_id
+      remove :discount_total
+    end
+
+    drop constraint(:product_suppliers, "product_suppliers_product_id_fkey")
+
+    drop constraint(:product_suppliers, "product_suppliers_supplier_id_fkey")
+
+    drop table(:product_suppliers)
+
+    drop table(:suppliers)
+
     drop constraint(:voucher_locations, "voucher_locations_voucher_id_fkey")
 
     drop constraint(:voucher_locations, "voucher_locations_location_id_fkey")
