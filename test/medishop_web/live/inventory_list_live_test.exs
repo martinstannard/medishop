@@ -59,6 +59,22 @@ defmodule MedishopWeb.InventoryListLiveTest do
       assert has_element?(view, "a[href='/dashboard']", "Back to Dashboard")
     end
 
+    test "provides reconciliation links", %{conn: conn, location: location} do
+      {:ok, view, _html} = live(conn, ~p"/location/#{location.id}/inventory")
+
+      assert has_element?(
+               view,
+               "a[href='/location/#{location.id}/reconciliation/history']",
+               "Reconciliation History"
+             )
+
+      assert has_element?(
+               view,
+               "a[href='/location/#{location.id}/stock-take']",
+               "Stock Take"
+             )
+    end
+
     test "provides search input", %{conn: conn, location: location} do
       {:ok, view, _html} = live(conn, ~p"/location/#{location.id}/inventory")
 

@@ -310,7 +310,7 @@ defmodule Medishop.Inventory.ReconciliationItemTest do
 
     test "updates physical_quantity creating discrepancy without reason (draft state)" do
       # Start with no discrepancy, update to create one
-      item = reconciliation_item(system_quantity: 10, physical_quantity: 10) |> Ash.Generator.generate()
+      item = reconciliation_item(system_quantity: 10, physical_quantity: 10, adjustment_reason: nil) |> Ash.Generator.generate()
 
       # This should succeed now as we allow draft state
       assert {:ok, updated} =
