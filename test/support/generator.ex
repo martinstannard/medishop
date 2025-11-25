@@ -126,7 +126,9 @@ defmodule Medishop.Generator do
         title: sequence(:title, &"Test Product #{&1}"),
         images: [],
         price: Decimal.new("10.00"),
-        active: true
+        active: true,
+        unit_of_measure: :tablets,
+        storage_location: :cupboard
       ],
       overrides: overrides,
       authorize?: false
@@ -263,7 +265,7 @@ defmodule Medishop.Generator do
     product_id =
       overrides[:product_id] ||
         product() |> Ash.Generator.generate() |> Map.get(:id)
-    
+
     unit_price = overrides[:unit_price] || Decimal.new("10.00")
     quantity = overrides[:quantity] || 1
     line_total = overrides[:line_total] || Decimal.mult(unit_price, Decimal.new(quantity))
@@ -277,6 +279,57 @@ defmodule Medishop.Generator do
         quantity: quantity,
         unit_price: unit_price,
         line_total: line_total
+      ],
+      overrides: overrides,
+      authorize?: false
+    )
+  end
+
+  def stock_reconciliation(overrides \\ []) do
+    location_id =
+      overrides[:location_id] ||
+        location() |> Ash.Generator.generate() |> Map.get(:id)
+
+    Ash.Generator.changeset_generator(
+      Medishop.Inventory.StockReconciliation,
+      :create,
+      defaults: [
+        location_id: location_id,
+        notes: "Test reconciliation"
+      ],
+      overrides: overrides,
+      authorize?: false
+    )
+  end
+
+  def reconciliation_item(overrides \\ []) do
+    reconciliation_id =
+      overrides[:reconciliation_id] ||
+        stock_reconciliation() |> Ash.Generator.generate() |> Map.get(:id)
+
+    product_id =
+      overrides[:product_id] ||
+        product() |> Ash.Generator.generate() |> Map.get(:id)
+
+    # For location_inventory_id, we need a location_inventory record
+    # If reconciliation_id was generated, we have a location_id from that
+    # If provided, we don't know the location_id easily unless caller provides it
+    location_inventory_id =
+      overrides[:location_inventory_id] ||
+        location_inventory(product_id: product_id) |> Ash.Generator.generate() |> Map.get(:id)
+
+    system_quantity = overrides[:system_quantity] || 10
+    physical_quantity = overrides[:physical_quantity] || 10
+
+    Ash.Generator.changeset_generator(
+      Medishop.Inventory.ReconciliationItem,
+      :create,
+      defaults: [
+        reconciliation_id: reconciliation_id,
+        product_id: product_id,
+        location_inventory_id: location_inventory_id,
+        system_quantity: system_quantity,
+        physical_quantity: physical_quantity
       ],
       overrides: overrides,
       authorize?: false

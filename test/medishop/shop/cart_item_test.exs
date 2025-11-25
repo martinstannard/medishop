@@ -105,7 +105,7 @@ defmodule Medishop.Shop.CartItemTest do
       scenario = setup_shop_scenario(%{product_attrs: [price: Decimal.new("15.99")]})
       {:ok, cart} = Shop.create_cart(%{location_id: scenario.location.id})
 
-      cart_item = cart_item(cart_id: cart.id, product_id: scenario.product.id, quantity: 1, price_at_addition: scenario.product.price) |> Ash.Generator.generate()
+      cart_item(cart_id: cart.id, product_id: scenario.product.id, quantity: 1, price_at_addition: scenario.product.price) |> Ash.Generator.generate()
     end
 
     test "price_at_addition doesn't change if product price changes" do

@@ -4,6 +4,141 @@ This file tracks the high-level progress of work on the Medishop project. Update
 
 ---
 
+## 2025-11-24
+
+### Stock Reconciliation System - Phase 2: Business Logic ✅ COMPLETE
+
+**What was accomplished:**
+- **Automatic Adjustment Event Creation**: Complete workflow for reconciliation completion
+  - Added `after_action` hook to `complete_reconciliation` action
+  - Automatically processes all ReconciliationItems with discrepancies
+  - Creates InventoryEvent (type: `:adjustment`) for each discrepancy
+  - Links events back to ReconciliationItems via `inventory_event_id` field
+  - Sets `occurred_at` to reconciliation `completed_at` timestamp
+  - Formats adjustment reasons with optional notes (e.g., "Breakage: Found damaged units")
+  - Tracks reference: `reference_type="StockReconciliation"`, `reference_id=reconciliation.id`
+
+- **Helper Functions**: Two private functions in StockReconciliation resource
+  - `create_adjustment_events_for_reconciliation/2`:
+    - Loads all reconciliation items with their discrepancy calculations
+    - Filters to only items with discrepancies
+    - Creates inventory event for each
+    - Updates reconciliation item with created event ID
+    - Returns `{:ok, events}` or `{:error, reason}`
+  - `format_adjustment_reason/2`:
+    - Converts enum reason to human-readable string
+    - Appends optional notes when provided
+    - Examples: "Theft", "Other: Custom explanation"
+
+- **Integration Tests**: Comprehensive workflow testing (6 new tests, 359 total)
+  - Verifies events created for items with discrepancies
+  - Verifies multiple discrepancies handled in one reconciliation
+  - Verifies NO events created for items without discrepancies
+  - Verifies inventory quantities update correctly (aggregate recalculation)
+  - Verifies adjustment reason formatting with and without notes
+  - Verifies occurred_at timestamps match completed_at
+  - All tests passing ✅
+
+**Why This Matters:**
+- **Automatic Sync**: Physical stock takes automatically adjust digital ledger
+- **Complete Audit Trail**: Every adjustment traceable through event sourcing
+- **Regulatory Compliance**: Structured reasons, timestamps, and attribution for all changes
+- **Data Integrity**: Inventory quantities always reflect reconciliation results
+- **Operational Efficiency**: No manual adjustment entry required after stock take
+
+**Files Modified:**
+- `lib/medishop/inventory/stock_reconciliation.ex` - Added after_action hook and helper functions (88 new lines)
+- `test/medishop/inventory/reconciliation_workflow_test.exs` - 6 comprehensive integration tests (new file, 430 lines)
+
+**Technical Implementation:**
+- Uses Ash's `after_action` hook for post-completion processing
+- Leverages existing InventoryEvent resource and code interfaces
+- Maintains event sourcing architecture for audit trail
+- Actor context passed through for proper attribution
+- Error handling ensures atomic operations (all events or none)
+- Idempotent: status validation prevents duplicate event creation
+
+**Next Steps:**
+- Phase 3: UI implementation (stock take form, review screen, history)
+- Phase 4: LiveView testing and end-to-end validation
+
+---
+
+### Stock Reconciliation System - Phase 1: Data Model ✅ COMPLETE
+
+**What was accomplished:**
+- **Product Enhancements**: Extended Product resource with pharmacy-specific attributes for drugbook feature
+  - Added `unit_of_measure` (tablets, milliliters, vials, boxes, bottles, syringes)
+  - Added `storage_location` (cupboard, fridge, controlled_drugs_cabinet)
+  - Added `active_ingredient` and `strength` fields for drug reference
+  - Updated create/update actions to accept new attributes
+  - Updated test generator with sensible defaults
+
+- **StockReconciliation Resource**: Complete resource for tracking physical stock take sessions
+  - Status workflow with validation: `:in_progress` → `:completed` or `:cancelled`
+  - Automatic timestamp management (started_at on create, completed_at on complete/cancel)
+  - Statistics tracking (total_items_checked, total_discrepancies, total_adjustments_made)
+  - Duration calculation showing time elapsed
+  - AshEvents integration for automatic actor attribution
+  - Custom queries: by_location, by_status
+  - 9 code interface functions for clean API
+  - 25 comprehensive tests covering all actions and validations ✅
+
+- **ReconciliationItem Resource**: Individual product checks within reconciliation sessions
+  - Captures system_quantity and physical_quantity at time of reconciliation
+  - 8 structured adjustment reason categories for audit compliance:
+    - training_stock, breakage, expired, theft, count_error, system_error, spillage, other
+  - Validation: Adjustment reason required for discrepancies, notes required for "other"
+  - Calculations: discrepancy (physical - system), has_discrepancy boolean
+  - Unique constraint: One item per product per reconciliation
+  - Relationships to reconciliation, product, location_inventory, and inventory_event (for Phase 2)
+  - Custom queries: by_reconciliation, with_discrepancies
+  - 9 code interface functions for clean API
+  - 31 comprehensive tests covering all scenarios ✅
+
+- **Database Migrations**: Development migrations created and applied successfully
+  - Created `stock_reconciliations` table with proper indexes
+  - Created `reconciliation_items` table with foreign keys and unique constraint
+  - Altered `products` table to add 4 new columns
+  - All migrations applied with `--dev` flag for iterative development
+
+- **Test Coverage**: Added 56 new tests bringing total to 353 (100% passing) ✅
+  - StockReconciliation: 25 tests covering CRUD, state transitions, validations, calculations
+  - ReconciliationItem: 31 tests covering validations, calculations, relationships, queries
+  - Updated test generators with new reconciliation resources
+  - All existing tests continue to pass (no regressions)
+
+- **Documentation**: Created comprehensive implementation plan
+  - `docs/10-stock-reconciliation-plan.md`: 5-phase plan with detailed specifications
+  - Phase 1 marked as COMPLETE
+  - Phases 2-5 documented for future work
+
+**Why This Matters:**
+- Provides complete data foundation for regulatory-compliant stock reconciliation
+- Structured adjustment reasons ensure audit trail for discrepancies
+- Event-sourced architecture ready for automatic adjustment event creation (Phase 2)
+- Enables accurate inventory management critical for pharmacy operations
+
+**Files Created:**
+- `lib/medishop/inventory/stock_reconciliation.ex` - StockReconciliation resource
+- `lib/medishop/inventory/reconciliation_item.ex` - ReconciliationItem resource
+- `test/medishop/inventory/stock_reconciliation_test.exs` - 25 tests
+- `test/medishop/inventory/reconciliation_item_test.exs` - 31 tests
+- `priv/repo/migrations/20251124025227_migrate_resources3_dev.exs` - Database schema
+- `docs/10-stock-reconciliation-plan.md` - Implementation plan
+
+**Files Modified:**
+- `lib/medishop/products/product.ex` - Added 4 new attributes
+- `lib/medishop/inventory.ex` - Added 2 resources with 18 interface functions
+- `test/support/generator.ex` - Added/updated 3 generators
+
+**Next Steps:**
+- Phase 2: Business logic (reconciliation workflow, automatic adjustment event creation)
+- Phase 3: UI implementation (stock take interface, history, detail views)
+- Phase 4: Integration and LiveView testing
+
+---
+
 ## 2025-11-23
 
 ### Dashboard Improvements - Design & Usability ✅ COMPLETE

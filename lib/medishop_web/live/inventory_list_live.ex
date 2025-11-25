@@ -95,10 +95,22 @@ defmodule MedishopWeb.InventoryListLive do
             </div>
             <div class="flex gap-4">
               <.link
+                navigate={~p"/location/#{@location.id}/reconciliation/history"}
+                class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white dark:bg-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
+              >
+                Reconciliation History
+              </.link>
+              <.link
+                navigate={~p"/location/#{@location.id}/stock-take"}
+                class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+              >
+                Stock Take
+              </.link>
+              <.link
                 navigate={~p"/dashboard"}
                 class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white dark:bg-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
               >
-                ← Back to Dashboard
+                Back to Dashboard
               </.link>
             </div>
           </div>

@@ -20,13 +20,34 @@ defmodule Medishop.Products.Product do
 
     create :create do
       primary? true
-      accept [:sku, :title, :description, :images, :price, :active]
+      accept [
+        :sku,
+        :title,
+        :description,
+        :images,
+        :price,
+        :active,
+        :unit_of_measure,
+        :storage_location,
+        :active_ingredient,
+        :strength
+      ]
     end
 
     update :update do
       primary? true
       require_atomic? false
-      accept [:title, :description, :images, :price, :active]
+      accept [
+        :title,
+        :description,
+        :images,
+        :price,
+        :active,
+        :unit_of_measure,
+        :storage_location,
+        :active_ingredient,
+        :strength
+      ]
     end
 
     read :search do
@@ -119,6 +140,32 @@ defmodule Medishop.Products.Product do
     attribute :active, :boolean do
       description "Whether product is available for purchase"
       default true
+      public? true
+    end
+
+    attribute :unit_of_measure, :atom do
+      description "Unit of measure for this product"
+      allow_nil? true
+      public? true
+      constraints one_of: [:tablets, :milliliters, :vials, :boxes, :bottles, :syringes]
+    end
+
+    attribute :storage_location, :atom do
+      description "Storage location for this product"
+      allow_nil? true
+      public? true
+      constraints one_of: [:cupboard, :fridge, :controlled_drugs_cabinet]
+    end
+
+    attribute :active_ingredient, :string do
+      description "Active pharmaceutical ingredient (for drug reference)"
+      allow_nil? true
+      public? true
+    end
+
+    attribute :strength, :string do
+      description "Drug strength (e.g., '500mg', '10mg/mL')"
+      allow_nil? true
       public? true
     end
 
