@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2025-11-26
+
+### Added - Voucher System (Phase 3 & 4)
+- **Admin UI**:
+  - `VoucherLive.Index`: List view for managing vouchers.
+  - `VoucherLive.FormComponent`: Form for creating/updating vouchers with dynamic validation logic.
+  - Protected routes under `/admin/vouchers`.
+- **Storefront Integration**:
+  - `CartLive`: Added voucher code input, apply/remove logic, and granular error messaging.
+  - `Order`: Order creation now generates a negative `OrderItem` for the discount amount to ensure correct invoicing.
+  - `OrderConfirmationLive` & `OrderPDFController`: Updated to display discount line items correctly (handling non-product items).
+- **Bug Fixes**:
+  - Fixed `OrderItem` schema to allow optional `product_id` for special line items.
+  - Fixed "Invalid Voucher" generic error by providing specific rejection reasons.
+  - Fixed Flash message visibility issue in layout.
+  - Ensures Order creation is atomic using transactions.
+
 ## 2025-11-25
 
 ### Added - Voucher System (Phase 2)
@@ -876,4 +893,4 @@ All notable changes to this project will be documented in this file.
   - Added prominent section at top directing Claude instances to read `AGENTS.md` first
   - Enhanced LiveView Development section with references to detailed guidelines
   - Enhanced Testing section with references to comprehensive testing patterns
-  - Added reminder in Important Notes section
+  - Added reminder in Important Notes

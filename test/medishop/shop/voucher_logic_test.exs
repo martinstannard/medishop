@@ -5,34 +5,40 @@ defmodule Medishop.Shop.VoucherLogicTest do
   import Medishop.Generator
 
   describe "validate_voucher/3" do
-    test "returns error if voucher not found" do
-      assert {:error, :not_found} = Shop.validate_voucher("INVALID", nil, nil)
+    setup do
+      location = location() |> Ash.Generator.generate()
+      cart = cart(location_id: location.id) |> Ash.Generator.generate()
+      %{cart: cart}
     end
 
-    test "returns error if voucher expired" do
+    test "returns error if voucher not found", %{cart: cart} do
+      assert {:error, :not_found} = Shop.validate_voucher("INVALID", cart, nil)
+    end
+
+    test "returns error if voucher expired", %{cart: cart} do
       _voucher = voucher(
         code: "EXPIRED",
         start_date: ~D[2020-01-01],
         end_date: ~D[2020-01-31]
       ) |> Ash.Generator.generate() |> List.wrap() |> hd()
 
-      assert {:error, :expired} = Shop.validate_voucher("EXPIRED", nil, nil)
+      assert {:error, :expired} = Shop.validate_voucher("EXPIRED", cart, nil)
     end
 
-    test "returns error if voucher not active" do
+    test "returns error if voucher not active", %{cart: cart} do
       _voucher = voucher(
         code: "INACTIVE",
         active: false
       ) |> Ash.Generator.generate() |> List.wrap() |> hd()
 
-      assert {:error, :inactive} = Shop.validate_voucher("INACTIVE", nil, nil)
+      assert {:error, :inactive} = Shop.validate_voucher("INACTIVE", cart, nil)
     end
 
-    test "returns voucher if valid" do
+    test "returns voucher if valid", %{cart: cart} do
       voucher = voucher(code: "VALID") |> Ash.Generator.generate() |> List.wrap() |> hd()
       # We need to preload associations for full validation, but for basic check it returns voucher
       # The function signature will likely need context (cart, user)
-      assert {:ok, v} = Shop.validate_voucher("VALID", nil, nil)
+      assert {:ok, v} = Shop.validate_voucher("VALID", cart, nil)
       assert v.id == voucher.id
     end
   end

@@ -21,7 +21,7 @@ defmodule Medishop.Shop.OrderItem do
 
     create :create do
       primary? true
-      accept [:order_id, :product_id, :quantity, :unit_price, :line_total]
+      accept [:order_id, :product_id, :quantity, :unit_price, :line_total, :description]
     end
   end
 
@@ -35,9 +35,13 @@ defmodule Medishop.Shop.OrderItem do
   attributes do
     uuid_primary_key :id
 
+    attribute :description, :string do
+      public? true
+    end
+
     attribute :quantity, :integer do
       allow_nil? false
-      constraints min: 1
+      # Remove min constraint to allow for potential negative items or just standard items
       public? true
     end
 
@@ -62,7 +66,7 @@ defmodule Medishop.Shop.OrderItem do
     end
 
     belongs_to :product, Medishop.Products.Product do
-      allow_nil? false
+      allow_nil? true
       public? true
     end
   end

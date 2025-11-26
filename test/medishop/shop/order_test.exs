@@ -192,6 +192,37 @@ defmodule Medishop.Shop.OrderTest do
       {:ok, cart_with_items} = Shop.get_cart(cart.id, load: [:cart_items])
       assert cart_with_items.cart_items == []
     end
+    test "create_from_cart creates discount line item when voucher is applied" do
+      scenario = setup_shop_scenario(%{product_attrs: [price: Decimal.new("100.00")]})
+      
+      # Create voucher
+      voucher = voucher(code: "DISCOUNT10", discount_value: Decimal.new("10.00"), discount_type: :fixed) |> Ash.Generator.generate()
+      
+      {:ok, cart} = Shop.create_cart(%{location_id: scenario.location.id})
+      _item = cart_item(cart_id: cart.id, product_id: scenario.product.id, quantity: 1, price_at_addition: scenario.product.price) |> Ash.Generator.generate()
+      
+      # Apply voucher to cart
+      Shop.update_cart(cart, %{voucher_id: voucher.id})
+      
+      {:ok, order} = Shop.create_order_from_cart(cart.id, scenario.user.id)
+      
+      # Verify discount total on order
+      assert Decimal.eq?(order.discount_total, Decimal.new("10.00"))
+      assert Decimal.eq?(order.total, Decimal.new("90.00"))
+      
+      # Verify order items
+      {:ok, order_with_items} = Shop.get_order(order.id, load: [:order_items])
+      
+      # Should have 2 items: 1 product + 1 discount
+      assert length(order_with_items.order_items) == 2
+      
+      # Find discount item
+      discount_item = Enum.find(order_with_items.order_items, fn item -> item.description == "Voucher: DISCOUNT10" end)
+      
+      assert discount_item
+      assert discount_item.product_id == nil
+      assert Decimal.eq?(discount_item.line_total, Decimal.new("-10.00"))
+    end
   end
 
   describe "update_order_status/2" do

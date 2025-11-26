@@ -1,7 +1,8 @@
 # Implementation Plan: Voucher System
 
-**Status:** Draft
+**Status:** Completed
 **Created:** 2025-11-25
+**Completed:** 2025-11-26
 
 ## Overview
 Implement a comprehensive voucher and discount system based on the provided UI design. This system will allow Admins to create promotional codes with specific rules regarding eligibility, value, and usage limits, and allow Purchasers (Location Admins) to apply them in the cart.
@@ -80,20 +81,22 @@ Tracks usage history to enforce limits.
     *   When converting Cart to Order, create a `VoucherRedemption` record.
     *   Snapshot the discount amount on the Order.
 
-### Phase 3: Admin UI (Voucher Management)
+### Phase 3: Admin UI (Voucher Management) ✅ COMPLETED
 
 7.  **Voucher List:** View all vouchers.
+    *   Implemented `MedishopWeb.Admin.VoucherLive.Index`.
 8.  **Voucher Form:**
-    *   Implement the UI from the screenshot using Mishka components.
-    *   Handle dynamic form sections (Radio buttons toggling inputs).
-    *   Handle multi-selects for Organizations, Clinics, Products.
+    *   Implemented `MedishopWeb.Admin.VoucherLive.FormComponent` with dynamic fields.
+    *   Handled multi-selects for Organizations, Clinics, Products.
 
-### Phase 4: Storefront UI (Cart)
+### Phase 4: Storefront UI (Cart) ✅ COMPLETED
 
 9.  **Cart Input:**
-    *   Add "Promo Code" input field and "Apply" button to `CartLive`.
-    *   Display discount amount in the summary section.
-    *   Display error messages (e.g., "Code expired", "Min spend not met").
+    *   Added "Promo Code" input field and "Apply" button to `CartLive`.
+    *   Implemented discount display in cart summary.
+    *   Implemented specific error messages for invalid/expired/ineligible vouchers.
+    *   Updated `Medishop.Shop.Order` to create a negative `OrderItem` line item for the discount.
+    *   Updated `OrderConfirmationLive` and `OrderPDFController` to display discount line items properly.
 
 ## Clarifications & Assumptions
 
@@ -107,11 +110,11 @@ Tracks usage history to enforce limits.
 
 ## Testing Plan
 
-*   **Unit Tests:**
-    *   Test Voucher creation/validation.
-    *   Test `calculate_discount` with various scenarios (Percent, Fixed, Min requirements).
-    *   Test eligibility rules (Org mismatch, Location mismatch, Product mismatch).
-*   **Integration Tests:**
-    *   Test adding a valid voucher to a Cart.
-    *   Test converting Cart with Voucher to Order (Redemption creation).
-    *   Test usage limits (fail after N uses).
+*   **Unit Tests:** ✅
+    *   Test Voucher creation/validation (`voucher_test.exs`).
+    *   Test `calculate_discount` with various scenarios (`voucher_logic_test.exs`).
+    *   Test eligibility rules (`voucher_logic_test.exs`).
+*   **Integration Tests:** ✅
+    *   Test adding a valid voucher to a Cart (`cart_live_test.exs`).
+    *   Test converting Cart with Voucher to Order (`order_test.exs` - verifying discount line item).
+    *   Test usage limits (`cart_live_test.exs` & `voucher_logic_test.exs`).

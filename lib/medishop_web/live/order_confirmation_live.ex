@@ -107,8 +107,12 @@ defmodule MedishopWeb.OrderConfirmationLive do
             <tbody>
               <tr :for={item <- @order.order_items} data-testid={"order-item-#{item.id}"}>
                 <td>
-                  <div class="font-semibold">{item.product.title}</div>
-                  <div class="text-sm opacity-60">{item.product.sku}</div>
+                  <%= if item.product do %>
+                    <div class="font-semibold">{item.product.title}</div>
+                    <div class="text-sm opacity-60">{item.product.sku}</div>
+                  <% else %>
+                    <div class="font-semibold text-primary">{item.description}</div>
+                  <% end %>
                 </td>
                 <td class="text-right">${Decimal.to_string(item.unit_price, :normal)}</td>
                 <td class="text-center">{item.quantity}</td>

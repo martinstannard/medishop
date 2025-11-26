@@ -118,7 +118,7 @@ defmodule MedishopWeb.Layouts do
       </div>
     </main>
 
-    <.flash_group flash={@flash} />
+    <.flash_group flash={@flash} class="fixed top-2 right-0 z-[9999]" />
     """
   end
 
@@ -131,10 +131,11 @@ defmodule MedishopWeb.Layouts do
   """
   attr :flash, :map, required: true, doc: "the map of flash messages"
   attr :id, :string, default: "flash-group", doc: "the optional id of flash container"
+  attr :rest, :global
 
   def flash_group(assigns) do
     ~H"""
-    <div id={@id} aria-live="polite">
+    <div id={@id} aria-live="polite" {@rest}>
       <.flash kind={:info} flash={@flash} />
       <.flash kind={:error} flash={@flash} />
 

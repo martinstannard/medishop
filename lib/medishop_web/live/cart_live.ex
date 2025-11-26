@@ -15,14 +15,18 @@ defmodule MedishopWeb.CartLive do
         # Get or create cart for this location
         {:ok, cart} = Shop.get_or_create_cart_for_location(location_id)
 
-        # Load cart with items, product details, and line_total calculation
+        # Load cart with items, product details, and voucher
         {:ok, cart_with_items} =
-          Shop.get_cart(cart.id, load: [cart_items: [:product, :line_total]])
+          Shop.get_cart(cart.id, load: [cart_items: [:product, :line_total], voucher: []])
+
+        # Calculate totals
+        {:ok, totals} = Shop.calculate_cart_totals(cart_with_items)
 
         socket =
           socket
           |> assign(:location, location)
           |> assign(:cart, cart_with_items)
+          |> assign(:totals, totals)
           |> stream(:cart_items, cart_with_items.cart_items || [], dom_id: &"cart-item-#{&1.id}")
           |> assign(:page_title, "Shopping Cart - #{location.name}")
 
@@ -41,24 +45,20 @@ defmodule MedishopWeb.CartLive do
   def handle_event("update_quantity", %{"item_id" => item_id, "quantity" => quantity_str}, socket) do
     quantity = String.to_integer(quantity_str)
 
-    # First fetch the cart item, then update it
     case Shop.get_cart_item(item_id) do
       {:ok, cart_item} ->
         case Shop.update_cart_item(cart_item, %{quantity: quantity}) do
           {:ok, updated_item} ->
-            # Reload with product relationship and line_total calculation
             {:ok, item_with_product} =
               Shop.get_cart_item(updated_item.id, load: [:product, :line_total])
 
-            # Reload cart to get updated cart_items list for total calculation
-            cart = socket.assigns.cart
-
-            {:ok, cart_with_items} =
-              Shop.get_cart(cart.id, load: [cart_items: [:product, :line_total]])
+            cart = refresh_cart(socket.assigns.cart.id)
+            {:ok, totals} = Shop.calculate_cart_totals(cart)
 
             socket =
               socket
-              |> assign(:cart, cart_with_items)
+              |> assign(:cart, cart)
+              |> assign(:totals, totals)
               |> stream_insert(:cart_items, item_with_product)
 
             {:noreply, socket}
@@ -73,20 +73,17 @@ defmodule MedishopWeb.CartLive do
   end
 
   def handle_event("remove_item", %{"item_id" => item_id}, socket) do
-    # First fetch the cart item to get the struct
     case Shop.get_cart_item(item_id) do
       {:ok, cart_item} ->
         case Shop.remove_cart_item(cart_item) do
           :ok ->
-            # Reload cart to get updated cart_items list for total calculation
-            cart = socket.assigns.cart
-
-            {:ok, cart_with_items} =
-              Shop.get_cart(cart.id, load: [cart_items: [:product, :line_total]])
+            cart = refresh_cart(socket.assigns.cart.id)
+            {:ok, totals} = Shop.calculate_cart_totals(cart)
 
             socket =
               socket
-              |> assign(:cart, cart_with_items)
+              |> assign(:cart, cart)
+              |> assign(:totals, totals)
               |> stream_delete(:cart_items, cart_item)
               |> put_flash(:info, "Item removed from cart")
 
@@ -106,13 +103,13 @@ defmodule MedishopWeb.CartLive do
 
     case Shop.clear_cart(cart) do
       {:ok, cleared_cart} ->
-        # Reload cart to get updated cart_items list
-        {:ok, cart_with_items} =
-          Shop.get_cart(cleared_cart.id, load: [cart_items: [:product, :line_total]])
+        cart = refresh_cart(cleared_cart.id)
+        {:ok, totals} = Shop.calculate_cart_totals(cart)
 
         socket =
           socket
-          |> assign(:cart, cart_with_items)
+          |> assign(:cart, cart)
+          |> assign(:totals, totals)
           |> stream(:cart_items, [], reset: true)
           |> put_flash(:info, "Cart cleared successfully")
 
@@ -120,6 +117,76 @@ defmodule MedishopWeb.CartLive do
 
       {:error, _error} ->
         {:noreply, put_flash(socket, :error, "Failed to clear cart")}
+    end
+  end
+
+  def handle_event("apply_voucher", %{"code" => code}, socket) do
+    code = String.trim(code)
+    cart = socket.assigns.cart
+    user = socket.assigns.current_user
+
+    if code == "" do
+       {:noreply, put_flash(socket, :error, "Please enter a voucher code")}
+    else
+      case Shop.validate_voucher(code, cart, user) do
+        {:ok, voucher} ->
+          case Shop.update_cart(cart, %{voucher_id: voucher.id}) do
+            {:ok, _updated_cart} ->
+              # Refresh to get recalculated totals
+              cart = refresh_cart(cart.id)
+              {:ok, totals} = Shop.calculate_cart_totals(cart)
+
+              socket =
+                socket
+                |> assign(:cart, cart)
+                |> assign(:totals, totals)
+                |> put_flash(:info, "Voucher '#{voucher.code}' applied!")
+
+              {:noreply, socket}
+
+            {:error, _} ->
+              {:noreply, put_flash(socket, :error, "Failed to apply voucher")}
+          end
+
+        {:error, reason} ->
+          msg = case reason do
+            :not_found -> "Voucher not found"
+            :inactive -> "Voucher is inactive"
+            :not_started -> "Voucher promotion has not started yet"
+            :expired -> "Voucher has expired"
+            :not_eligible_location -> "Voucher is not valid for this location"
+            :min_spend_not_met -> "Minimum spend requirement not met"
+            :min_quantity_not_met -> "Minimum quantity requirement not met"
+            :usage_limit_reached -> "Voucher usage limit reached"
+            :location_usage_limit_reached -> "Voucher usage limit reached for this location"
+            _ -> "Invalid voucher: #{inspect(reason)}"
+          end
+          {:noreply, put_flash(socket, :error, msg)}
+      end
+    end
+  end
+
+  def handle_event("remove_voucher", _params, socket) do
+    cart = socket.assigns.cart
+    
+    # Update cart with voucher_id: nil
+    # We must explicitly set it to nil. Ash might need special handling if it's not a nullable attribute but it is belongs_to allow_nil? true.
+    
+    case Shop.update_cart(cart, %{voucher_id: nil}) do
+      {:ok, _updated_cart} ->
+        cart = refresh_cart(cart.id)
+        {:ok, totals} = Shop.calculate_cart_totals(cart)
+
+        socket =
+          socket
+          |> assign(:cart, cart)
+          |> assign(:totals, totals)
+          |> put_flash(:info, "Voucher removed")
+
+        {:noreply, socket}
+
+      {:error, _} ->
+         {:noreply, put_flash(socket, :error, "Failed to remove voucher")}
     end
   end
 
@@ -235,7 +302,7 @@ defmodule MedishopWeb.CartLive do
             </div>
           </div>
 
-          <div class="flex items-center justify-between">
+          <div class="flex flex-col md:flex-row items-center justify-between gap-4">
             <button
               type="button"
               class="btn btn-ghost btn-sm gap-2"
@@ -246,7 +313,28 @@ defmodule MedishopWeb.CartLive do
               <.icon name="hero-trash" class="w-4 h-4" /> Clear Cart
             </button>
 
-            <div class="flex items-center gap-4">
+            <div class="flex flex-col items-end gap-4 w-full md:w-auto">
+              <div class="flex items-center gap-2 w-full justify-end">
+                <%= if @cart.voucher do %>
+                  <div class="badge badge-success gap-2 p-3">
+                    <span class="font-bold">{@cart.voucher.code}</span> Applied
+                    <button phx-click="remove_voucher" class="btn btn-xs btn-circle btn-ghost">
+                      <.icon name="hero-x-mark" class="w-4 h-4" />
+                    </button>
+                  </div>
+                <% else %>
+                  <form phx-submit="apply_voucher" class="join">
+                    <input
+                      type="text"
+                      name="code"
+                      class="input input-bordered input-sm join-item w-32"
+                      placeholder="Promo Code"
+                    />
+                    <button type="submit" class="btn btn-neutral btn-sm join-item">Apply</button>
+                  </form>
+                <% end %>
+              </div>
+            
               <.link
                 navigate={~p"/location/#{@location.id}/products"}
                 class="btn btn-ghost gap-2"
@@ -254,16 +342,28 @@ defmodule MedishopWeb.CartLive do
                 <.icon name="hero-magnifying-glass" class="w-5 h-5" /> Browse Products
               </.link>
 
-              <div class="text-right">
-                <div class="text-sm text-base-content/60">Total</div>
-                <div class="text-3xl font-bold text-primary">
-                  ${calculate_total(@cart.cart_items || [])}
+              <div class="text-right space-y-1">
+                <div class="flex justify-between gap-8 text-sm text-base-content/60">
+                  <span>Subtotal</span>
+                  <span>${Decimal.round(@totals.subtotal, 2) |> Decimal.to_string(:normal)}</span>
+                </div>
+                
+                <%= if Decimal.compare(@totals.discount_total, Decimal.new(0)) == :gt do %>
+                   <div class="flex justify-between gap-8 text-sm text-success font-semibold">
+                    <span>Discount</span>
+                    <span>-${Decimal.round(@totals.discount_total, 2) |> Decimal.to_string(:normal)}</span>
+                  </div>
+                <% end %>
+                
+                <div class="flex justify-between gap-8 text-3xl font-bold text-primary pt-2 border-t">
+                  <span>Total</span>
+                  <span>${Decimal.round(@totals.total, 2) |> Decimal.to_string(:normal)}</span>
                 </div>
               </div>
 
               <button
                 type="button"
-                class="btn btn-primary btn-lg gap-2"
+                class="btn btn-primary btn-lg gap-2 w-full md:w-auto"
                 phx-click="place_order"
                 data-testid="place-order-button"
               >
@@ -277,10 +377,14 @@ defmodule MedishopWeb.CartLive do
     """
   end
 
+  defp refresh_cart(cart_id) do
+    {:ok, cart} = Shop.get_cart(cart_id, load: [cart_items: [:product, :line_total], voucher: []])
+    cart
+  end
+
   # Private functions
 
   defp verify_buyer_access(user_id, location_id) do
-    # Get location with organization preloaded
     with {:ok, location} <- Organizations.get_location(location_id),
          {:ok, memberships} <- Organizations.get_memberships_for_user(user_id),
          true <- has_buyer_access?(memberships, location.organization_id) do
@@ -294,13 +398,5 @@ defmodule MedishopWeb.CartLive do
     Enum.any?(memberships, fn membership ->
       membership.organization_id == organization_id and :org_buyer in membership.org_roles
     end)
-  end
-
-  defp calculate_total(cart_items) do
-    cart_items
-    |> Enum.reduce(Decimal.new(0), fn item, acc ->
-      Decimal.add(acc, item.line_total)
-    end)
-    |> Decimal.to_string(:normal)
   end
 end

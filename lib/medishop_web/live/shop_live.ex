@@ -177,25 +177,6 @@ defmodule MedishopWeb.ShopLive do
     end
   end
 
-  def handle_event("place_order", _params, socket) do
-    cart = socket.assigns.cart
-    user = socket.assigns.current_user
-
-    case Shop.create_order_from_cart(cart.id, user.id) do
-      {:ok, order} ->
-        socket =
-          socket
-          |> put_flash(:info, "Order placed successfully!")
-          |> push_navigate(to: ~p"/orders/#{order.id}/confirmation")
-
-        {:noreply, socket}
-
-      {:error, _error} ->
-        socket = put_flash(socket, :error, "Failed to place order")
-        {:noreply, socket}
-    end
-  end
-
   defp verify_buyer_access(user_id, location_id) do
     # Get user's memberships with location access
     {:ok, memberships} = Organizations.get_memberships_for_user(user_id)
@@ -420,9 +401,9 @@ defmodule MedishopWeb.ShopLive do
 
             <%!-- Actions --%>
             <div class="space-y-2">
-              <button phx-click="place_order" class="btn btn-primary w-full">
-                <.icon name="hero-shopping-bag" class="w-5 h-5" /> Place Order
-              </button>
+              <.link navigate={~p"/location/#{@location.id}/cart"} class="btn btn-primary w-full">
+                <.icon name="hero-shopping-bag" class="w-5 h-5" /> Checkout
+              </.link>
               <button phx-click="clear_cart" class="btn btn-secondary w-full">
                 <.icon name="hero-trash" class="w-5 h-5" /> Clear Cart
               </button>

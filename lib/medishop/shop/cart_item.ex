@@ -22,6 +22,7 @@ defmodule Medishop.Shop.CartItem do
 
     destroy :destroy do
       primary? true
+      require_atomic? false
       change after_action(fn _changeset, result, _context ->
         # Trigger cart total recalculation
         {:ok, cart} = Medishop.Shop.get_cart(result.cart_id, load: [:cart_items, :voucher])

@@ -113,6 +113,18 @@ defmodule MedishopWeb.Router do
     end
   end
 
+  scope "/admin", MedishopWeb.Admin do
+    pipe_through :browser
+
+    ash_authentication_live_session :admin_routes,
+      on_mount: [{MedishopWeb.LiveUserAuth, :live_user_required}],
+      layout: {MedishopWeb.Layouts, :app} do
+      live "/vouchers", VoucherLive.Index, :index
+      live "/vouchers/new", VoucherLive.Index, :new
+      live "/vouchers/:id/edit", VoucherLive.Index, :edit
+    end
+  end
+
   if Application.compile_env(:medishop, :dev_routes) do
     import AshAdmin.Router
 

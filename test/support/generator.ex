@@ -190,7 +190,8 @@ defmodule Medishop.Generator do
       Medishop.Shop.Cart,
       :create,
       defaults: [
-        location_id: location_id
+        location_id: location_id,
+        voucher_id: nil
       ],
       overrides: overrides,
       authorize?: false
@@ -245,7 +246,8 @@ defmodule Medishop.Generator do
         user_id: user_id,
         status: :pending,
         subtotal: Decimal.new("100.00"),
-        total: Decimal.new("100.00")
+        total: Decimal.new("100.00"),
+        voucher_id: nil
       ],
       overrides: overrides,
       authorize?: false

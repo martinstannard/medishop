@@ -367,7 +367,11 @@ defmodule MedishopWeb.OrdersLive do
                     <%= for item <- order.order_items do %>
                       <div class="flex justify-between text-sm">
                         <span class="text-gray-700 dark:text-gray-300">
-                          {item.quantity}× {item.product.title}
+                          <%= if item.product do %>
+                            {item.quantity}× {item.product.title}
+                          <% else %>
+                            {item.quantity}× {item.description}
+                          <% end %>
                         </span>
                         <span class="font-medium text-gray-900 dark:text-white">
                           ${Decimal.to_string(item.line_total, :normal)}

@@ -208,8 +208,12 @@ defmodule MedishopWeb.OrderPDFController do
             #{Enum.map_join(order.order_items, fn item -> """
       <tr>
         <td>
+          #{if item.product do """
           <div style="font-weight: 500;">#{item.product.title}</div>
           <div style="font-size: 12px; color: #6b7280;">SKU: #{item.product.sku}</div>
+          """ else """
+          <div style="font-weight: 500;">#{item.description}</div>
+          """ end}
         </td>
         <td class="text-right">#{item.quantity}</td>
         <td class="text-right">$#{Decimal.to_string(item.unit_price, :normal)}</td>

@@ -127,19 +127,136 @@ defmodule Medishop.Shop do
     end
   end
 
-  def validate_voucher(code, _cart, _user) do
-    case get_voucher_by_code(code) do
+  require Ash.Query
+
+  def validate_voucher(code, cart, _user) do
+    case get_voucher_by_code(code, load: [:organizations, :locations]) do
       {:ok, voucher} ->
-        cond do
-          !voucher.active -> {:error, :inactive}
-          !is_nil(voucher.start_date) and Date.compare(voucher.start_date, Date.utc_today()) == :gt -> {:error, :not_started}
-          !is_nil(voucher.end_date) and Date.compare(voucher.end_date, Date.utc_today()) == :lt -> {:error, :expired}
-          true -> {:ok, voucher}
+        with :ok <- check_active(voucher),
+             :ok <- check_dates(voucher),
+             :ok <- check_eligibility(voucher, cart),
+             :ok <- check_requirements(voucher, cart),
+             :ok <- check_limits(voucher, cart) do
+          {:ok, voucher}
+        else
+          error -> error
         end
 
       {:error, _} ->
         {:error, :not_found}
     end
+  end
+
+  defp check_active(voucher) do
+    if voucher.active, do: :ok, else: {:error, :inactive}
+  end
+
+  defp check_dates(voucher) do
+    today = Date.utc_today()
+
+    cond do
+      voucher.start_date && Date.compare(voucher.start_date, today) == :gt -> {:error, :not_started}
+      voucher.end_date && Date.compare(voucher.end_date, today) == :lt -> {:error, :expired}
+      true -> :ok
+    end
+  end
+
+  defp check_eligibility(voucher, cart) do
+    # Check Organization/Location whitelist
+    # If list is empty, it means ALL are allowed.
+    
+    {:ok, location} = Medishop.Organizations.get_location(cart.location_id)
+
+    loc_check =
+      if Enum.empty?(voucher.locations) do
+        true
+      else
+        Enum.any?(voucher.locations, fn l -> l.id == location.id end)
+      end
+
+    org_check =
+      if Enum.empty?(voucher.organizations) do
+        true
+      else
+        Enum.any?(voucher.organizations, fn o -> o.id == location.organization_id end)
+      end
+
+    if loc_check and org_check do
+      :ok
+    else
+      {:error, :not_eligible_location}
+    end
+  end
+
+  defp check_requirements(voucher, cart) do
+    case voucher.min_purchase_type do
+      :none ->
+        :ok
+
+      :amount ->
+        subtotal = calculate_subtotal(cart)
+
+        if Decimal.compare(subtotal, voucher.min_purchase_value) != :lt do
+          :ok
+        else
+          {:error, :min_spend_not_met}
+        end
+
+      :quantity ->
+        total_qty = Enum.reduce(cart.cart_items, 0, &(&1.quantity + &2))
+
+        if total_qty >= Decimal.to_integer(voucher.min_purchase_value) do
+          :ok
+        else
+          {:error, :min_quantity_not_met}
+        end
+    end
+  end
+
+  defp check_limits(voucher, cart) do
+    if voucher.usage_limit_total do
+      count = count_redemptions(voucher.id)
+
+      if count >= voucher.usage_limit_total do
+        {:error, :usage_limit_reached}
+      else
+        check_location_limit(voucher, cart)
+      end
+    else
+      check_location_limit(voucher, cart)
+    end
+  end
+
+  defp check_location_limit(voucher, cart) do
+    if voucher.usage_limit_per_location do
+      count = count_redemptions(voucher.id, cart.location_id)
+
+      if count >= voucher.usage_limit_per_location do
+        {:error, :location_usage_limit_reached}
+      else
+        :ok
+      end
+    else
+      :ok
+    end
+  end
+
+  defp count_redemptions(voucher_id) do
+    Medishop.Shop.VoucherRedemption
+    |> Ash.Query.filter(voucher_id == ^voucher_id)
+    |> Ash.count!()
+  end
+
+  defp count_redemptions(voucher_id, location_id) do
+    Medishop.Shop.VoucherRedemption
+    |> Ash.Query.filter(voucher_id == ^voucher_id and location_id == ^location_id)
+    |> Ash.count!()
+  end
+
+  defp calculate_subtotal(cart) do
+    Enum.reduce(cart.cart_items, Decimal.new(0), fn item, acc ->
+      Decimal.add(acc, Decimal.mult(Decimal.new(item.quantity), item.price_at_addition))
+    end)
   end
 
   def calculate_discount(voucher, cart) do
