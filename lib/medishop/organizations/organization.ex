@@ -27,7 +27,8 @@ defmodule Medishop.Organizations.Organization do
         :is_test_organization,
         :invoice_email,
         :billing_address,
-        :tax_id
+        :tax_id,
+        :stripe_customer_id
       ]
     end
 
@@ -41,7 +42,8 @@ defmodule Medishop.Organizations.Organization do
         :is_test_organization,
         :invoice_email,
         :billing_address,
-        :tax_id
+        :tax_id,
+        :stripe_customer_id
       ]
     end
   end
@@ -87,6 +89,12 @@ defmodule Medishop.Organizations.Organization do
     attribute :tax_id, :string do
       allow_nil? true
       public? true
+    end
+
+    attribute :stripe_customer_id, :string do
+      allow_nil? true
+      public? true
+      description "The ID of the corresponding Stripe Customer object."
     end
 
     create_timestamp :created_at

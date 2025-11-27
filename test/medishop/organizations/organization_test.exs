@@ -45,6 +45,27 @@ defmodule Medishop.Organizations.OrganizationTest do
       assert organization.active == false
       assert organization.is_test_organization == false
     end
+
+    test "creates and updates organization with stripe_customer_id" do
+      attrs = %{
+        name: "Stripe Org",
+        stripe_customer_id: "cus_test_123"
+      }
+
+      assert {:ok, organization} =
+               Organization
+               |> Ash.Changeset.for_create(:create, attrs)
+               |> Ash.create()
+
+      assert organization.stripe_customer_id == "cus_test_123"
+
+      assert {:ok, updated_organization} =
+               organization
+               |> Ash.Changeset.for_update(:update, %{stripe_customer_id: "cus_test_456"})
+               |> Ash.update()
+
+      assert updated_organization.stripe_customer_id == "cus_test_456"
+    end
   end
 
   describe "read/0" do
