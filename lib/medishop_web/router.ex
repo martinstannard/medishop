@@ -27,10 +27,12 @@ defmodule MedishopWeb.Router do
     # PDF download route (needs authentication but not LiveView session)
     get "/orders/:id/pdf", OrderPDFController, :show
 
+    live "/", LandingLive, :index
+
     ash_authentication_live_session :authenticated_routes,
       on_mount: [{MedishopWeb.LiveUserAuth, :live_user_optional}],
       layout: {MedishopWeb.Layouts, :app} do
-      live "/", HomeLive, :index
+      live "/home", HomeLive, :index
       live "/dashboard", DashboardLive
       live "/location/:location_id/shop", ShopLive
       live "/location/:location_id/cart", CartLive
@@ -66,7 +68,6 @@ defmodule MedishopWeb.Router do
     sign_in_route register_path: "/register",
                   reset_path: "/reset",
                   auth_routes_prefix: "/auth",
-                  on_mount: [{MedishopWeb.LiveUserAuth, :live_no_user}],
                   overrides: [
                     MedishopWeb.AuthOverrides,
                     Elixir.AshAuthentication.Phoenix.Overrides.DaisyUI
