@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2025-11-27
+
+### Added
+- `stripe_customer_id` attribute to `Medishop.Organizations.Organization` resource
+  - Stores the Stripe Customer ID for an organization.
+  - Accepted in `create` and `update` actions.
+  - Includes test coverage for creation and update.
+
+### Fixed
+- Landing page authentication links
+  - Updated sign-in and register links to use correct verified routes (`~p"/sign-in"` and `~p"/register"`)
+  - Resolved issue where clicking links did nothing by removing `on_mount: [:live_no_user]` hook from `sign_in_route` in `lib/medishop_web/router.ex`.
+  - This prevented unwanted redirects to the landing page for authenticated users attempting to access authentication pages.
+  - Corrected test assertions to match the new routes
+
 ## 2025-11-26
 
 ### Added - Voucher System (Phase 3 & 4)
@@ -635,7 +650,13 @@ All notable changes to this project will be documented in this file.
 - Layout works as both Phoenix layout (@inner_content) and LiveView component (@inner_block)
 - All LiveViews in `ash_authentication_live_session` inherit app layout automatically
 
-### Added (earlier today)
+### Added
+- Landing page (`MedishopWeb.LandingLive`) at root route `/`
+  - Displays welcome message and sign-in/register links
+  - Moved existing `HomeLive` to `/home` (now an authenticated route)
+- Test coverage for `LandingLive` (`test/medishop_web/live/landing_live_test.exs`)
+  - Verifies welcome message and correct links
+
 
 ### Added
 - **LiveView Admin UI - Phase 5: Shopping Cart & Purchase Flow** (branch: `inventory`)

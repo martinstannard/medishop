@@ -1,3 +1,7 @@
+**Note**: This project uses [bd (beads)](https://github.com/steveyegge/beads)
+for issue tracking. Use `bd` commands instead of markdown TODOs.
+See AGENTS.md for workflow details.
+
 # CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
@@ -239,7 +243,7 @@ Medishop uses Ash Framework's domain-driven architecture:
 - Modified authentication flow to support admin users
 
 ### Fixed
-- Resolved issue with magic link emails not sending in development
+- Resolved issue with magic link email sending in development
 - Fixed navigation bar responsive layout on mobile devices
 
 ## 2025-11-20

@@ -35,3 +35,8 @@ medishop-*.tar
 npm-debug.log
 /assets/node_modules/
 
+# env files
+.envrc
+
+# gemini settings
+.gemini/settings.json
