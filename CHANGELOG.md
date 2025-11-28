@@ -2,13 +2,40 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2025-11-28
+
+### Fixed
+- **Test Suite Stabilization**
+  - Fixed `StripeServiceTest` failures by correctly mocking `Req` with `Req.Test` plug configuration in `config/test.exs` and updating assertions to match URL-encoded bodies and API error responses.
+  - Fixed `ProductsLiveTest` by ensuring proper cleanup of dependent resources (`LocationInventory`, `ProductSupplier`) before clearing products for empty state testing.
+  - Fixed `CartLiveTest` assertions to robustly handle HTML entity encoding in flash messages.
+  - Fixed `DashboardLiveTest` badge assertion to properly detect "Active" status.
+  - Fixed `VoucherLogicTest` by explicitly setting usage limits in test data generator to prevent random failures.
+  - All 380 tests are now passing ✅.
+
+- **Stripe Service**
+  - Updated `Medishop.StripeService.process_stripe_response/1` to correctly handle both raw binary bodies and pre-decoded Map bodies from `Req` responses.
+
 ## 2025-11-27
 
 ### Added
+- Implemented Stripe customer creation
+  - Added `Medishop.StripeService` to interact with the Stripe API.
+  - Added `:create_stripe_customer` action to `Medishop.Organizations.Organization` resource.
+  - Added test coverage for the new service and action.
+
 - `stripe_customer_id` attribute to `Medishop.Organizations.Organization` resource
   - Stores the Stripe Customer ID for an organization.
   - Accepted in `create` and `update` actions.
   - Includes test coverage for creation and update.
+
+- Confirmed existing `stripe_customer_id` attribute in `Medishop.Organizations.Organization` resource
+  - Attribute, create/update actions, and test coverage were already present.
+  - Closed `medishop-u68` as already implemented.
+
+- Configured Stripe test account in `config/dev.exs`
+  - Added `publishable_key` and `secret_key` for Stripe configuration.
+  - Keys are loaded from environment variables (`STRIPE_PUBLISHABLE_KEY`, `STRIPE_SECRET_KEY`) with placeholder fallbacks.
 
 ### Fixed
 - Landing page authentication links
