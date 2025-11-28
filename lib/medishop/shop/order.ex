@@ -104,113 +104,189 @@ defmodule Medishop.Shop.Order do
         user_id = input.arguments.user_id
         notes = input.arguments[:notes]
 
-        Medishop.Repo.transaction(fn ->
-          # Load cart with items and location
-          case Medishop.Shop.get_cart(cart_id, load: [:cart_items, :location]) do
-            {:ok, cart} ->
-              if Enum.empty?(cart.cart_items) do
-                Medishop.Repo.rollback("Cannot create order from empty cart")
-              else
-                # Calculate totals
-                subtotal =
-                  Enum.reduce(cart.cart_items, Decimal.new(0), fn item, acc ->
-                    line_total = Decimal.mult(item.price_at_addition, Decimal.new(item.quantity))
-                    Decimal.add(acc, line_total)
-                  end)
+        transaction_result =
+          Medishop.Repo.transaction(fn ->
+            # Load cart with items and location
+            case Medishop.Shop.get_cart(cart_id, load: [:cart_items, :location]) do
+              {:ok, cart} ->
+                if Enum.empty?(cart.cart_items) do
+                  Medishop.Repo.rollback("Cannot create order from empty cart")
+                else
+                  # Calculate totals
+                  subtotal =
+                    Enum.reduce(cart.cart_items, Decimal.new(0), fn item, acc ->
+                      line_total = Decimal.mult(item.price_at_addition, Decimal.new(item.quantity))
+                      Decimal.add(acc, line_total)
+                    end)
 
-                # Create order
-                order_result =
-                  Medishop.Shop.create_order(%{
-                    location_id: cart.location_id,
-                    user_id: user_id,
-                    status: :pending,
-                    subtotal: subtotal,
-                    total: Decimal.sub(subtotal, cart.discount_total),
-                    notes: notes,
-                    voucher_id: cart.voucher_id,
-                    discount_total: cart.discount_total
-                  })
+                  # Create order
+                  order_result =
+                    Medishop.Shop.create_order(
+                      %{
+                        location_id: cart.location_id,
+                        user_id: user_id,
+                        status: :pending,
+                        subtotal: subtotal,
+                        total: Decimal.sub(subtotal, cart.discount_total),
+                        notes: notes,
+                        voucher_id: cart.voucher_id,
+                        discount_total: cart.discount_total
+                      },
+                      return_notifications?: true
+                    )
 
-                case order_result do
-                  {:ok, order} ->
-                    # Create order items from cart items
-                    order_items_result =
-                      Enum.reduce_while(cart.cart_items, {:ok, []}, fn cart_item, {:ok, items} ->
-                        case Medishop.Shop.create_order_item(%{
-                               order_id: order.id,
-                               product_id: cart_item.product_id,
-                               quantity: cart_item.quantity,
-                               unit_price: cart_item.price_at_addition,
-                               line_total:
-                                 Decimal.mult(
-                                   cart_item.price_at_addition,
-                                   Decimal.new(cart_item.quantity)
-                                 )
-                             }) do
-                          {:ok, order_item} -> {:cont, {:ok, [order_item | items]}}
-                          {:error, error} -> {:halt, {:error, error}}
-                        end
-                      end)
+                  case order_result do
+                    {:ok, order, notifications} ->
+                      # Create order items from cart items
+                      # Accumulate notifications from each step
+                      order_items_result =
+                        Enum.reduce_while(
+                          cart.cart_items,
+                          {:ok, [], notifications},
+                          fn cart_item, {:ok, items, acc_notifications} ->
+                            case Medishop.Shop.create_order_item(
+                                   %{
+                                     order_id: order.id,
+                                     product_id: cart_item.product_id,
+                                     quantity: cart_item.quantity,
+                                     unit_price: cart_item.price_at_addition,
+                                     line_total:
+                                       Decimal.mult(
+                                         cart_item.price_at_addition,
+                                         Decimal.new(cart_item.quantity)
+                                       )
+                                   },
+                                   return_notifications?: true
+                                 ) do
+                              {:ok, order_item, item_notifications} ->
+                                {:cont,
+                                 {:ok, [order_item | items],
+                                  acc_notifications ++ item_notifications}}
 
-                    case order_items_result do
-                      {:ok, _order_items} ->
-                        # Create a VoucherRedemption if a voucher was applied
-                        if cart.voucher_id do
-                          # Reload voucher to get code
-                          {:ok, voucher} = Medishop.Shop.get_voucher(cart.voucher_id)
-                          
-                          # Create negative order item for discount
-                          discount_amount = cart.discount_total
-                          negative_amount = Decimal.negate(discount_amount)
-                          
-                          case Medishop.Shop.create_order_item(%{
-                            order_id: order.id,
-                            product_id: nil,
-                            description: "Voucher: #{voucher.code}",
-                            quantity: 1,
-                            unit_price: negative_amount,
-                            line_total: negative_amount
-                          }) do
-                            {:ok, _} -> :ok
-                            {:error, error} -> Medishop.Repo.rollback(error)
+                              {:error, error} ->
+                                {:halt, {:error, error}}
+                            end
                           end
-                          
-                          case Medishop.Shop.create_voucher_redemption(%{
-                            order_id: order.id,
-                            voucher_id: cart.voucher_id,
-                            location_id: cart.location_id,
-                            user_id: user_id,
-                            discount_amount: cart.discount_total
-                          }) do
-                            {:ok, _} -> :ok
-                            {:error, error} -> Medishop.Repo.rollback(error)
+                        )
+
+                      case order_items_result do
+                        {:ok, _order_items, current_notifications} ->
+                          # Handle voucher redemption
+                          voucher_result =
+                            if cart.voucher_id do
+                              # Reload voucher to get code
+                              {:ok, voucher} = Medishop.Shop.get_voucher(cart.voucher_id)
+
+                              # Create negative order item for discount
+                              discount_amount = cart.discount_total
+                              negative_amount = Decimal.negate(discount_amount)
+
+                              with {:ok, _, item_notifs} <-
+                                     Medishop.Shop.create_order_item(
+                                       %{
+                                         order_id: order.id,
+                                         product_id: nil,
+                                         description: "Voucher: #{voucher.code}",
+                                         quantity: 1,
+                                         unit_price: negative_amount,
+                                         line_total: negative_amount
+                                       },
+                                       return_notifications?: true
+                                     ),
+                                   {:ok, _, redemption_notifs} <-
+                                     Medishop.Shop.create_voucher_redemption(
+                                       %{
+                                         order_id: order.id,
+                                         voucher_id: cart.voucher_id,
+                                         location_id: cart.location_id,
+                                         user_id: user_id,
+                                         discount_amount: cart.discount_total
+                                       },
+                                       return_notifications?: true
+                                     ) do
+                                {:ok, current_notifications ++ item_notifs ++ redemption_notifs}
+                              else
+                                {:error, error} -> {:error, error}
+                              end
+                            else
+                              {:ok, current_notifications}
+                            end
+
+                          case voucher_result do
+                            {:ok, current_notifications} ->
+                              # Clear the cart after successful order creation
+                              # We'll delete all cart items and clear voucher info
+                              cart_items_result =
+                                Enum.reduce_while(
+                                  cart.cart_items,
+                                  {:ok, current_notifications},
+                                  fn item, {:ok, acc_notifs} ->
+                                    case Medishop.Shop.remove_cart_item(item,
+                                           return_notifications?: true
+                                         ) do
+                                      {:ok, destroy_notifs} ->
+                                        {:cont, {:ok, acc_notifs ++ destroy_notifs}}
+
+                                      {:error, error} ->
+                                        {:halt, {:error, error}}
+                                    end
+                                  end
+                                )
+
+                              case cart_items_result do
+                                {:ok, current_notifications} ->
+                                  case Medishop.Shop.update_cart(
+                                         cart,
+                                         %{
+                                           voucher_id: nil,
+                                           discount_total: Decimal.new("0.00")
+                                         },
+                                         return_notifications?: true
+                                       ) do
+                                    {:ok, _, update_notifs} ->
+                                      # Return the order with items and voucher loaded, AND all notifications
+                                      {:ok, order} =
+                                        Medishop.Shop.get_order(order.id,
+                                          load: [:order_items, :voucher]
+                                        )
+
+                                      {order, current_notifications ++ update_notifs}
+
+                                    {:error, error} ->
+                                      Medishop.Repo.rollback(error)
+                                  end
+
+                                {:error, error} ->
+                                  Medishop.Repo.rollback(error)
+                              end
+
+                            {:error, error} ->
+                              Medishop.Repo.rollback(error)
                           end
-                        end
 
-                        # Clear the cart after successful order creation
-                        # For now, we'll delete all cart items and clear voucher info
-                        Enum.each(cart.cart_items, fn item ->
-                          Medishop.Shop.remove_cart_item(item)
-                        end)
-                        Medishop.Shop.update_cart(cart, %{voucher_id: nil, discount_total: Decimal.new("0.00")})
+                        {:error, error} ->
+                          Medishop.Repo.rollback(error)
+                      end
 
-                        # Return the order with items and voucher loaded
-                        {:ok, order} = Medishop.Shop.get_order(order.id, load: [:order_items, :voucher])
-                        order
-
-                      {:error, error} ->
-                        Medishop.Repo.rollback(error)
-                    end
-
-                  {:error, error} ->
-                    Medishop.Repo.rollback(error)
+                    {:error, error} ->
+                      Medishop.Repo.rollback(error)
+                  end
                 end
-              end
 
-            {:error, error} ->
-              Medishop.Repo.rollback(error)
-          end
-        end)
+              {:error, error} ->
+                Medishop.Repo.rollback(error)
+            end
+          end)
+
+        case transaction_result do
+          {:ok, {order, notifications}} ->
+            # Send notifications now that transaction is committed
+            Ash.Notifier.notify(notifications)
+            {:ok, order}
+
+          {:error, error} ->
+            {:error, error}
+        end
       end
     end
 
