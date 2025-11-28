@@ -46,6 +46,27 @@ defmodule Medishop.Organizations.Organization do
         :stripe_customer_id
       ]
     end
+
+    update :create_stripe_customer do
+      require_atomic? false
+      change before_action(fn changeset, _context ->
+        if Ash.Changeset.get_data(changeset).stripe_customer_id do
+          Ash.Changeset.add_error(changeset, :stripe_customer_id, "Stripe customer ID is already set.")
+        else
+          organization_name = Ash.Changeset.get_data(changeset).name
+          organization_email = Ash.Changeset.get_data(changeset).invoice_email
+
+          customer_attrs = %{name: organization_name, email: organization_email}
+
+          case Medishop.StripeService.create_customer(customer_attrs) do
+            {:ok, %{"id" => stripe_customer_id}} ->
+              Ash.Changeset.set_attribute(changeset, :stripe_customer_id, stripe_customer_id)
+            {:error, reason} ->
+              Ash.Changeset.add_error(changeset, :stripe_customer_id, "Stripe customer creation failed: #{reason}")
+          end
+        end
+      end)
+    end
   end
 
   policies do
