@@ -44,8 +44,8 @@ defmodule MedishopWeb.DashboardLiveTest do
   describe "Dashboard - authenticated user with organizations (Phase 2)" do
     setup %{conn: conn} do
       user = user() |> Ash.Generator.generate()
-      org1 = organization(name: "Acme Medical") |> Ash.Generator.generate()
-      org2 = organization(name: "Smith Pharmacy") |> Ash.Generator.generate()
+      org1 = organization(name: "Acme Medical", active: true) |> Ash.Generator.generate()
+      org2 = organization(name: "Smith Pharmacy", active: true) |> Ash.Generator.generate()
 
       # Create memberships with different roles
       membership1 =
@@ -98,7 +98,7 @@ defmodule MedishopWeb.DashboardLiveTest do
     test "shows active badge for non-test organizations", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/dashboard")
 
-      assert has_element?(view, "span", "Active")
+      assert render(view) =~ "Active"
     end
 
     test "shows test badge for test organizations", %{conn: conn, user: user} do

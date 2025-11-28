@@ -53,6 +53,15 @@ defmodule MedishopWeb.ProductsLiveTest do
     end
 
     test "displays no products message when database is empty", %{conn: conn, location: location} do
+      # Delete dependent records first to avoid FK constraints
+      for i <- Ash.read!(Medishop.Inventory.LocationInventory), do: Ash.destroy!(i)
+      for s <- Ash.read!(Medishop.Products.ProductSupplier), do: Ash.destroy!(s)
+      
+      # Delete all products to ensure empty state for this test
+      for product <- Ash.read!(Medishop.Products.Product) do
+        Ash.destroy!(product)
+      end
+
       {:ok, view, _html} = live(conn, ~p"/location/#{location.id}/products")
 
       assert has_element?(view, "h2", "No products found")

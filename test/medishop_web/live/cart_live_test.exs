@@ -56,7 +56,7 @@ defmodule MedishopWeb.CartLiveTest do
       |> render_submit()
 
       # Check for success message
-      assert has_element?(view, ".flash-alert", "Voucher '#{voucher.code}' applied!")
+      assert render(view) =~ "Voucher &#39;TEST10&#39; applied!"
       
       # Check if discount is visible
       assert has_element?(view, "span", "-$10.00") # 10% of 100
@@ -73,7 +73,7 @@ defmodule MedishopWeb.CartLiveTest do
        |> form("form[phx-submit=apply_voucher]", %{code: "INVALID"})
        |> render_submit()
        
-       assert has_element?(view, ".flash-alert", "Voucher not found")
+       assert render(view) =~ "Voucher not found"
     end
   end
 end

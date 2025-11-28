@@ -35,7 +35,7 @@ defmodule Medishop.Shop.VoucherLogicTest do
     end
 
     test "returns voucher if valid", %{cart: cart} do
-      voucher = voucher(code: "VALID") |> Ash.Generator.generate() |> List.wrap() |> hd()
+      voucher = voucher(code: "VALID", usage_limit_per_location: nil, usage_limit_total: nil) |> Ash.Generator.generate() |> List.wrap() |> hd()
       # We need to preload associations for full validation, but for basic check it returns voucher
       # The function signature will likely need context (cart, user)
       assert {:ok, v} = Shop.validate_voucher("VALID", cart, nil)
