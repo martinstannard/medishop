@@ -45,6 +45,7 @@ defmodule MedishopWeb.Router do
       live "/location/:location_id/reconciliation/:id", ReconciliationDetailLive
       live "/location/:location_id/reconciliation/:id/review", ReconciliationReviewLive
       live "/orders/:order_id/confirmation", OrderConfirmationLive
+      live "/payment-methods", PaymentMethodsLive, :index
     end
   end
 
