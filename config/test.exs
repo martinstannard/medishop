@@ -38,3 +38,7 @@ config :phoenix, :plug_init_mode, :runtime
 # Enable helpful, but potentially expensive runtime checks
 config :phoenix_live_view,
   enable_expensive_runtime_checks: true
+
+# Use Req.Test mock for StripeService
+config :medishop, :stripe_req_options,
+  plug: {Req.Test, Medishop.StripeService}

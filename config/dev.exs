@@ -87,3 +87,8 @@ config :phoenix_live_view,
 
 # Disable swoosh api client as it is only required for production adapters.
 config :swoosh, :api_client, false
+
+# Configure Stripe Test Account
+config :medishop, :stripe,
+  publishable_key: System.get_env("STRIPE_PUBLISHABLE_KEY") || "pk_test_example_publishable_key",
+  secret_key: System.get_env("STRIPE_SECRET_KEY") || "sk_test_example_secret_key"

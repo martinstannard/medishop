@@ -26,6 +26,34 @@ import MishkaComponents from "../vendor/mishka_components.js";
 const csrfToken = document
   .querySelector("meta[name='csrf-token']")
   .getAttribute("content");
+
+const StripeHook = {
+  mounted() {
+    const stripe = Stripe(this.el.dataset.publishableKey);
+    const elements = stripe.elements();
+    const card = elements.create("card");
+    card.mount("#card-element");
+
+    this.el.addEventListener("submit", (e) => {
+      e.preventDefault();
+      stripe.confirmCardSetup(
+        this.el.dataset.clientSecret,
+        {
+          payment_method: {
+            card: card,
+          },
+        }
+      ).then((result) => {
+        if (result.error) {
+          this.pushEvent("stripe-error", { error: result.error.message });
+        } else {
+          this.pushEvent("stripe-success", { setup_intent: result.setupIntent });
+        }
+      });
+    });
+  }
+}
+
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: {
@@ -34,6 +62,7 @@ const liveSocket = new LiveSocket("/live", Socket, {
   hooks: {
     ...colocatedHooks,
     ...MishkaComponents,
+    StripeHook: StripeHook,
   },
 });
 // Show progress bar on live navigation and form submits
