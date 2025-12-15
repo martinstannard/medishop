@@ -1,5 +1,9 @@
 # GEMINI.md
 
+**Note**: This project uses [bd (beads)](https://github.com/steveyegge/beads)
+for issue tracking. Use `bd` commands instead of markdown TODOs.
+See AGENTS.md for workflow details.
+
 This file provides guidance to Gemini when working with code in this repository.
 
 ## Important: Read AGENTS.md First
@@ -549,3 +553,5 @@ end
 - Use `render_submit/2` and `render_change/2` for form testing
 - Read AGENTS.md "LiveView tests" section for detailed patterns and examples
 - Always update the changelog when committing
+
+

@@ -40,3 +40,8 @@ npm-debug.log
 
 # gemini settings
 .gemini/settings.json
+
+# Beads specific ignored files
+.beads/.local_version
+.beads/beads.db
+.beads/*.log
