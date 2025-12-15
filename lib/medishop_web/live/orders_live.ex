@@ -106,8 +106,7 @@ defmodule MedishopWeb.OrdersLive do
             error_message = case error do
               %{errors: errors} when is_list(errors) ->
                 errors
-                |> Enum.map(fn e -> e.message || "Unknown error" end)
-                |> Enum.join(", ")
+                |> Enum.map_join(", ", fn e -> e.message || "Unknown error" end)
               _ ->
                 "Failed to update order status"
             end

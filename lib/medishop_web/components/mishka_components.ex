@@ -1,4 +1,11 @@
 defmodule MedishopWeb.Components.MishkaComponents do
+  @moduledoc """
+  Entry point for importing all Mishka Chelekom UI components.
+
+  This module provides a `__using__` macro that imports all available components
+  from the Mishka Chelekom library, making them available in your views and components.
+  """
+
   defmacro __using__(_) do
     quote do
       import MedishopWeb.Components.Accordion, only: [accordion: 1]

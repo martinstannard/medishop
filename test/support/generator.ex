@@ -1,4 +1,5 @@
 defmodule Medishop.Generator do
+  @moduledoc false
   use Ash.Generator
 
   def user(overrides \\ []) do

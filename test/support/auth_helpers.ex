@@ -1,4 +1,5 @@
 defmodule MedishopWeb.AuthHelpers do
+  @moduledoc false
   import AshAuthentication.Plug.Helpers
   import Phoenix.ConnTest
 

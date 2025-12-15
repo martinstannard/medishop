@@ -124,7 +124,7 @@ defmodule MedishopWeb.Admin.VoucherLive.FormComponent do
                      type="checkbox"
                      name={@form[:organization_ids].name <> "[]"}
                      value={org.id}
-                     checked={is_selected?(org.id, @form[:organization_ids].value, @voucher.organizations)}
+                     checked={selected?(org.id, @form[:organization_ids].value, @voucher.organizations)}
                      class="checkbox checkbox-sm"
                    />
                    <span class="label-text">{org.name}</span>
@@ -142,7 +142,7 @@ defmodule MedishopWeb.Admin.VoucherLive.FormComponent do
                      type="checkbox"
                      name={@form[:location_ids].name <> "[]"}
                      value={loc.id}
-                     checked={is_selected?(loc.id, @form[:location_ids].value, @voucher.locations)}
+                     checked={selected?(loc.id, @form[:location_ids].value, @voucher.locations)}
                      class="checkbox checkbox-sm"
                    />
                    <span class="label-text">{loc.name}</span>
@@ -160,7 +160,7 @@ defmodule MedishopWeb.Admin.VoucherLive.FormComponent do
                      type="checkbox"
                      name={@form[:product_ids].name <> "[]"}
                      value={prod.id}
-                     checked={is_selected?(prod.id, @form[:product_ids].value, @voucher.products)}
+                     checked={selected?(prod.id, @form[:product_ids].value, @voucher.products)}
                      class="checkbox checkbox-sm"
                    />
                    <span class="label-text">{prod.title} ({prod.sku})</span>
@@ -260,7 +260,7 @@ defmodule MedishopWeb.Admin.VoucherLive.FormComponent do
 
   defp notify_parent(msg), do: send(self(), {__MODULE__, msg})
 
-  defp is_selected?(id, form_value, resource_list) do
+  defp selected?(id, form_value, resource_list) do
     id_str = to_string(id)
     
     # Check form value first (strings from params)

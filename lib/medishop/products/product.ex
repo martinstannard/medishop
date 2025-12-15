@@ -70,20 +70,20 @@ defmodule Medishop.Products.Product do
       argument :sort_order, :atom, allow_nil?: true, constraints: [one_of: [:asc, :desc]]
 
       filter expr(
-               if not is_nil(^arg(:title)) do
-                 contains(title, ^arg(:title))
-               else
+               if is_nil(^arg(:title)) do
                  true
+               else
+                 contains(title, ^arg(:title))
                end and
-                 if not is_nil(^arg(:sku)) do
+                 if is_nil(^arg(:sku)) do
+                   true
+                 else
                    sku == ^arg(:sku)
-                 else
-                   true
                  end and
-                 if not is_nil(^arg(:active)) do
-                   active == ^arg(:active)
-                 else
+                 if is_nil(^arg(:active)) do
                    true
+                 else
+                   active == ^arg(:active)
                  end
              )
 

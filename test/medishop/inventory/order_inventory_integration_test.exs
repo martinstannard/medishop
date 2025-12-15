@@ -61,7 +61,7 @@ defmodule Medishop.Inventory.OrderInventoryIntegrationTest do
       # Initially, no inventory events should exist for these products at this location
       {:ok, events_before} = Inventory.list_inventory_events()
       location_events_before = Enum.filter(events_before, &(&1.location_id == location.id))
-      assert length(location_events_before) == 0
+      assert Enum.empty?(location_events_before)
 
       # Mark order as delivered (must follow proper workflow)
       {:ok, order} = Shop.update_order_status(order, :confirmed)
@@ -176,7 +176,7 @@ defmodule Medishop.Inventory.OrderInventoryIntegrationTest do
       # No inventory events should be created
       {:ok, events} = Inventory.list_inventory_events()
       order_events = Enum.filter(events, &(&1.reference_id == order.id))
-      assert length(order_events) == 0
+      assert Enum.empty?(order_events)
 
       # Inventory should remain at 0
       {:ok, inv} =

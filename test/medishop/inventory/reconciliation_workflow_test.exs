@@ -211,7 +211,7 @@ defmodule Medishop.Inventory.ReconciliationWorkflowTest do
       adjustment_events =
         Enum.filter(events, fn event -> event.event_type == :adjustment end)
 
-      assert length(adjustment_events) == 0
+      assert Enum.empty?(adjustment_events)
 
       # Verify the item was NOT updated with an event ID
       {:ok, updated_item} = Inventory.get_reconciliation_item(item.id)
