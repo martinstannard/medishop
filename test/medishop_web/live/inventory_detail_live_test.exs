@@ -490,11 +490,12 @@ defmodule MedishopWeb.InventoryDetailLiveTest do
       assert has_element?(view, "#event-#{administered_event.id}")
     end
 
-    test "displays empty message when filter returns no results", %{
+    test "filters to show only expired events and displays them", %{
       conn: conn,
       user: user,
       location: location,
-      product: product
+      product: product,
+      expired_event: expired_event
     } do
       # Only create one purchase event
       purchase_event = inventory_event(
@@ -520,7 +521,7 @@ defmodule MedishopWeb.InventoryDetailLiveTest do
       # Purchase event should no longer be visible
       refute html =~ "event-#{purchase_event.id}"
       # Should show a message about no events
-      assert html =~ "No"
+      assert has_element?(view, "#event-#{expired_event.id}")
     end
   end
 
