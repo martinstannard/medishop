@@ -214,6 +214,18 @@ defmodule MedishopWeb.ShopLive do
     end)
   end
 
+  defp random_generic_image(product_title) do
+    images = [
+      "/images/generic_white_pills_bottle.png",
+      "/images/generic_blue_white_capsules_blister.png",
+      "/images/generic_red_tablets_bottle.png",
+      "/images/generic_yellow_pills_blister.png"
+    ]
+
+    index = :erlang.phash2(product_title) |> rem(length(images))
+    Enum.at(images, index)
+  end
+
   def render(assigns) do
     ~H"""
     <div class="flex h-screen overflow-hidden bg-gray-50 dark:bg-slate-900">
@@ -257,23 +269,13 @@ defmodule MedishopWeb.ShopLive do
               id={dom_id}
               class="bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-200 dark:border-gray-600 overflow-hidden hover:shadow-lg transition-shadow"
             >
-              <%!-- Product Image or Gradient --%>
+              <%!-- Product Image --%>
               <div class="aspect-w-16 aspect-h-9 bg-gray-100 dark:bg-gray-700">
-                <%= if product.images != nil and length(product.images) > 0 do %>
-                  <img
-                    src={hd(product.images)}
-                    alt={product.title}
-                    class="w-full h-48 object-cover"
-                  />
-                <% else %>
-                  <div class="w-full h-48 flex items-center justify-center">
-                    <img
-                      src={ProductThumbnail.generate_thumbnail(product.title, product.sku)}
-                      alt={product.title}
-                      class="w-full h-full object-cover"
-                    />
-                  </div>
-                <% end %>
+                <img
+                  src={random_generic_image(product.title)}
+                  alt={product.title}
+                  class="w-full h-48 object-cover"
+                />
               </div>
 
               <%!-- Product Details --%>
